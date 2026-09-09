@@ -75,6 +75,8 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
         $routes->get('(:num)/(:num)/(:num)', 'DailyReport::grid/$1/$2/$3');   // rig_id/bulan/tahun
         $routes->get('tambah/(:num)/(:num)/(:num)', 'DailyReport::tambah/$1/$2/$3');
         $routes->post('simpan', 'DailyReport::simpan');
+        $routes->get('log-harian/(:num)/(:num)/(:num)', 'DailyReport::logHarian/$1/$2/$3');
+        $routes->post('simpan-log', 'DailyReport::simpanLog');
         $routes->get('edit/(:num)', 'DailyReport::edit/$1');
         $routes->post('update/(:num)', 'DailyReport::update/$1');
         $routes->post('hapus/(:num)', 'DailyReport::hapus/$1');

@@ -90,19 +90,28 @@ class RekapTahunan extends BaseController
             $nptData = json_decode(file_get_contents($jsonFile), true);
         }
 
+        $viewMode = $this->request->getGet('mode') ?: 'matriks';
         $activeMonth = (int)($this->request->getGet('bulan') ?? 1);
         if ($activeMonth < 1 || $activeMonth > 8) {
             $activeMonth = 1;
         }
 
-        $monthData = $nptData['months'][$activeMonth] ?? null;
+        $rigList = $nptData['rig_list'] ?? [];
+        $selectedRig = $this->request->getGet('rig') ?: ($rigList[0] ?? 'BMS 02');
+        $chronoEvents = $nptData['chronological_by_rig'][$selectedRig] ?? [];
+
+        $monthData = $nptData['months'][$activeMonth] ?? $nptData['months'][(string)$activeMonth] ?? null;
 
         $data = [
             'title'         => "Rekap NPT Tahun {$tahun} - Seluruh Rig",
             'page_title'    => "Rekapitulasi Downtime (NPT) Tahun {$tahun}",
-            'page_subtitle' => "Rekap NPT (SBWC & UNPAID) Rig BMS Periode 2026",
+            'page_subtitle' => "Rekap NPT (SBWC & UNPAID) Rig BMS Periode {$tahun}",
             'tahun'         => $tahun,
+            'viewMode'      => $viewMode,
             'activeMonth'   => $activeMonth,
+            'selectedRig'   => $selectedRig,
+            'rigList'       => $rigList,
+            'chronoEvents'  => $chronoEvents,
             'nptData'       => $nptData,
             'monthData'     => $monthData,
         ];

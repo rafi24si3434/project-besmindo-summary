@@ -3,7 +3,98 @@
 <?= $this->section('content') ?>
 <div class="space-y-6">
 
+    <!-- ═══ Panduan Alur Kerja Sistem ══════════════════════════════ -->
+    <div class="rounded-2xl overflow-hidden shadow-xl border border-blue-500/20 bg-gradient-to-br from-slate-800 via-slate-800 to-blue-950/40">
+        <div class="px-5 pt-4 pb-3 border-b border-blue-500/20 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-blue-500/20 border border-blue-500/30 flex items-center justify-center flex-shrink-0">
+                    <i class="fa-solid fa-route text-blue-400 text-sm"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-white">Panduan Alur Kerja Sistem</h3>
+                    <p class="text-[10px] text-blue-300/70">Ikuti 3 langkah ini setiap kali ada pekerjaan sumur baru</p>
+                </div>
+            </div>
+            <span class="hidden sm:flex items-center gap-1.5 text-[10px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-lg">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                Sistem Aktif
+            </span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-slate-700/60">
+
+            <!-- LANGKAH 1 -->
+            <a href="<?= base_url('daily-report') ?>" class="group flex items-start gap-4 p-4 hover:bg-blue-600/10 transition-colors">
+                <div class="flex-shrink-0 w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center group-hover:bg-emerald-500/25 transition-colors">
+                    <i class="fa-solid fa-file-waveform text-emerald-400 text-base"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="text-[10px] font-extrabold text-emerald-400 uppercase tracking-widest bg-emerald-500/10 px-2 py-0.5 rounded">Langkah 1</span>
+                    </div>
+                    <p class="text-sm font-bold text-white">Data Pekerjaan Sumur</p>
+                    <p class="text-[11px] text-slate-400 mt-0.5 leading-relaxed">Daftarkan setiap sumur yang dikerjakan rig: tanggal, lokasi, jarak, status pekerjaan.</p>
+                    <span class="inline-flex items-center gap-1 mt-2 text-[10px] font-semibold text-emerald-400 group-hover:gap-2 transition-all">
+                        Buka Halaman <i class="fa-solid fa-arrow-right text-[9px]"></i>
+                    </span>
+                </div>
+            </a>
+
+            <!-- LANGKAH 2 -->
+            <a href="<?= base_url('daily-report/log-harian/1/' . date('n') . '/' . date('Y')) ?>" class="group flex items-start gap-4 p-4 hover:bg-blue-600/10 transition-colors">
+                <div class="flex-shrink-0 w-10 h-10 rounded-xl bg-cyan-500/15 border border-cyan-500/25 flex items-center justify-center group-hover:bg-cyan-500/25 transition-colors">
+                    <i class="fa-solid fa-pen-nib text-cyan-400 text-base"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="text-[10px] font-extrabold text-cyan-400 uppercase tracking-widest bg-cyan-500/10 px-2 py-0.5 rounded">Langkah 2</span>
+                    </div>
+                    <p class="text-sm font-bold text-white">Log Harian Operasi</p>
+                    <p class="text-[11px] text-slate-400 mt-0.5 leading-relaxed">Catat jam MIRU, OPS, dan semua pos downtime setiap hari. Data otomatis sinkron ke rekap.</p>
+                    <span class="inline-flex items-center gap-1 mt-2 text-[10px] font-semibold text-cyan-400 group-hover:gap-2 transition-all">
+                        Buka Halaman <i class="fa-solid fa-arrow-right text-[9px]"></i>
+                    </span>
+                </div>
+            </a>
+
+            <!-- LANGKAH 3 -->
+            <a href="<?= base_url('npt') ?>" class="group flex items-start gap-4 p-4 hover:bg-blue-600/10 transition-colors">
+                <div class="flex-shrink-0 w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center group-hover:bg-amber-500/25 transition-colors">
+                    <i class="fa-solid fa-clock-rotate-left text-amber-400 text-base"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="text-[10px] font-extrabold text-amber-400 uppercase tracking-widest bg-amber-500/10 px-2 py-0.5 rounded">Langkah 3</span>
+                    </div>
+                    <p class="text-sm font-bold text-white">Input Jam Downtime (NPT)</p>
+                    <p class="text-[11px] text-slate-400 mt-0.5 leading-relaxed">Verifikasi atau koreksi jam downtime per kategori (SBWC/UNPAID) dalam format spreadsheet detail.</p>
+                    <span class="inline-flex items-center gap-1 mt-2 text-[10px] font-semibold text-amber-400 group-hover:gap-2 transition-all">
+                        Buka Halaman <i class="fa-solid fa-arrow-right text-[9px]"></i>
+                    </span>
+                </div>
+            </a>
+
+        </div>
+
+        <!-- Footer Hasil Rekap -->
+        <div class="px-5 py-2.5 bg-slate-900/50 border-t border-slate-700/50 flex flex-wrap items-center gap-3">
+            <span class="text-[10px] text-slate-500 font-medium">Data terinput otomatis masuk ke:</span>
+            <a href="<?= base_url('monthly-report') ?>" class="flex items-center gap-1.5 text-[10px] font-semibold text-purple-400 hover:text-purple-300 transition">
+                <i class="fa-solid fa-calendar-days text-[9px]"></i> Laporan Bulanan
+            </a>
+            <span class="text-slate-700">·</span>
+            <a href="<?= base_url('rekap-tahunan') ?>" class="flex items-center gap-1.5 text-[10px] font-semibold text-cyan-400 hover:text-cyan-300 transition">
+                <i class="fa-solid fa-chart-line text-[9px]"></i> Rekap Tahunan
+            </a>
+            <span class="text-slate-700">·</span>
+            <a href="<?= base_url('rekap-tahunan/npt/2026') ?>" class="flex items-center gap-1.5 text-[10px] font-semibold text-rose-400 hover:text-rose-300 transition">
+                <i class="fa-solid fa-business-time text-[9px]"></i> Rekap NPT Tahunan
+            </a>
+        </div>
+    </div>
+
     <!-- ═══ Filter Periode ═══════════════════════════════════ -->
+
     <div class="p-4 rounded-xl bg-slate-800/90 border border-slate-700 shadow flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-blue-600/20 text-blue-400 border border-blue-500/30 flex items-center justify-center flex-shrink-0">

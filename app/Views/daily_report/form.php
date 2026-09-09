@@ -127,10 +127,19 @@
                     </select>
                 </div>
 
-                <div class="sm:col-span-2">
-                    <label class="block text-xs font-bold text-slate-300 uppercase mb-1.5">Remark NPT / Catatan</label>
-                    <input type="text" name="remark" value="<?= old('remark', $report['remark'] ?? '') ?>" placeholder="Catatan khusus kendala/operasi sumur"
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 uppercase mb-1.5">Remark Umum / SBWC</label>
+                    <input type="text" name="remark" value="<?= old('remark', $report['remark'] ?? '') ?>" placeholder="Catatan kendala operasi umum/SBWC"
                         class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white text-xs focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-rose-400 uppercase mb-1.5 flex items-center gap-1.5">
+                        <i class="fa-solid fa-triangle-exclamation text-rose-400"></i>
+                        <span>Remark UNPAID (Sinkron ke NPT)</span>
+                    </label>
+                    <input type="text" name="remark_unpaid" value="<?= old('remark_unpaid', $report['remark_unpaid'] ?? '') ?>" placeholder="Cth: Unpaid 1 HR Pump Rusak, Part patah"
+                        class="w-full px-3 py-2 bg-slate-950 border border-rose-500/50 rounded-lg text-rose-200 text-xs focus:ring-2 focus:ring-rose-500 placeholder:text-slate-600">
                 </div>
             </div>
 

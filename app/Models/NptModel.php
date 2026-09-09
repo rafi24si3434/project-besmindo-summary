@@ -113,12 +113,18 @@ class NptModel extends Model
         $tpVal = $third_party_id ?? 'NULL';
 
         // Cek existing
-        $existing = $this->db->table('npt_harian')
+        $builder = $this->db->table('npt_harian')
             ->where('rig_id', $rig_id)
             ->where('tanggal', $tanggal)
-            ->where('kategori_id', $kategori_id)
-            ->where('third_party_id IS ' . ($third_party_id ? '' : 'NULL') . ($third_party_id ? '='. $third_party_id : ''), null, false)
-            ->get()->getRowArray();
+            ->where('kategori_id', $kategori_id);
+
+        if ($third_party_id === null) {
+            $builder->where('third_party_id IS NULL', null, false);
+        } else {
+            $builder->where('third_party_id', $third_party_id);
+        }
+
+        $existing = $builder->get()->getRowArray();
 
         if ($jam <= 0 && empty($remark)) {
             // Hapus jika jam = 0
@@ -207,5 +213,154 @@ class NptModel extends Model
             ->orderBy('nh.tanggal', 'ASC')
             ->orderBy('kd.urutan', 'ASC')
             ->get()->getResultArray();
+    }
+
+    /**
+     * SINKRONISASI DARI DAILY REPORT LOG KE NPT HARIAN
+     * Setiap baris daily_report_log di-sinkronkan ke pos NPT Harian.
+     * Remark UNPAID (atau remark_npt jika berisi unpaid) otomatis disematkan ke pos UNPAID di NPT.
+     */
+    public function syncFromDailyLog(int $rig_id, array $logRow): void
+    {
+        $tanggal = $logRow['tanggal'];
+        $remarkUnpaid = !empty($logRow['remark_unpaid']) ? trim($logRow['remark_unpaid']) : '';
+        if (empty($remarkUnpaid) && !empty($logRow['remark_npt'])) {
+            // Fallback jika remark_npt mengandung info unpaid/pump/rig dsb
+            $remarkUnpaid = trim($logRow['remark_npt']);
+        }
+        $remarkGeneral = !empty($logRow['remark_npt']) ? trim($logRow['remark_npt']) : null;
+
+        // Peta Kolom Log ke ID Kategori Downtime
+        $mapping = [
+            1  => [(float)($logRow['dt_rig'] ?? 0), $remarkUnpaid],        // Repaire Rig & Equipment (UNPAID)
+            2  => [(float)($logRow['dt_tool'] ?? 0), $remarkUnpaid],       // Personnel / Tool (UNPAID)
+            3  => [(float)($logRow['dt_rain'] ?? 0), $remarkGeneral],      // SWA Rain
+            4  => [(float)($logRow['dt_dry_road'] ?? 0), $remarkGeneral],  // Dry Road & Public Road
+            5  => [(float)($logRow['dt_dry_pad'] ?? 0), $remarkGeneral],   // Dry Well Pad
+            6  => [(float)($logRow['dt_daylight'] ?? 0), $remarkGeneral],  // WO Daylight
+            8  => [(float)($logRow['dt_phr_well'] ?? 0), $remarkGeneral],  // PHR Well & Accessories
+            11 => [(float)($logRow['dt_trans'] ?? 0), $remarkGeneral],     // SHARING Units Trans
+            12 => [(float)($logRow['dt_foam'] ?? 0), $remarkGeneral],      // Foam Unit
+            13 => [(float)($logRow['dt_phr_op'] ?? 0), $remarkGeneral],    // PHR Operator
+            14 => [(float)($logRow['dt_ce_pe'] ?? 0), $remarkGeneral],     // CE/PE
+            15 => [(float)($logRow['dt_shutdown'] ?? 0), $remarkGeneral],  // Shutdown / Idul Fitri
+        ];
+
+        foreach ($mapping as $kategoriId => [$jam, $remark]) {
+            if ($jam > 0 || !empty($remark)) {
+                $this->upsertNpt($rig_id, $tanggal, $kategoriId, null, $jam, $jam > 0 ? $remark : null);
+            }
+        }
+
+        // Pos 3rd Party (ID 10):
+        // Jika ada jam di dt_3rd_party, pastikan total di NPT tersinkron
+        $jam3rdParty = (float)($logRow['dt_3rd_party'] ?? 0);
+        if ($jam3rdParty > 0) {
+            // Cek apakah sudah ada input breakdown per 3rd party di NPT untuk tanggal ini
+            $existing3rd = $this->db->table('npt_harian')
+                ->where('rig_id', $rig_id)
+                ->where('tanggal', $tanggal)
+                ->where('kategori_id', 10)
+                ->where('third_party_id IS NOT NULL')
+                ->get()->getResultArray();
+
+            if (empty($existing3rd)) {
+                // Belum ada rincian per company, simpan total umum
+                $this->upsertNpt($rig_id, $tanggal, 10, null, $jam3rdParty, $remarkGeneral);
+            }
+        }
+    }
+
+    /**
+     * SINKRONISASI DARI DAILY REPORT RINGKAS KE NPT HARIAN
+     * Untuk sumur yang tidak memiliki rincian daily_report_log
+     */
+    public function syncFromDailyReportSummary(int $rig_id, array $report, array $dtInputs): void
+    {
+        $tanggal = !empty($report['tanggal_mulai']) 
+            ? $report['tanggal_mulai'] 
+            : sprintf('%04d-%02d-01', $report['tahun'], $report['bulan']);
+
+        $remarkUnpaid = !empty($report['remark_unpaid']) ? trim($report['remark_unpaid']) : '';
+        $remarkUmum = !empty($report['remark']) ? trim($report['remark']) : null;
+
+        foreach ($dtInputs as $kId => $jam) {
+            $jamVal = (float)$jam;
+            $kategoriId = (int)$kId;
+            $isUnpaid = in_array($kategoriId, [1, 2]);
+            $remarkToUse = $isUnpaid ? ($remarkUnpaid ?: $remarkUmum) : $remarkUmum;
+
+            if ($jamVal > 0) {
+                $this->upsertNpt($rig_id, $tanggal, $kategoriId, null, $jamVal, $remarkToUse);
+            }
+        }
+    }
+
+    /**
+     * SINKRONISASI BALIK DARI NPT KE DAILY REPORT DT & LOG
+     * Jika user mengedit di NPT Harian, otomatis update daily_report_dt & daily_report_log yang cocok
+     */
+    public function syncNptBackToDaily(int $rig_id, string $tanggal, int $kategori_id, float $jam, ?string $remark = null): void
+    {
+        // 1. Cek apakah ada daily_report_log untuk rig dan tanggal ini
+        $logRow = $this->db->table('daily_report_log drl')
+            ->select('drl.*, dr.rig_id')
+            ->join('daily_report dr', 'dr.id = drl.daily_report_id')
+            ->where('dr.rig_id', $rig_id)
+            ->where('drl.tanggal', $tanggal)
+            ->get()->getRowArray();
+
+        $kategoriColMap = [
+            1  => 'dt_rig',
+            2  => 'dt_tool',
+            3  => 'dt_rain',
+            4  => 'dt_dry_road',
+            5  => 'dt_dry_pad',
+            6  => 'dt_daylight',
+            8  => 'dt_phr_well',
+            10 => 'dt_3rd_party',
+            11 => 'dt_trans',
+            12 => 'dt_foam',
+            13 => 'dt_phr_op',
+            14 => 'dt_ce_pe',
+            15 => 'dt_shutdown',
+        ];
+
+        if ($logRow && isset($kategoriColMap[$kategori_id])) {
+            $colName = $kategoriColMap[$kategori_id];
+            $updateLog = [$colName => $jam];
+
+            // Jika UNPAID dan ada remark, update remark_unpaid
+            if (in_array($kategori_id, [1, 2]) && !empty($remark)) {
+                $updateLog['remark_unpaid'] = $remark;
+            }
+
+            // Recalculate total_dt dan total_hrs pada log
+            $totalDt = 0;
+            foreach ($kategoriColMap as $c) {
+                $val = ($c === $colName) ? $jam : (float)($logRow[$c] ?? 0);
+                $totalDt += $val;
+            }
+            $miru = (float)($logRow['miru_jam'] ?? 0);
+            $ops  = (float)($logRow['ops_jam'] ?? 0);
+            $updateLog['total_dt']  = $totalDt;
+            $updateLog['total_hrs'] = $miru + $ops + $totalDt;
+
+            $this->db->table('daily_report_log')->where('id', $logRow['id'])->update($updateLog);
+
+            // Perbarui subtotal pada daily_report parent
+            $parentReportId = $logRow['daily_report_id'];
+            $allLogs = $this->db->table('daily_report_log')->where('daily_report_id', $parentReportId)->get()->getResultArray();
+            $sumDt = 0; $sumMiru = 0; $sumOps = 0;
+            foreach ($allLogs as $al) {
+                $sumDt   += (float)$al['total_dt'];
+                $sumMiru += (float)$al['miru_jam'];
+                $sumOps  += (float)$al['ops_jam'];
+            }
+            $this->db->table('daily_report')->where('id', $parentReportId)->update([
+                'total_dt'  => $sumDt,
+                'total_jam' => $sumMiru + $sumOps + $sumDt,
+            ]);
+        }
     }
 }

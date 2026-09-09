@@ -12,7 +12,7 @@ class DailyReportModel extends Model
     protected $allowedFields = [
         'rig_id', 'lokasi_id', 'no_well', 'tanggal_mulai', 'tanggal_selesai',
         'jarak', 'miru_jam', 'ops_jam', 'total_dt', 'total_jam',
-        'status_job', 'remark', 'bulan', 'tahun', 'created_at'
+        'status_job', 'remark', 'remark_unpaid', 'bulan', 'tahun', 'created_at'
     ];
 
     public function getByRigBulanTahun(int $rig_id, int $bulan, int $tahun): array

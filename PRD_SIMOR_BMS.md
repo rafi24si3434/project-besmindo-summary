@@ -115,7 +115,7 @@ Sebelum SIMOR, pencatatan operasi rig BMS dilakukan sepenuhnya menggunakan **Mic
 ┌─────────────────────────────────────────────────┐
 │              PRESENTATION LAYER                  │
 │  Tailwind CSS + Alpine.js + Chart.js            │
-│  Font Awesome Icons + Google Fonts               │
+│  Font Awesom  e Icons + Google Fonts               │
 │  JetBrains Mono (angka) + Plus Jakarta Sans     │
 └──────────────────────┬──────────────────────────┘
                        │ HTTP
@@ -424,99 +424,45 @@ Tabel seluruh rig dengan kolom: Kode Rig, Total Well Job, MIRU, OPS, SBWC, UNPAI
 
 ---
 
-### 6.3 Modul Daily Report (Step 1 & 2)
+### 6.3 Modul Daily Report (Pusat Sentralisasi Log)
 
-#### 6.3.1 Step 1 — Matriks Pekerjaan Sumur
+#### 6.3.1 Matriks Pekerjaan Sumur
 **URL:** `/daily-report/{rig_id}/{bulan}/{tahun}`
 
 Halaman utama pencatatan per sumur per rig per periode.
 
 **Fitur:**
-- **5 KPI Cards** — Total Sumur (progress bar), Jam OPS (% porsi), Jam MIRU (% porsi), Total Downtime (% total), Tarif ODR Kontrak
+- **5 KPI Cards** � Total Sumur, Jam OPS, Jam MIRU, Total Downtime, Tarif ODR Kontrak.
 - **Toolbar Filter Interaktif:**
-  - Selector Rig, Bulan (dengan tombol ‹ ›), Tahun
-  - Live Search sumur/lokasi (dengan tombol × clear)
-  - Filter Status: Semua / Completed / Progress
-  - 3 View Mode: Ringkasan | Kartu Sumur | Matriks SYS
-  - Tombol Export Excel
-- **3-Step Workflow Guide** — Banner informatif di header menunjukkan alur Step 1→2→3
-- **View 1: Ringkasan (Default)** — Tabel compact (no horizontal scroll), kolom: No, Nama Lokasi, Tanggal Mulai, Jarak, MIRU, OPS, SBWC, UNPAID, Total, Status, Aksi
-- **Accordion Log Harian** — Klik baris sumur untuk expand/collapse rincian log per hari
-- **Tombol "Buka Semua Log" / "Tutup Semua"** di header tabel
-- **Quick Look Modal** — Klik icon 👁 untuk popup detail sumur tanpa navigasi halaman
-- **View 2: Kartu Sumur** — Grid card visual dengan distribution bar (MIRU/OPS/DT), badge status animasi
-- **View 3: Matriks SYS** — Tabel 24 kolom persis format Excel (MIRU, OPS, 11 pos SBWC, 2 pos UNPAID), dengan sticky header
+  - Selector Rig, Bulan, Tahun.
+  - Live Search sumur/lokasi.
+  - Filter Status: Semua / Completed / Progress.
+  - Tombol Export Excel komprehensif (Quick Export Bundle).
+- **Quick Well Creation (AJAX)** � Tambah sumur "Moving" baru langsung dari dropdown form tanpa perlu reload halaman.
 
-**Aksi:**
-- Tambah Sumur Baru (form `/daily-report/tambah/{rig_id}/{bulan}/{tahun}`)
-- Edit Sumur (`/daily-report/edit/{id}`)
-- Hapus Sumur (dengan konfirmasi)
-- Navigasi ke Log Harian
-- Navigasi ke Input NPT
-
-#### 6.3.2 Form Tambah / Edit Sumur
-**URL:** `/daily-report/tambah/{rig_id}/{bulan}/{tahun}` dan `/daily-report/edit/{id}`
-
-**Field:**
-- No Well (auto-increment, bisa diubah)
-- Location / Nama Sumur (dropdown dari master `lokasi`)
-- Distance/Jarak (KM)
-- Tanggal Mulai & Selesai
-- MIRU (jam) dengan kalkulasi live
-- OPS (jam) dengan kalkulasi live
-- Rincian Downtime per pos kategori (grid input semua kategori)
-- Total Hours (preview otomatis: MIRU + OPS + Total DT)
-- Status Job (JOB COMPLETED / ON PROGRESS)
-- Remark/Catatan
-
-**Formula Live (JavaScript):**
-```
-Total DT = Σ semua input kategori downtime
-Total Hours = MIRU + OPS + Total DT
-```
-
-#### 6.3.3 Step 2 — Log Harian Operasi
+#### 6.3.2 Unified Daily Log & The 24-Hour Balance Rule
 **URL:** `/daily-report/log-harian/{rig_id}/{bulan}/{tahun}`
 
-Input harian yang lebih granular — 1 baris = 1 hari. Setiap simpan otomatis menyinkron ke:
-- Tabel `daily_report` (update aggregate)
-- Tabel `npt_harian` (sinkronisasi downtime)
-- Tabel `monthly_summary` (recalculate KPI)
+Halaman sentralisasi operasi harian. Menggabungkan pengisian MIRU, OPS, dan seluruh downtime (NPT) dalam satu layar dinamis.
 
-**Field per hari:**
-- Tanggal (date picker)
-- Nomor Sumur (dropdown data sumur bulan ini)
-- MIRU (jam)
-- OPS (jam)
-- DT Rain, DT Road/Pad, DT Daylight, DT 3rd Party, DT Rig
-- Total DT (auto-sum)
-- Total Hours (auto-sum)
-- Remark NPT / Uraian
+**Fitur:**
+- **The 24-Hour Balance Rule** � Validasi ketat via Javascript. Tombol simpan akan mengunci (disable) dan menampilkan sisa/kelebihan jam sampai total (MIRU + OPS + NPT) tepat 24.0 jam.
+- **Form NPT Dinamis Terintegrasi** � 11 Pos SBWC, 2 Pos UNPAID, dan Breakdown 3rd Party (9 vendor) terintegrasi langsung di layar Daily Report.
+- **Auto-Sync 2 Arah** � Saat log disimpan, sistem otomatis menulis ke tabel `daily_report_log` dan melakukan sinkronisasi breakdown ke tabel `npt_harian` dalam satu transaksi.
 
 ---
 
-### 6.4 Modul NPT Harian (Step 3)
+### 6.4 Modul NPT (Read-Only Dashboard & Analisa)
 
 **URL:** `/npt/{rig_id}/{bulan}/{tahun}`
 
-Pencatatan jam downtime harian per kategori dalam format matriks kalender (baris = hari, kolom = kategori downtime).
+Dahulu merupakan form input yang berat, kini NPT Matrix telah di-upgrade menjadi dashboard analisa visual yang sangat ringan dan informatif.
 
 **Fitur:**
-- **Matriks Kalender** — Grid tanggal × kategori downtime (1–31 baris, 14+ kolom)
-- **Sinkronisasi dari Log Harian** — Angka yang sudah diinput di Log Harian tampil otomatis sebagai referensi
-- **Breakdown 3rd Party** — Khusus kategori 3rd Party, bisa diisi per perusahaan (BHI, HLS, WI, dll.)
-- **Remark per hari** — Untuk SBWC dan UNPAID secara terpisah
-- **Total per Kolom** — Total jam per kategori downtime di footer
-- **Total per Baris** — Total downtime per hari di kolom akhir
-- **Auto-sync ke Monthly Summary** — Saat simpan, KPI bulanan langsung dihitung ulang
-
-**Logika Simpan (Upsert):**
-```
-INSERT INTO npt_harian ... ON DUPLICATE KEY UPDATE jam = VALUES(jam)
-```
-
-**Sinkronisasi Balik ke Daily Report Log:**
-Setiap perubahan NPT otomatis memperbarui field `dt_*` di tabel `daily_report_log` sesuai tanggal dan rig.
+- **Dashboard Read-Only** � Tidak ada lagi form input atau validasi yang memberatkan. Data NPT ditarik langsung dari sentralisasi Daily Report.
+- **Live Financial Impact Indicator** � Menampilkan metrik *Live Financial Loss* dan *Reliability Drop* secara instan saat pengguna melihat matriks, menghitung kerugian rupiah berdasarkan ODR rig.
+- **Smart Contextual Remark** � Remark UNPAID dan SBWC digabung menjadi satu kolom "Uraian Detail Kejadian" yang cerdas.
+- **Matriks Kalender** � Grid tanggal � kategori downtime (1�31 baris, 14+ kolom).
 
 ---
 
@@ -581,7 +527,7 @@ Memiliki 4 mode tampilan (tabs):
 
 ---
 
-### 6.7 Modul Master Data
+### 6.7 Pusat Master Data Terpadu
 
 Semua master data mendukung operasi CRUD lengkap:
 
@@ -993,19 +939,21 @@ Tersimpan di `brain/scratch/`:
 
 ## 16. Roadmap Pengembangan
 
-### Phase 1 — MVP ✅ (Selesai September 2026)
+### Phase 1 � MVP & Architectural Upgrades (Selesai September 2026)
 
 - [x] Autentikasi (login/logout)
-- [x] Master Data CRUD (Rig, Kategori, 3rd Party, Lokasi)
+- [x] Pusat Master Data Terpadu (Rig, Kategori, 3rd Party, Lokasi)
 - [x] Daily Report Step 1 (matriks sumur) + redesign UI
-- [x] Daily Report Step 2 (log harian)
-- [x] NPT Harian (matriks kalender + 3rd party breakdown)
+- [x] Daily Report Quick Well Creation (AJAX modal tanpa reload)
+- [x] UNIFIED DAILY LOG (The 24-Hour Balance Rule) � Sentralisasi form NPT ke dalam Daily Report
+- [x] 3rd Party Breakdown interaktif di dalam Daily Report
+- [x] NPT Harian Matrix Upgrade � Read-Only Dashboard dengan Live Financial Impact & Smart Contextual Remark
 - [x] Monthly Report (KPI otomatis)
 - [x] Rekap Tahunan KPI & NPT (4 mode view)
 - [x] Dashboard dengan Chart.js
-- [x] Export Excel (semua jenis laporan, format SYS)
+- [x] Export Excel komprehensif (Quick Export Bundle, format SYS)
 - [x] Import data historis 2026 (4,849 sumur, 5,460 logs, 3,392 NPT)
-- [x] Sinkronisasi bidireksional Daily Log ↔ NPT Harian
+- [x] Sinkronisasi otomatis 2-arah Log Harian <-> NPT Harian
 
 ### Phase 2 — Enhancement (Q4 2026)
 

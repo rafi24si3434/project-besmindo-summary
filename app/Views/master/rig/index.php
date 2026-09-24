@@ -1,61 +1,68 @@
 <?= $this->extend('layout/main') ?>
 
 <?= $this->section('content') ?>
-<div class="space-y-6">
-    <!-- Header Action Bar -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-slate-800/80 border border-slate-700/70 shadow-lg">
+<div class="ui-screen space-y-4">
+
+    <!-- Section Header -->
+    <div class="ui-section-header">
         <div>
-            <h3 class="text-base font-semibold text-white">Data Armada Rig Besmindo</h3>
-            <p class="text-xs text-slate-400">Total terdaftar 18 unit armada rig beserta nilai Operator Daily Rate (ODR)</p>
+            <h3 class="ui-section-title">Data Armada Rig Besmindo</h3>
+            <p class="ui-section-sub">Total terdaftar 18 unit armada rig beserta nilai Operator Daily Rate (ODR)</p>
         </div>
-        <a href="<?= base_url('master/rig/tambah') ?>" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs rounded-xl shadow-md shadow-blue-500/20 transition flex items-center justify-center gap-2">
+        <a href="<?= base_url('master/rig/tambah') ?>"
+            class="inline-flex items-center gap-2 px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs rounded-md shadow transition">
             <i class="fa-solid fa-plus text-xs"></i>
-            <span>Tambah Rig Baru</span>
+            Tambah Rig Baru
         </a>
     </div>
 
     <!-- Table Card -->
-    <div class="rounded-2xl bg-slate-800/80 border border-slate-700/80 shadow-lg overflow-hidden">
+    <div class="ui-card">
         <div class="overflow-x-auto custom-scrollbar">
-            <table class="w-full text-left text-xs">
-                <thead class="bg-slate-900/90 text-slate-300 font-semibold uppercase tracking-wider text-[10px] border-b border-slate-700">
+            <table class="w-full text-left">
+                <thead>
                     <tr>
-                        <th class="py-3 px-4 w-12 text-center">No</th>
-                        <th class="py-3 px-4">Kode Rig</th>
-                        <th class="py-3 px-4">Nama Rig</th>
-                        <th class="py-3 px-4 text-right">Tarif Harian (ODR)</th>
-                        <th class="py-3 px-4 text-center">Status</th>
-                        <th class="py-3 px-4 text-center w-28">Aksi</th>
+                        <th class="text-center w-12">No</th>
+                        <th>Kode Rig</th>
+                        <th>Nama Rig</th>
+                        <th class="text-right">Tarif Harian (ODR)</th>
+                        <th class="text-center">Status</th>
+                        <th class="text-center w-24">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-700/60 text-slate-300">
+                <tbody>
                     <?php $no = 1; foreach ($rigs as $r): ?>
-                    <tr class="hover:bg-slate-750/50 transition">
-                        <td class="py-3 px-4 text-center text-slate-400 font-mono"><?= $no++ ?></td>
-                        <td class="py-3 px-4 font-bold text-white"><?= esc($r['kode']) ?></td>
-                        <td class="py-3 px-4 text-slate-200"><?= esc($r['nama_rig']) ?></td>
-                        <td class="py-3 px-4 text-right font-mono font-medium text-emerald-400">
+                    <tr>
+                        <td class="text-center font-num" style="color:var(--muted-foreground)"><?= $no++ ?></td>
+                        <td class="font-bold" style="color:var(--foreground)"><?= esc($r['kode']) ?></td>
+                        <td style="color:var(--card-foreground)"><?= esc($r['nama_rig']) ?></td>
+                        <td class="text-right font-num font-semibold" style="color:var(--success-fg)">
                             Rp <?= number_format($r['odr'], 0, ',', '.') ?>
                         </td>
-                        <td class="py-3 px-4 text-center">
+                        <td class="text-center">
                             <?php if ($r['aktif']): ?>
-                                <span class="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                    Aktif
-                                </span>
+                                <span class="ui-badge ui-badge--success">Aktif</span>
                             <?php else: ?>
-                                <span class="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-slate-700/50 text-slate-400 border border-slate-600/40">
-                                    Nonaktif
-                                </span>
+                                <span class="ui-badge ui-badge--muted">Nonaktif</span>
                             <?php endif; ?>
                         </td>
-                        <td class="py-3 px-4 text-center">
+                        <td class="text-center">
                             <div class="flex items-center justify-center gap-1.5">
-                                <a href="<?= base_url('master/rig/edit/' . $r['id']) ?>" title="Edit" class="p-1.5 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-600 hover:text-white transition">
+                                <a href="<?= base_url('master/rig/edit/' . $r['id']) ?>" title="Edit"
+                                    class="inline-flex items-center justify-center w-7 h-7 rounded-md transition"
+                                    style="background:rgba(212,168,32,.1);color:var(--primary)"
+                                    onmouseover="this.style.background='var(--primary)';this.style.color='var(--primary-foreground)'"
+                                    onmouseout="this.style.background='rgba(212,168,32,.1)';this.style.color='var(--primary)'">
                                     <i class="fa-solid fa-pen-to-square text-xs"></i>
                                 </a>
-                                <form action="<?= base_url('master/rig/hapus/' . $r['id']) ?>" method="POST" onsubmit="return confirm('Hapus rig ini?');" class="inline">
+                                <form action="<?= base_url('master/rig/hapus/' . $r['id']) ?>" method="POST"
+                                    onsubmit="return confirm('Hapus rig ini?');" class="inline">
                                     <?= csrf_field() ?>
-                                    <button type="submit" title="Hapus" class="p-1.5 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-600 hover:text-white transition">
+                                    <button type="submit" title="Hapus"
+                                        class="inline-flex items-center justify-center w-7 h-7 rounded-md transition"
+                                        style="background:var(--danger-bg);color:var(--danger-fg)"
+                                        onmouseover="this.style.background='var(--destructive)';this.style.color='#fff'"
+                                        onmouseout="this.style.background='var(--danger-bg)';this.style.color='var(--danger-fg)'">
                                         <i class="fa-solid fa-trash text-xs"></i>
                                     </button>
                                 </form>

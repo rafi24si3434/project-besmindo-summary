@@ -80,42 +80,12 @@ class RekapTahunan extends BaseController
     }
 
     /**
-     * Rekap NPT Tahunan (matches exact layout of REKAP NPT TAHUN 2026 SYS.xlsx)
+     * Rekap NPT Tahunan (dialihkan ke Pusat NPT Terpadu /npt)
      */
     public function npt(int $tahun = 2026)
     {
-        $jsonFile = WRITEPATH . 'rekap_npt_2026.json';
-        $nptData = [];
-        if (file_exists($jsonFile)) {
-            $nptData = json_decode(file_get_contents($jsonFile), true);
-        }
-
-        $viewMode = $this->request->getGet('mode') ?: 'matriks';
-        $activeMonth = (int)($this->request->getGet('bulan') ?? 1);
-        if ($activeMonth < 1 || $activeMonth > 8) {
-            $activeMonth = 1;
-        }
-
-        $rigList = $nptData['rig_list'] ?? [];
-        $selectedRig = $this->request->getGet('rig') ?: ($rigList[0] ?? 'BMS 02');
-        $chronoEvents = $nptData['chronological_by_rig'][$selectedRig] ?? [];
-
-        $monthData = $nptData['months'][$activeMonth] ?? $nptData['months'][(string)$activeMonth] ?? null;
-
-        $data = [
-            'title'         => "Rekap NPT Tahun {$tahun} - Seluruh Rig",
-            'page_title'    => "Rekapitulasi Downtime (NPT) Tahun {$tahun}",
-            'page_subtitle' => "Rekap NPT (SBWC & UNPAID) Rig BMS Periode {$tahun}",
-            'tahun'         => $tahun,
-            'viewMode'      => $viewMode,
-            'activeMonth'   => $activeMonth,
-            'selectedRig'   => $selectedRig,
-            'rigList'       => $rigList,
-            'chronoEvents'  => $chronoEvents,
-            'nptData'       => $nptData,
-            'monthData'     => $monthData,
-        ];
-
-        return view('rekap_tahunan/view_npt', $data);
+        $bulan = (int)($this->request->getGet('bulan') ?? date('n'));
+        $tab = $this->request->getGet('mode') === 'kronologis' ? 'chrono' : 'tahunan';
+        return redirect()->to(base_url("npt?tab={$tab}&tahun={$tahun}&bulan={$bulan}"));
     }
 }

@@ -1,56 +1,70 @@
 <?= $this->extend('layout/main') ?>
 
 <?= $this->section('content') ?>
-<div class="space-y-6">
-    <!-- Header Action Bar -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-slate-800/80 border border-slate-700/70 shadow-lg">
+<div class="ui-screen space-y-4">
+
+    <div class="ui-section-header">
         <div>
-            <h3 class="text-base font-semibold text-white">Daftar Titik Lokasi Sumur Minyak</h3>
-            <p class="text-xs text-slate-400">Master penamaan sumur untuk pencatatan operasi harian rig (contoh: 5Q-69A, 6N-29A, dsb)</p>
+            <h3 class="ui-section-title">Daftar Titik Lokasi Sumur Minyak</h3>
+            <p class="ui-section-sub">Master penamaan sumur untuk pencatatan operasi harian rig (5Q-69A, 6N-29A, dll)</p>
         </div>
-        <a href="<?= base_url('master/lokasi/tambah') ?>" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs rounded-xl shadow-md shadow-blue-500/20 transition flex items-center justify-center gap-2">
+        <a href="<?= base_url('master/lokasi/tambah') ?>"
+            class="inline-flex items-center gap-2 px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs rounded-md shadow transition">
             <i class="fa-solid fa-plus text-xs"></i>
-            <span>Tambah Lokasi Baru</span>
+            Tambah Lokasi
         </a>
     </div>
 
-    <!-- Table Card -->
-    <div class="rounded-2xl bg-slate-800/80 border border-slate-700/80 shadow-lg overflow-hidden">
+    <div class="ui-card">
         <div class="overflow-x-auto custom-scrollbar">
-            <table class="w-full text-left text-xs">
-                <thead class="bg-slate-900/90 text-slate-300 font-semibold uppercase tracking-wider text-[10px] border-b border-slate-700">
+            <table class="w-full text-left">
+                <thead>
                     <tr>
-                        <th class="py-3 px-4 w-16 text-center">No</th>
-                        <th class="py-3 px-4">Nama / Tag Lokasi Sumur</th>
-                        <th class="py-3 px-4 text-center">Status</th>
-                        <th class="py-3 px-4 text-center w-28">Aksi</th>
+                        <th class="text-center w-14">No</th>
+                        <th>Nama / Tag Lokasi Sumur</th>
+                        <th class="text-center">Status</th>
+                        <th class="text-center w-24">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-700/60 text-slate-300">
+                <tbody>
                     <?php if (empty($lokasi)): ?>
                     <tr>
-                        <td colspan="4" class="py-6 text-center text-slate-400">Belum ada lokasi yang ditambahkan.</td>
+                        <td colspan="4" class="py-10 text-center" style="color:var(--muted-foreground)">
+                            <div class="flex flex-col items-center gap-2">
+                                <i class="fa-solid fa-location-dot text-2xl opacity-40"></i>
+                                <span>Belum ada lokasi yang ditambahkan</span>
+                            </div>
+                        </td>
                     </tr>
                     <?php else: ?>
                         <?php $no = 1; foreach ($lokasi as $l): ?>
-                        <tr class="hover:bg-slate-750/50 transition">
-                            <td class="py-3 px-4 text-center font-mono text-slate-400"><?= $no++ ?></td>
-                            <td class="py-3 px-4 font-semibold text-white"><?= esc($l['nama_lokasi']) ?></td>
-                            <td class="py-3 px-4 text-center">
+                        <tr>
+                            <td class="text-center font-num" style="color:var(--muted-foreground)"><?= $no++ ?></td>
+                            <td class="font-semibold" style="color:var(--foreground)"><?= esc($l['nama_lokasi']) ?></td>
+                            <td class="text-center">
                                 <?php if ($l['aktif']): ?>
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-400">Aktif</span>
+                                    <span class="ui-badge ui-badge--success">Aktif</span>
                                 <?php else: ?>
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-700/50 text-slate-400">Nonaktif</span>
+                                    <span class="ui-badge ui-badge--muted">Nonaktif</span>
                                 <?php endif; ?>
                             </td>
-                            <td class="py-3 px-4 text-center">
+                            <td class="text-center">
                                 <div class="flex items-center justify-center gap-1.5">
-                                    <a href="<?= base_url('master/lokasi/edit/' . $l['id']) ?>" title="Edit" class="p-1.5 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-600 hover:text-white transition">
+                                    <a href="<?= base_url('master/lokasi/edit/' . $l['id']) ?>" title="Edit"
+                                        class="inline-flex items-center justify-center w-7 h-7 rounded-md transition"
+                                        style="background:rgba(212,168,32,.1);color:var(--primary)"
+                                        onmouseover="this.style.background='var(--primary)';this.style.color='var(--primary-foreground)'"
+                                        onmouseout="this.style.background='rgba(212,168,32,.1)';this.style.color='var(--primary)'">
                                         <i class="fa-solid fa-pen-to-square text-xs"></i>
                                     </a>
-                                    <form action="<?= base_url('master/lokasi/hapus/' . $l['id']) ?>" method="POST" onsubmit="return confirm('Hapus lokasi ini?');" class="inline">
+                                    <form action="<?= base_url('master/lokasi/hapus/' . $l['id']) ?>" method="POST"
+                                        onsubmit="return confirm('Hapus lokasi ini?');" class="inline">
                                         <?= csrf_field() ?>
-                                        <button type="submit" title="Hapus" class="p-1.5 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-600 hover:text-white transition">
+                                        <button type="submit" title="Hapus"
+                                            class="inline-flex items-center justify-center w-7 h-7 rounded-md transition"
+                                            style="background:var(--danger-bg);color:var(--danger-fg)"
+                                            onmouseover="this.style.background='var(--destructive)';this.style.color='#fff'"
+                                            onmouseout="this.style.background='var(--danger-bg)';this.style.color='var(--danger-fg)'">
                                             <i class="fa-solid fa-trash text-xs"></i>
                                         </button>
                                     </form>

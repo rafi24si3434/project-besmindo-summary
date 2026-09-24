@@ -1,98 +1,107 @@
 <?= $this->extend('layout/main') ?>
 
 <?= $this->section('content') ?>
-<div class="space-y-5">
+<div class="ui-screen ui-screen--report space-y-5">
     <!-- Filter Navigation Bar -->
-    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 p-4 rounded-xl bg-slate-800/90 border border-slate-700 shadow">
+    <div class="ui-toolbar flex-wrap justify-between">
         <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 flex items-center justify-center flex-shrink-0">
-                <i class="fa-solid fa-table-list text-lg"></i>
+            <div class="w-9 h-9 rounded-md flex items-center justify-center flex-shrink-0"
+                style="background:var(--warning-bg);color:var(--warning-fg);border:1px solid var(--warning-border)">
+                <i class="fa-solid fa-table-list"></i>
             </div>
             <div>
-                <h3 class="text-sm font-extrabold text-white uppercase tracking-wider">SUMMARY REPORT OPERATION RIG BMS</h3>
-                <p class="text-xs text-slate-400">Periode Pelaporan: <strong class="text-yellow-400 font-mono text-sm"><?= $bulan ?>/<?= $tahun ?></strong></p>
+                <h3 class="text-sm font-bold" style="color:var(--foreground);letter-spacing:-.01em">Summary Report Operation RIG BMS</h3>
+                <p class="text-xs" style="color:var(--muted-foreground)">Periode:
+                    <strong class="font-mono" style="color:var(--primary)"><?= $bulan ?>/<?= $tahun ?></strong>
+                </p>
             </div>
         </div>
 
         <!-- Period Selector Toolbar -->
-        <div class="flex flex-wrap items-center gap-2.5">
+        <div class="flex flex-wrap items-center gap-2">
+            <?php 
+            $bulanList = [
+                1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+                5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+                9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+            ]; ?>
+
             <!-- Selector Bulan -->
-            <div class="flex items-center bg-slate-900 border border-slate-600 rounded-xl px-2.5 py-1.5 shadow-sm focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
-                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mr-2 flex items-center gap-1.5">
-                    <i class="fa-solid fa-calendar text-blue-400 text-xs"></i>
-                    <span>Bulan:</span>
-                </span>
-                <select id="selectBulan" onchange="navigateReport()" class="bg-transparent border-0 text-xs font-bold text-white focus:outline-none cursor-pointer pr-1">
-                    <?php 
-                    $bulanList = [
-                        1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
-                        5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
-                        9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
-                    ];
-                    foreach ($bulanList as $num => $nama): ?>
-                        <option value="<?= $num ?>" class="bg-slate-900 text-white" <?= $bulan == $num ? 'selected' : '' ?>><?= $nama ?></option>
+            <div class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md" style="background:var(--input);border:1px solid var(--border)">
+                <i class="fa-solid fa-calendar text-xs" style="color:var(--muted-foreground)"></i>
+                <select id="selectBulan" onchange="navigateReport()"
+                    class="bg-transparent border-0 text-xs font-semibold focus:outline-none cursor-pointer"
+                    style="color:var(--foreground)">
+                    <?php foreach ($bulanList as $num => $nama): ?>
+                        <option value="<?= $num ?>" style="background:var(--popover)" <?= $bulan == $num ? 'selected' : '' ?>><?= $nama ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
 
             <!-- Selector Tahun -->
-            <div class="flex items-center bg-slate-900 border border-slate-600 rounded-xl px-2.5 py-1.5 shadow-sm focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
-                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mr-2 flex items-center gap-1.5">
-                    <i class="fa-solid fa-calendar-days text-blue-400 text-xs"></i>
-                    <span>Tahun:</span>
-                </span>
-                <select id="selectTahun" onchange="navigateReport()" class="bg-transparent border-0 text-xs font-bold text-white focus:outline-none cursor-pointer pr-1">
+            <div class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md" style="background:var(--input);border:1px solid var(--border)">
+                <i class="fa-solid fa-calendar-days text-xs" style="color:var(--muted-foreground)"></i>
+                <select id="selectTahun" onchange="navigateReport()"
+                    class="bg-transparent border-0 text-xs font-semibold focus:outline-none cursor-pointer"
+                    style="color:var(--foreground)">
                     <?php for ($y = 2024; $y <= 2028; $y++): ?>
-                        <option value="<?= $y ?>" class="bg-slate-900 text-white" <?= $tahun == $y ? 'selected' : '' ?>><?= $y ?></option>
+                        <option value="<?= $y ?>" style="background:var(--popover)" <?= $tahun == $y ? 'selected' : '' ?>><?= $y ?></option>
                     <?php endfor; ?>
                 </select>
             </div>
 
-            <!-- Tombol Tampilkan Data -->
-            <button type="button" onclick="navigateReport()" class="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md shadow-blue-600/20 transition flex items-center gap-1.5 active:scale-95" title="Buka data periode terpilih">
-                <i class="fa-solid fa-magnifying-glass text-xs"></i>
-                <span>Tampilkan</span>
+            <button type="button" onclick="navigateReport()"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white transition">
+                <i class="fa-solid fa-magnifying-glass text-xs"></i> Tampilkan
             </button>
 
-            <!-- Pemisah Garis -->
-            <div class="hidden sm:block h-7 w-[1px] bg-slate-700 mx-1"></div>
+            <div class="ui-separator--vertical h-5 mx-0.5 hidden sm:block"></div>
 
-            <!-- Form Hitung Ulang -->
             <form action="<?= base_url('monthly-report/hitung') ?>" method="POST" class="inline">
                 <?= csrf_field() ?>
                 <input type="hidden" name="bulan" value="<?= $bulan ?>">
                 <input type="hidden" name="tahun" value="<?= $tahun ?>">
-                <button type="submit" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-600/20 transition flex items-center gap-1.5 active:scale-95" title="Kalkulasi ulang data bulan ini dari Daily Report & NPT">
-                    <i class="fa-solid fa-arrows-rotate text-xs"></i>
-                    <span>Hitung Ulang</span>
+                <button type="submit"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition"
+                    style="background:var(--secondary);color:var(--secondary-foreground);border:1px solid var(--border)"
+                    onmouseover="this.style.background='var(--accent)'"
+                    onmouseout="this.style.background='var(--secondary)'">
+                    <i class="fa-solid fa-arrows-rotate text-xs"></i> Hitung Ulang
                 </button>
             </form>
 
-            <!-- Tombol Export Excel -->
-            <a href="<?= base_url("export/monthly-report/{$bulan}/{$tahun}") ?>" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-500/20 transition flex items-center gap-1.5 active:scale-95" title="Download Monthly Report format Excel asli">
-                <i class="fa-solid fa-file-excel text-xs"></i>
-                <span>Download Excel</span>
-            </a>
+            <button type="button" onclick="openExportModal()"
+                class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-xs font-semibold transition shadow-sm"
+                style="background:var(--success-bg);color:var(--success-fg);border:1px solid var(--success-border)"
+                onmouseover="this.style.background='var(--success)';this.style.color='#fff';this.style.borderColor='var(--success)'"
+                onmouseout="this.style.background='var(--success-bg)';this.style.color='var(--success-fg)';this.style.borderColor='var(--success-border)'">
+                <i class="fa-solid fa-file-excel text-xs"></i> <span>Export Excel</span>
+                <i class="fa-solid fa-chevron-down text-[10px] opacity-75"></i>
+            </button>
         </div>
     </div>
 
-    <!-- Navigation Tabs -->
-    <div class="flex border-b border-slate-700 gap-2 overflow-x-auto">
-        <button onclick="switchTab('summary')" id="tabBtn_summary" class="tab-btn px-4 py-2 text-xs font-bold rounded-t-xl transition border-b-2 border-yellow-400 text-yellow-300 bg-slate-800 flex items-center gap-2 whitespace-nowrap">
+    <!-- Navigation Tabs (shadcn ui-tabs) -->
+    <div class="ui-tabs overflow-x-auto custom-scrollbar">
+        <button onclick="switchTab('summary')" id="tabBtn_summary"
+            class="ui-tab active whitespace-nowrap flex items-center gap-1.5">
             <i class="fa-solid fa-table text-xs"></i>
-            <span>Summary Operation (RAU, MIRU, OPS, Revenue)</span>
+            <span>Summary Operation</span>
         </button>
-        <button onclick="switchTab('charts')" id="tabBtn_charts" class="tab-btn px-4 py-2 text-xs font-bold rounded-t-xl transition border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/40 flex items-center gap-2 whitespace-nowrap">
-            <i class="fa-solid fa-chart-column text-xs text-sky-400"></i>
-            <span>Grafik Analisis (NPT, RAU, MIRU, Cycle Time, Well Job)</span>
+        <button onclick="switchTab('charts')" id="tabBtn_charts"
+            class="ui-tab whitespace-nowrap flex items-center gap-1.5">
+            <i class="fa-solid fa-chart-column text-xs"></i>
+            <span>Grafik Analisis</span>
         </button>
-        <button onclick="switchTab('odrTable')" id="tabBtn_odrTable" class="tab-btn px-4 py-2 text-xs font-bold rounded-t-xl transition border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/40 flex items-center gap-2 whitespace-nowrap">
+        <button onclick="switchTab('odrTable')" id="tabBtn_odrTable"
+            class="ui-tab whitespace-nowrap flex items-center gap-1.5">
             <i class="fa-solid fa-money-bill-1-wave text-xs"></i>
-            <span>Daftar Nilai Kontrak ODR</span>
+            <span>Nilai Kontrak ODR</span>
         </button>
-        <button onclick="switchTab('nptAll')" id="tabBtn_nptAll" class="tab-btn px-4 py-2 text-xs font-bold rounded-t-xl transition border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/40 flex items-center gap-2 whitespace-nowrap">
+        <button onclick="switchTab('nptAll')" id="tabBtn_nptAll"
+            class="ui-tab whitespace-nowrap flex items-center gap-1.5">
             <i class="fa-solid fa-clock-rotate-left text-xs"></i>
-            <span>NPT All Rig (Breakdown Downtime)</span>
+            <span>NPT Breakdown</span>
         </button>
     </div>
 
@@ -496,10 +505,129 @@
 
     </div>
 </div>
+
+<!-- ═══ MODAL PILIHAN EXPORT EXCEL (MONTHLY REPORT & BUNDLE) ══════ -->
+<div id="exportModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm hidden transition-all duration-200">
+    <div class="relative w-full max-w-xl rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl p-6 space-y-5 animate-in fade-in zoom-in-95 duration-150">
+        <!-- Modal Header -->
+        <div class="flex items-start justify-between border-b border-slate-800 pb-4">
+            <div class="flex items-center gap-3.5">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-2xl flex-shrink-0">
+                    <i class="fa-solid fa-file-excel"></i>
+                </div>
+                <div>
+                    <h3 class="text-base sm:text-lg font-black text-white tracking-tight">Pilih Format Download Excel</h3>
+                    <p class="text-xs text-slate-400 mt-0.5">
+                        Periode Laporan: <strong class="text-amber-400 font-semibold"><?= $bulanList[$bulan] ?> <?= $tahun ?></strong> (Semua Armada Rig BMS)
+                    </p>
+                </div>
+            </div>
+            <button type="button" onclick="closeExportModal()" class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition" title="Tutup (Esc)">
+                <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+        </div>
+
+        <!-- Opsi Pilihan Download -->
+        <div class="space-y-3">
+            <!-- OPSI 1: Monthly Report RAU (Matriks Bulanan Standar SYS) -->
+            <a href="<?= base_url("export/monthly-report/{$bulan}/{$tahun}") ?>" onclick="closeExportModal()"
+               class="group flex items-center justify-between p-4 rounded-2xl bg-slate-850 hover:bg-slate-800 border-2 border-slate-700 hover:border-emerald-500 transition-all duration-200 shadow-sm active:scale-[0.99]">
+                <div class="flex items-center gap-4">
+                    <div class="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center text-xl group-hover:bg-emerald-500 group-hover:text-white transition-all duration-200 flex-shrink-0">
+                        <i class="fa-solid fa-table"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm font-bold text-white group-hover:text-emerald-300 transition">Monthly Report RAU (Tabel Utama)</span>
+                            <span class="px-2 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-[10px] font-extrabold text-emerald-400 uppercase">Standar SYS</span>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-0.5 leading-relaxed">
+                            Format Excel resmi: Sheet Summary Operation (Reliability, Availability, Utilization, ODR, Revenue) + NPT All Rig + Total Well.
+                        </p>
+                    </div>
+                </div>
+                <div class="w-9 h-9 rounded-xl bg-slate-800 group-hover:bg-emerald-500/20 text-slate-400 group-hover:text-emerald-400 flex items-center justify-center transition flex-shrink-0 ml-3">
+                    <i class="fa-solid fa-download text-sm"></i>
+                </div>
+            </a>
+
+            <!-- OPSI 2: Seluruh Pekerjaan Sumur Seluruh Rig (Daily Report All) -->
+            <a href="<?= base_url("export/daily-report-all/{$bulan}/{$tahun}") ?>" onclick="closeExportModal()"
+               class="group flex items-center justify-between p-4 rounded-2xl bg-slate-850 hover:bg-slate-800 border-2 border-slate-700 hover:border-cyan-500 transition-all duration-200 shadow-sm active:scale-[0.99]">
+                <div class="flex items-center gap-4">
+                    <div class="w-11 h-11 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 flex items-center justify-center text-xl group-hover:bg-cyan-500 group-hover:text-white transition-all duration-200 flex-shrink-0">
+                        <i class="fa-solid fa-layer-group"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm font-bold text-white group-hover:text-cyan-300 transition">Pekerjaan Sumur Seluruh Rig (Daily Report All)</span>
+                            <span class="px-2 py-0.5 rounded-md bg-cyan-500/15 border border-cyan-500/30 text-[10px] font-extrabold text-cyan-400 uppercase">Multi-Sheet</span>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-0.5 leading-relaxed">
+                            Rincian detail per sumur untuk setiap armada rig bulan <strong class="text-slate-200"><?= $bulanList[$bulan] ?> <?= $tahun ?></strong> (Sheet per rig).
+                        </p>
+                    </div>
+                </div>
+                <div class="w-9 h-9 rounded-xl bg-slate-800 group-hover:bg-cyan-500/20 text-slate-400 group-hover:text-cyan-400 flex items-center justify-center transition flex-shrink-0 ml-3">
+                    <i class="fa-solid fa-download text-sm"></i>
+                </div>
+            </a>
+
+            <!-- OPSI 3: Paket Lengkap Seluruh Laporan (All in One Bundle) -->
+            <a href="<?= base_url("export/bundle-all/{$bulan}/{$tahun}") ?>" onclick="closeExportModal()"
+               class="group flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 to-blue-500/10 hover:from-amber-500/20 hover:to-blue-500/20 border-2 border-amber-500/40 hover:border-amber-400 transition-all duration-200 shadow-sm active:scale-[0.99]">
+                <div class="flex items-center gap-4">
+                    <div class="w-11 h-11 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 flex items-center justify-center text-xl group-hover:bg-amber-500 group-hover:text-slate-950 transition-all duration-200 flex-shrink-0">
+                        <i class="fa-solid fa-crown"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm font-bold text-amber-300 group-hover:text-amber-200 transition">Paket Lengkap Eksekutif (All-in-One)</span>
+                            <span class="px-2 py-0.5 rounded-md bg-amber-500/25 border border-amber-500/40 text-[10px] font-extrabold text-amber-300 uppercase tracking-wider">Terlengkap</span>
+                        </div>
+                        <p class="text-xs text-slate-300 mt-0.5 leading-relaxed">
+                            Download sekaligus: <strong class="text-white">Summary RAU</strong> + <strong class="text-white">Rekap Downtime NPT</strong> + <strong class="text-white">Rekap Pekerjaan Seluruh Sumur</strong> dalam 1 file Excel utuh.
+                        </p>
+                    </div>
+                </div>
+                <div class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-300 group-hover:bg-amber-500 group-hover:text-slate-950 flex items-center justify-center transition flex-shrink-0 ml-3">
+                    <i class="fa-solid fa-download text-sm"></i>
+                </div>
+            </a>
+        </div>
+
+        <!-- Footer Modal -->
+        <div class="flex items-center justify-between pt-2 border-t border-slate-800 text-xs text-slate-500">
+            <span class="flex items-center gap-1.5">
+                <i class="fa-solid fa-circle-check text-emerald-400"></i>
+                <span>Format Excel standar Besmindo (.xlsx)</span>
+            </span>
+            <button type="button" onclick="closeExportModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold transition">
+                Tutup Jendela
+            </button>
+        </div>
+    </div>
+</div>
+
 <?= $this->endSection() ?>
 
 <?= $this->section('scripts') ?>
 <script>
+    function openExportModal() {
+        const modal = document.getElementById('exportModal');
+        if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeExportModal() {
+        const modal = document.getElementById('exportModal');
+        if (modal) modal.classList.add('hidden');
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeExportModal();
+        }
+    });
     function navigateReport() {
         const bulan = document.getElementById('selectBulan').value;
         const tahun = document.getElementById('selectTahun').value;
@@ -509,17 +637,23 @@
     let chartsInitialized = false;
 
     function switchTab(tabKey) {
+        // Hide all tab content
         document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.classList.remove('border-yellow-400', 'text-yellow-300', 'bg-slate-800');
-            btn.classList.add('border-transparent', 'text-slate-400');
+        // Remove active from all tabs (works for both ui-tab and legacy tab-btn)
+        document.querySelectorAll('.ui-tab, .tab-btn').forEach(btn => {
+            btn.classList.remove('active', 'border-yellow-400', 'text-yellow-300', 'bg-slate-800');
+            btn.classList.add('border-transparent');
         });
 
-        document.getElementById(`tabContent_${tabKey}`).classList.remove('hidden');
+        // Show selected tab content
+        const content = document.getElementById(`tabContent_${tabKey}`);
+        if (content) content.classList.remove('hidden');
+
+        // Activate selected tab button
         const activeBtn = document.getElementById(`tabBtn_${tabKey}`);
         if (activeBtn) {
-            activeBtn.classList.remove('border-transparent', 'text-slate-400');
-            activeBtn.classList.add('border-yellow-400', 'text-yellow-300', 'bg-slate-800');
+            activeBtn.classList.add('active');
+            activeBtn.classList.remove('border-transparent');
         }
 
         if (tabKey === 'charts' && !chartsInitialized) {

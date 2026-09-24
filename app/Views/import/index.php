@@ -1,7 +1,7 @@
 <?= $this->extend('layout/main') ?>
 
 <?= $this->section('content') ?>
-<div class="space-y-6">
+<div class="ui-screen ui-screen--import space-y-6">
 
     <!-- Header Banner -->
     <div class="p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-blue-950 border border-slate-700 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-5">

@@ -1,45 +1,56 @@
 <?= $this->extend('layout/main') ?>
 
 <?= $this->section('content') ?>
-<div class="space-y-4">
+<div class="ui-screen ui-screen--report space-y-4">
 
-    <!-- Header Bar -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-slate-800/80 border border-slate-700/70 shadow-lg">
+    <!-- Header / Toolbar -->
+    <div class="ui-toolbar flex-wrap justify-between">
         <div class="flex items-center gap-3">
-            <div class="p-2.5 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                <i class="fa-solid fa-chart-line text-base"></i>
+            <div class="w-9 h-9 rounded-md flex items-center justify-center flex-shrink-0"
+                style="background:var(--info-bg);color:var(--info-fg);border:1px solid var(--info-border)">
+                <i class="fa-solid fa-chart-line"></i>
             </div>
             <div>
-                <h3 class="text-base font-semibold text-white">Rekapitulasi Tahunan Seluruh Armada</h3>
-                <p class="text-xs text-slate-400">Ringkasan kinerja operasi seluruh rig — Tahun <span class="text-yellow-300 font-bold"><?= $tahun ?></span></p>
+                <h3 class="text-sm font-bold" style="color:var(--foreground)">Rekapitulasi Tahunan Seluruh Armada</h3>
+                <p class="text-xs" style="color:var(--muted-foreground)">Kinerja seluruh rig — Tahun
+                    <strong class="font-mono" style="color:var(--primary)"><?= $tahun ?></strong>
+                </p>
             </div>
         </div>
         <div class="flex items-center gap-2">
-            <select id="selectTahun" onchange="navigateTahun()" class="px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:ring-2 focus:ring-blue-500">
+            <select id="selectTahun" onchange="navigateTahun()"
+                class="px-2.5 py-1.5 rounded-md text-xs font-semibold focus:outline-none cursor-pointer"
+                style="background:var(--input);border:1px solid var(--border);color:var(--foreground)">
                 <?php for ($y = 2024; $y <= 2028; $y++): ?>
-                    <option value="<?= $y ?>" <?= $tahun == $y ? 'selected' : '' ?>><?= $y ?></option>
+                    <option value="<?= $y ?>" style="background:var(--popover)" <?= $tahun == $y ? 'selected' : '' ?>><?= $y ?></option>
                 <?php endfor; ?>
             </select>
-            <a href="<?= base_url("export/rekap-tahunan/{$tahun}") ?>" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs shadow-md shadow-emerald-500/20 transition flex items-center gap-1.5">
-                <i class="fa-solid fa-file-excel text-xs"></i>
-                <span>Export Excel</span>
+            <a href="<?= base_url("export/rekap-tahunan/{$tahun}") ?>"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition"
+                style="background:var(--success-bg);color:var(--success-fg);border:1px solid var(--success-border)"
+                onmouseover="this.style.background='var(--success)';this.style.color='#fff'"
+                onmouseout="this.style.background='var(--success-bg)';this.style.color='var(--success-fg)'">
+                <i class="fa-solid fa-file-excel text-xs"></i> Export Excel
             </a>
         </div>
     </div>
 
     <!-- Tabs -->
-    <div class="flex border-b border-slate-700 gap-2 overflow-x-auto">
-        <button type="button" onclick="switchRekapTab('table')" id="rekapTabBtn_table" class="px-4 py-2.5 text-xs font-bold rounded-t-xl transition border-b-2 border-yellow-400 text-yellow-300 bg-slate-800 flex items-center gap-2 whitespace-nowrap">
+    <div class="ui-tabs overflow-x-auto">
+        <button type="button" onclick="switchRekapTab('table')" id="rekapTabBtn_table"
+            class="ui-tab active whitespace-nowrap flex items-center gap-1.5">
             <i class="fa-solid fa-oil-well text-xs"></i>
             <span>Rekapitulasi Operasi &amp; Revenue</span>
         </button>
-        <button type="button" onclick="switchRekapTab('charts')" id="rekapTabBtn_charts" class="px-4 py-2.5 text-xs font-bold rounded-t-xl transition border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/40 flex items-center gap-2 whitespace-nowrap">
-            <i class="fa-solid fa-chart-column text-xs text-sky-400"></i>
-            <span>Grafik Analisis Kinerja Armada</span>
+        <button type="button" onclick="switchRekapTab('charts')" id="rekapTabBtn_charts"
+            class="ui-tab whitespace-nowrap flex items-center gap-1.5">
+            <i class="fa-solid fa-chart-column text-xs"></i>
+            <span>Grafik Analisis</span>
         </button>
-        <a href="<?= base_url("rekap-tahunan/npt/{$tahun}") ?>" class="px-4 py-2.5 text-xs font-bold rounded-t-xl transition border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/40 flex items-center gap-2 whitespace-nowrap">
-            <i class="fa-solid fa-clock-rotate-left text-xs text-rose-400"></i>
-            <span>Rekapitulasi NPT (Downtime)</span>
+        <a href="<?= base_url("rekap-tahunan/npt/{$tahun}") ?>"
+            class="ui-tab whitespace-nowrap flex items-center gap-1.5">
+            <i class="fa-solid fa-clock-rotate-left text-xs"></i>
+            <span>Rekap NPT</span>
         </a>
     </div>
 
@@ -328,16 +339,19 @@
     let rekapChartsInited = false;
 
     function switchRekapTab(tabKey) {
+        // Reset all tabs
+        document.querySelectorAll('#rekapTabBtn_table, #rekapTabBtn_charts').forEach(btn => {
+            btn.classList.remove('active');
+        });
+
         if (tabKey === 'table') {
             document.getElementById('rekapTab_table').classList.remove('hidden');
             document.getElementById('rekapTab_charts').classList.add('hidden');
-            document.getElementById('rekapTabBtn_table').className = 'px-4 py-2.5 text-xs font-bold rounded-t-xl transition border-b-2 border-yellow-400 text-yellow-300 bg-slate-800 flex items-center gap-2 whitespace-nowrap';
-            document.getElementById('rekapTabBtn_charts').className = 'px-4 py-2.5 text-xs font-bold rounded-t-xl transition border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/40 flex items-center gap-2 whitespace-nowrap';
+            document.getElementById('rekapTabBtn_table').classList.add('active');
         } else {
             document.getElementById('rekapTab_table').classList.add('hidden');
             document.getElementById('rekapTab_charts').classList.remove('hidden');
-            document.getElementById('rekapTabBtn_charts').className = 'px-4 py-2.5 text-xs font-bold rounded-t-xl transition border-b-2 border-yellow-400 text-yellow-300 bg-slate-800 flex items-center gap-2 whitespace-nowrap';
-            document.getElementById('rekapTabBtn_table').className = 'px-4 py-2.5 text-xs font-bold rounded-t-xl transition border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/40 flex items-center gap-2 whitespace-nowrap';
+            document.getElementById('rekapTabBtn_charts').classList.add('active');
             if (!rekapChartsInited) {
                 initAnnualCharts();
                 rekapChartsInited = true;

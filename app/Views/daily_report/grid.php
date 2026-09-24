@@ -1,7 +1,7 @@
 <?= $this->extend('layout/main') ?>
 
 <?= $this->section('content') ?>
-<div class="space-y-5 pb-12">
+<div class="ui-screen ui-screen--operations space-y-5 pb-12">
 
     <!-- ═══ 1. HERO HEADER & WORKFLOW GUIDE (FAMILY-FRIENDLY & INTUITIF) ══════ -->
     <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-850 to-[#0A1835] border border-slate-700/80 shadow-2xl p-5 sm:p-6">
@@ -19,7 +19,7 @@
                     <div class="flex flex-wrap items-center gap-2 mb-1">
                         <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[11px] font-black uppercase tracking-wider border border-emerald-500/40">
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                            STEP 1 · DATA OPERASI SUMUR
+                            STEP 1 · REKAP SUMUR (WELL)
                         </span>
                         <span class="text-xs text-slate-400 font-semibold flex items-center gap-1">
                             <i class="fa-regular fa-calendar text-slate-500"></i>
@@ -31,7 +31,7 @@
                         <span class="text-slate-400 font-normal text-base hidden sm:inline">| <?= esc($rig['nama_rig']) ?></span>
                     </h1>
                     <p class="text-xs text-slate-400 mt-0.5">
-                        Pusat ringkasan pekerjaan sumur, durasi operasi, MIRU moving, dan pos kendala harian.
+                        Pusat ringkasan pekerjaan seluruh sumur, durasi operasi, MIRU moving, dan pos downtime.
                     </p>
                 </div>
             </div>
@@ -41,13 +41,13 @@
                 <a href="<?= base_url('daily-report/log-harian/' . $rigId . '/' . $bulan . '/' . $tahun) ?>"
                    class="group px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-cyan-600 text-cyan-300 hover:text-white border border-cyan-500/30 font-bold text-xs shadow-md transition-all duration-200 flex items-center gap-2 active:scale-95">
                     <span class="w-5 h-5 rounded-lg bg-cyan-500/30 group-hover:bg-white/20 flex items-center justify-center text-[10px] font-mono font-black">2</span>
-                    <span>Log Harian</span>
+                    <span>Input Daily Report</span>
                     <i class="fa-solid fa-arrow-right text-[10px] opacity-70 group-hover:translate-x-0.5 transition-transform"></i>
                 </a>
                 <a href="<?= base_url('npt/' . $rigId . '/' . $bulan . '/' . $tahun) ?>"
-                   class="group px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/30 font-bold text-xs shadow-md transition-all duration-200 flex items-center gap-2 active:scale-95">
-                    <span class="w-5 h-5 rounded-lg bg-rose-500/30 group-hover:bg-white/20 flex items-center justify-center text-[10px] font-mono font-black">3</span>
-                    <span>Input NPT</span>
+                   class="group px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-amber-600 text-amber-300 hover:text-white border border-amber-500/30 font-bold text-xs shadow-md transition-all duration-200 flex items-center gap-2 active:scale-95">
+                    <span class="w-5 h-5 rounded-lg bg-amber-500/30 group-hover:bg-white/20 flex items-center justify-center text-[10px] font-mono font-black">3</span>
+                    <span>Input NPT (Downtime)</span>
                     <i class="fa-solid fa-arrow-right text-[10px] opacity-70 group-hover:translate-x-0.5 transition-transform"></i>
                 </a>
                 <a href="<?= base_url("daily-report/tambah/{$rigId}/{$bulan}/{$tahun}") ?>" 
@@ -63,22 +63,22 @@
             <div class="flex items-center gap-2.5 p-2 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-200">
                 <span class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-[11px] font-black">1</span>
                 <div>
-                    <span class="font-black text-white block">Step 1: Matriks Sumur</span>
-                    <span class="text-[10px] text-blue-300/80">Daftarkan sumur baru &amp; cek status</span>
+                    <span class="font-black text-white block">Step 1: Rekap Sumur (Well)</span>
+                    <span class="text-[10px] text-blue-300/80">Daftarkan sumur baru &amp; cek ringkasan total</span>
                 </div>
             </div>
             <div class="flex items-center gap-2.5 p-2 rounded-xl bg-slate-800/60 border border-slate-700/60 text-slate-300">
                 <span class="w-6 h-6 rounded-full bg-slate-700 text-slate-300 flex items-center justify-center text-[11px] font-bold">2</span>
                 <div>
-                    <span class="font-bold text-slate-200 block">Step 2: Log Harian Operasi</span>
-                    <span class="text-[10px] text-slate-400">Catat detail jam kerja per hari</span>
+                    <span class="font-bold text-slate-200 block">Step 2: Input Daily Report</span>
+                    <span class="text-[10px] text-slate-400">Catat laporan aktivitas per tanggal</span>
                 </div>
             </div>
             <div class="flex items-center gap-2.5 p-2 rounded-xl bg-slate-800/60 border border-slate-700/60 text-slate-300">
                 <span class="w-6 h-6 rounded-full bg-slate-700 text-slate-300 flex items-center justify-center text-[11px] font-bold">3</span>
                 <div>
-                    <span class="font-bold text-slate-200 block">Step 3: Review NPT &amp; Rekap</span>
-                    <span class="text-[10px] text-slate-400">Otomatis sinkron ke Rekap Bulanan</span>
+                    <span class="font-bold text-slate-200 block">Step 3: Input NPT (Downtime)</span>
+                    <span class="text-[10px] text-slate-400">Koreksi jam SBWC, UNPAID &amp; 3rd Party</span>
                 </div>
             </div>
         </div>
@@ -199,114 +199,291 @@
         </div>
     </div>
 
-    <!-- ═══ 3. FILTER, SEARCH & VIEW MODE TOOLBAR ═════════════════════════════ -->
-    <div class="p-3.5 rounded-2xl bg-slate-850 border border-slate-700/90 shadow-xl flex flex-col xl:flex-row xl:items-center justify-between gap-3">
-        
-        <!-- Left: Rig, Month, Year Pickers with Quick Month Stepper -->
-        <div class="flex flex-wrap items-center gap-2">
-            <!-- Rig Selector -->
-            <div class="flex items-center bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 focus-within:border-blue-500 transition shadow-inner">
-                <span class="text-[11px] font-bold uppercase text-slate-400 mr-2 flex items-center gap-1">
-                    <i class="fa-solid fa-oil-well text-blue-400"></i>
-                    <span>Rig:</span>
-                </span>
-                <select id="selectRig" onchange="navigateGrid()" class="bg-transparent border-0 text-xs font-black text-white focus:outline-none cursor-pointer pr-1">
-                    <?php foreach ($allRigs as $r): ?>
-                        <option value="<?= $r['id'] ?>" class="bg-slate-900 text-white" <?= $r['id'] == $rigId ? 'selected' : '' ?>><?= esc($r['kode']) ?> - <?= esc($r['nama_rig']) ?></option>
-                    <?php endforeach; ?>
-                </select>
+    <!-- ═══ 3. FILTER, SEARCH & VIEW MODE TOOLBAR (INTERAKTIF & TACTILE) ══════ -->
+    <style>
+        .dr-toolbar-card {
+            background: linear-gradient(135deg, rgba(17, 29, 46, 0.97) 0%, rgba(13, 20, 34, 0.98) 100%);
+            border: 1px solid rgba(37, 48, 64, 0.9);
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.45);
+        }
+        .dr-control-box {
+            background: #091322;
+            border: 1px solid #1e2f47;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .dr-control-box:hover {
+            border-color: #3b5375;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        }
+        .dr-control-box:focus-within {
+            border-color: #d4a820;
+            box-shadow: 0 0 0 3px rgba(212, 168, 32, 0.18);
+        }
+        .dr-stepper-btn {
+            width: 34px;
+            height: 34px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            background: #0f1c30;
+            border: 1px solid #20334e;
+            color: #8fa0b5;
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+        .dr-stepper-btn:hover {
+            background: #1e3355;
+            color: #f8fafc;
+            border-color: #4a77b5;
+            transform: translateY(-1px);
+        }
+        .dr-stepper-btn:active {
+            transform: scale(0.92);
+        }
+        /* Segmented View Switcher */
+        .dr-segmented-group {
+            background: #091322;
+            border: 1px solid #1e2f47;
+            padding: 4px;
+            border-radius: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .dr-view-pill {
+            padding: 7px 15px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            color: #7e93ab;
+            background: transparent;
+            border: 1px solid transparent;
+            transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            user-select: none;
+            white-space: nowrap;
+        }
+        .dr-view-pill:hover {
+            color: #e2e8f0;
+            background: rgba(255, 255, 255, 0.04);
+            transform: translateY(-1px);
+        }
+        .dr-view-pill:active {
+            transform: scale(0.95);
+        }
+        .dr-view-pill.active {
+            background: linear-gradient(135deg, #1b2e4b 0%, #15243b 100%) !important;
+            color: #ffffff !important;
+            border-color: #3b82f6 !important;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+        }
+        .dr-view-pill.active i {
+            color: #d4a820 !important;
+        }
+        /* Filter Chips */
+        .dr-chip-btn {
+            padding: 7px 13px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: #091322;
+            border: 1px solid #1e2f47;
+            color: #7e93ab;
+            transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            user-select: none;
+            white-space: nowrap;
+        }
+        .dr-chip-btn:hover {
+            background: #112036;
+            color: #e2e8f0;
+            border-color: #2b4363;
+            transform: translateY(-1px);
+        }
+        .dr-chip-btn:active {
+            transform: scale(0.95);
+        }
+        .dr-chip-btn.active-all {
+            background: linear-gradient(135deg, #d4a820 0%, #b38813 100%) !important;
+            color: #0f172a !important;
+            border-color: #facc15 !important;
+            box-shadow: 0 4px 14px rgba(212, 168, 32, 0.35);
+        }
+        .dr-chip-btn.active-completed {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+            color: #ffffff !important;
+            border-color: #34d399 !important;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+        }
+        .dr-chip-btn.active-progress {
+            background: linear-gradient(135deg, #d97706 0%, #b45309 100%) !important;
+            color: #ffffff !important;
+            border-color: #fbbf24 !important;
+            box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
+        }
+        /* Export Button */
+        .dr-export-action {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            border: 1px solid #10b981;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+            transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .dr-export-action:hover {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            box-shadow: 0 6px 18px rgba(16, 185, 129, 0.45);
+            transform: translateY(-1px);
+        }
+        .dr-export-action:active {
+            transform: scale(0.95);
+        }
+    </style>
+
+    <div class="dr-toolbar-card p-4 rounded-3xl space-y-3.5">
+        <?php
+            $bulanList = [
+                1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+                5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+                9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+            ];
+            $prevBulan = $bulan > 1 ? $bulan - 1 : 12;
+            $prevTahun = $bulan > 1 ? $tahun : $tahun - 1;
+            $nextBulan = $bulan < 12 ? $bulan + 1 : 1;
+            $nextTahun = $bulan < 12 ? $tahun : $tahun + 1;
+        ?>
+
+        <!-- Baris 1: Navigasi Periode, Armada & Pilihan View Mode -->
+        <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-3">
+            <!-- Left: Rig, Month Stepper, Year -->
+            <div class="flex flex-wrap items-center gap-2.5">
+                <!-- Rig Selector -->
+                <div class="dr-control-box flex items-center gap-2 px-3 py-2 rounded-xl shadow-inner">
+                    <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                        <i class="fa-solid fa-oil-well text-amber-400"></i>
+                        <span>Rig:</span>
+                    </span>
+                    <select id="selectRig" onchange="navigateGrid()" class="bg-transparent border-0 text-xs font-black text-white focus:outline-none cursor-pointer pr-1">
+                        <?php foreach ($allRigs as $r): ?>
+                            <option value="<?= $r['id'] ?>" class="bg-slate-900 text-white" <?= $r['id'] == $rigId ? 'selected' : '' ?>><?= esc($r['kode']) ?> - <?= esc($r['nama_rig']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
+                <!-- Month Quick Stepper -->
+                <div class="dr-control-box flex items-center p-1 rounded-xl shadow-inner gap-1">
+                    <a href="<?= base_url("daily-report/{$rigId}/{$prevBulan}/{$prevTahun}") ?>" 
+                       class="dr-stepper-btn" title="Bulan Sebelumnya (<?= $bulanList[$prevBulan] ?? '' ?>)">
+                        <i class="fa-solid fa-chevron-left text-xs"></i>
+                    </a>
+                    <div class="flex items-center px-2.5 py-1 gap-1.5">
+                        <i class="fa-regular fa-calendar text-amber-400 text-xs"></i>
+                        <select id="selectBulan" onchange="navigateGrid()" class="bg-transparent border-0 text-xs font-black text-white focus:outline-none cursor-pointer">
+                            <?php foreach ($bulanList as $num => $nama): ?>
+                                <option value="<?= $num ?>" class="bg-slate-900 text-white" <?= $bulan == $num ? 'selected' : '' ?>><?= $nama ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <a href="<?= base_url("daily-report/{$rigId}/{$nextBulan}/{$nextTahun}") ?>" 
+                       class="dr-stepper-btn" title="Bulan Berikutnya (<?= $bulanList[$nextBulan] ?? '' ?>)">
+                        <i class="fa-solid fa-chevron-right text-xs"></i>
+                    </a>
+                </div>
+
+                <!-- Selector Tahun -->
+                <div class="dr-control-box flex items-center gap-2 px-3 py-2 rounded-xl shadow-inner">
+                    <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                        <i class="fa-solid fa-calendar-days text-sky-400 text-xs"></i>
+                        <span>Tahun:</span>
+                    </span>
+                    <select id="selectTahun" onchange="navigateGrid()" class="bg-transparent border-0 text-xs font-black text-white focus:outline-none cursor-pointer pr-1">
+                        <?php for ($y = 2024; $y <= 2028; $y++): ?>
+                            <option value="<?= $y ?>" class="bg-slate-900 text-white" <?= $tahun == $y ? 'selected' : '' ?>><?= $y ?></option>
+                        <?php endfor; ?>
+                    </select>
+                </div>
+
+                <!-- Penjelasan Singkat Sesuai Konteks Proyek SIMOR BMS -->
+                <div class="dr-control-box hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl shadow-inner bg-slate-900/60 border border-slate-750 text-slate-300">
+                    <i class="fa-solid fa-circle-info text-cyan-400 text-xs flex-shrink-0"></i>
+                    <span class="text-[11px] text-slate-300 leading-tight">
+                        Filter aktif: Rekapitulasi operasional sumur <strong class="text-white"><?= esc($rig['kode']) ?></strong> periode <strong class="text-cyan-300"><?= $bulanList[$bulan] ?? '' ?> <?= $tahun ?></strong>.
+                    </span>
+                </div>
             </div>
 
-            <!-- Month Quick Stepper (Prev / Next Month Buttons) -->
-            <?php
-                $bulanList = [
-                    1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
-                    5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
-                    9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
-                ];
-                $prevBulan = $bulan > 1 ? $bulan - 1 : 12;
-                $prevTahun = $bulan > 1 ? $tahun : $tahun - 1;
-                $nextBulan = $bulan < 12 ? $bulan + 1 : 1;
-                $nextTahun = $bulan < 12 ? $tahun : $tahun + 1;
-            ?>
-            <div class="flex items-center bg-slate-900 border border-slate-700 rounded-xl p-0.5 shadow-inner">
-                <a href="<?= base_url("daily-report/{$rigId}/{$prevBulan}/{$prevTahun}") ?>" 
-                   class="px-2 py-1 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition text-xs" title="Bulan Sebelumnya">
-                    <i class="fa-solid fa-chevron-left"></i>
-                </a>
-                <select id="selectBulan" onchange="navigateGrid()" class="bg-transparent border-0 text-xs font-black text-white focus:outline-none cursor-pointer px-1 py-1">
-                    <?php foreach ($bulanList as $num => $nama): ?>
-                        <option value="<?= $num ?>" class="bg-slate-900 text-white" <?= $bulan == $num ? 'selected' : '' ?>><?= $nama ?></option>
-                    <?php endforeach; ?>
-                </select>
-                <a href="<?= base_url("daily-report/{$rigId}/{$nextBulan}/{$nextTahun}") ?>" 
-                   class="px-2 py-1 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition text-xs" title="Bulan Berikutnya">
-                    <i class="fa-solid fa-chevron-right"></i>
-                </a>
-            </div>
+            <!-- Right: View Mode Segmented Switcher & Export -->
+            <div class="flex flex-wrap items-center gap-2.5">
+                <!-- View Mode Segmented Control -->
+                <div class="dr-segmented-group">
+                    <button type="button" onclick="switchViewMode('compact')" id="btnView_compact" class="dr-view-pill active" title="Tampilan Ringkasan Pintar (Tabel + Log Harian)">
+                        <i class="fa-solid fa-table-list text-xs"></i>
+                        <span>Ringkasan</span>
+                    </button>
+                    <button type="button" onclick="switchViewMode('cards')" id="btnView_cards" class="dr-view-pill" title="Tampilan Kartu Visual per Sumur">
+                        <i class="fa-solid fa-grip text-xs"></i>
+                        <span>Kartu Sumur</span>
+                    </button>
+                    <button type="button" onclick="switchViewMode('full')" id="btnView_full" class="dr-view-pill" title="Tampilan Matriks Lengkap SYS (30+ Kolom)">
+                        <i class="fa-solid fa-table-cells text-xs"></i>
+                        <span>Matriks SYS</span>
+                    </button>
+                </div>
 
-            <!-- Selector Tahun -->
-            <div class="flex items-center bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 focus-within:border-blue-500 transition shadow-inner">
-                <span class="text-[11px] font-bold uppercase text-slate-400 mr-2 flex items-center gap-1">
-                    <i class="fa-solid fa-calendar-days text-blue-400"></i>
-                    <span>Tahun:</span>
-                </span>
-                <select id="selectTahun" onchange="navigateGrid()" class="bg-transparent border-0 text-xs font-black text-white focus:outline-none cursor-pointer pr-1">
-                    <?php for ($y = 2024; $y <= 2028; $y++): ?>
-                        <option value="<?= $y ?>" class="bg-slate-900 text-white" <?= $tahun == $y ? 'selected' : '' ?>><?= $y ?></option>
-                    <?php endfor; ?>
-                </select>
+                <!-- Export Button (Membuka Dialog Pilihan Lengkap) -->
+                <button type="button" onclick="openExportModal()"
+                   class="dr-export-action px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 active:scale-95 shadow-lg shadow-emerald-600/25" title="Buka Menu Pilihan Download Excel">
+                    <i class="fa-solid fa-file-excel text-base text-emerald-200"></i>
+                    <span class="text-white">Export Excel</span>
+                    <i class="fa-solid fa-chevron-down text-[10px] opacity-80 ml-0.5"></i>
+                </button>
             </div>
+        </div>
 
-            <!-- Live Search Input -->
-            <div class="flex items-center bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 focus-within:border-blue-500 transition shadow-inner min-w-[210px]">
-                <i class="fa-solid fa-magnifying-glass text-slate-400 text-xs mr-2"></i>
-                <input type="text" id="searchWellInput" onkeyup="filterWellsTable()" placeholder="Cari sumur / lokasi..." class="bg-transparent border-0 text-xs font-semibold text-white focus:outline-none w-full placeholder-slate-500">
-                <button type="button" onclick="clearSearch()" id="btnClearSearch" class="text-slate-500 hover:text-white text-xs hidden">
+        <!-- Baris 2: Pencarian Cepat & Filter Status Interaktif -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-3 border-t border-slate-700/60">
+            <!-- Search Bar -->
+            <div class="dr-control-box flex items-center px-3.5 py-2 rounded-xl shadow-inner flex-1 max-w-md">
+                <i class="fa-solid fa-magnifying-glass text-slate-400 text-xs mr-2.5"></i>
+                <input type="text" id="searchWellInput" onkeyup="filterWellsTable()" 
+                       placeholder="Ketik no sumur, nama lokasi, atau status..." 
+                       class="bg-transparent border-0 text-xs font-semibold text-white focus:outline-none w-full placeholder-slate-500">
+                <button type="button" onclick="clearSearch()" id="btnClearSearch" class="text-slate-400 hover:text-white text-xs px-1.5 py-0.5 rounded-md hover:bg-slate-700/50 transition hidden" title="Hapus pencarian (Esc)">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
-            </div>
-        </div>
-
-        <!-- Right: Status Filter Chips & View Mode Switcher -->
-        <div class="flex flex-wrap items-center gap-2">
-            <!-- Status Quick Filter Pills -->
-            <div class="flex items-center bg-slate-900 p-1 rounded-xl border border-slate-700 text-xs font-bold">
-                <button type="button" onclick="setStatusFilter('ALL')" id="btnFilter_ALL" class="px-2.5 py-1 rounded-lg text-white bg-blue-600 transition shadow">
-                    Semua (<?= $wellJobCount ?>)
-                </button>
-                <button type="button" onclick="setStatusFilter('COMPLETED')" id="btnFilter_COMPLETED" class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white transition">
-                    Completed (<?= $completedCount ?>)
-                </button>
-                <button type="button" onclick="setStatusFilter('PROGRESS')" id="btnFilter_PROGRESS" class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white transition">
-                    Progress (<?= $progressCount ?>)
-                </button>
+                <span class="text-[10px] font-mono font-bold text-slate-500 border border-slate-700/80 rounded px-1.5 py-0.5 ml-1 hidden sm:inline">ESC</span>
             </div>
 
-            <!-- View Mode Switcher (Compact / Matriks SYS / Cards) -->
-            <div class="flex items-center bg-slate-900 p-1 rounded-xl border border-slate-700 text-xs">
-                <button type="button" onclick="switchViewMode('compact')" id="btnView_compact" class="px-3 py-1 rounded-lg font-black transition flex items-center gap-1.5 bg-blue-600 text-white shadow">
-                    <i class="fa-solid fa-table-columns text-xs"></i>
-                    <span>Ringkasan</span>
+            <!-- Status Quick Filter Chips -->
+            <div class="flex flex-wrap items-center gap-2">
+                <span class="text-[11px] font-bold text-slate-400 mr-1 hidden sm:inline-flex items-center gap-1">
+                    <i class="fa-solid fa-filter text-[10px] text-amber-400"></i> Status:
+                </span>
+                <button type="button" onclick="setStatusFilter('ALL')" id="btnFilter_ALL" class="dr-chip-btn active-all" title="Tampilkan Semua Status Pekerjaan">
+                    <i class="fa-solid fa-layer-group text-[10px]"></i>
+                    <span>Semua</span>
+                    <span class="px-2 py-0.5 rounded-full bg-black/25 text-[10px] font-mono font-black"><?= $wellJobCount ?></span>
                 </button>
-                <button type="button" onclick="switchViewMode('cards')" id="btnView_cards" class="px-3 py-1 rounded-lg font-bold transition flex items-center gap-1.5 text-slate-400 hover:text-white">
-                    <i class="fa-solid fa-grip text-xs"></i>
-                    <span>Kartu Sumur</span>
+                <button type="button" onclick="setStatusFilter('COMPLETED')" id="btnFilter_COMPLETED" class="dr-chip-btn" title="Filter Hanya Sumur yang Sudah Selesai">
+                    <i class="fa-solid fa-circle-check text-[10px] text-emerald-400"></i>
+                    <span>Completed</span>
+                    <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-mono font-black"><?= $completedCount ?></span>
                 </button>
-                <button type="button" onclick="switchViewMode('full')" id="btnView_full" class="px-3 py-1 rounded-lg font-bold transition flex items-center gap-1.5 text-slate-400 hover:text-white">
-                    <i class="fa-solid fa-table-cells text-xs"></i>
-                    <span>Matriks SYS</span>
+                <button type="button" onclick="setStatusFilter('PROGRESS')" id="btnFilter_PROGRESS" class="dr-chip-btn" title="Filter Sumur yang Masih Sedang Berjalan">
+                    <i class="fa-solid fa-spinner fa-spin-pulse text-[10px] text-amber-400"></i>
+                    <span>Progress</span>
+                    <span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-mono font-black"><?= $progressCount ?></span>
                 </button>
             </div>
-
-            <!-- Export Excel Button -->
-            <a href="<?= base_url("export/daily-report/{$rigId}/{$bulan}/{$tahun}") ?>" 
-               class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md transition flex items-center gap-1.5 active:scale-95" title="Download Excel Laporan Bulanan">
-                <i class="fa-solid fa-file-excel text-xs"></i>
-                <span class="hidden sm:inline">Export</span>
-            </a>
         </div>
     </div>
+
 
     <!-- ════════════════════════════════════════════════════════════════════════ -->
     <!-- VIEW 1: RINGKASAN PINTAR (COMPACT NO-SCROLL TABLE + ACCORDION LOGS)     -->
@@ -314,21 +491,25 @@
     <div id="viewContainer_compact" class="space-y-4">
         <div class="rounded-2xl bg-slate-900 border border-slate-700 shadow-xl overflow-hidden">
             
-            <!-- Table Header Banner (Identik Style Monthly Report) -->
-            <div class="bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-500 text-slate-950 py-2.5 px-4 font-black text-xs sm:text-sm uppercase tracking-wider border-b-2 border-yellow-600 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div class="flex items-center gap-2">
-                    <span class="text-xs bg-slate-950 text-yellow-300 font-mono px-2.5 py-0.5 rounded-full font-bold">
+            <!-- Table Header Banner (High Contrast & Clear) -->
+            <div class="bg-slate-850 border-b-2 border-amber-500/40 py-3 px-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-white">
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <span class="text-xs bg-amber-500/20 text-amber-300 font-mono px-3 py-1 rounded-full font-bold border border-amber-500/40">
                         <span id="renderedWellCount"><?= count($reports) ?></span> Sumur
                     </span>
-                    <span>RINGKASAN OPERASI SUMUR <?= esc($rig['kode']) ?> — PERIODE <?= strtoupper($bulanList[$bulan] ?? '') ?> <?= $tahun ?></span>
+                    <span class="font-black text-xs sm:text-sm uppercase tracking-wider text-white">
+                        RINGKASAN OPERASI SUMUR <span class="text-amber-400 font-extrabold"><?= esc($rig['kode']) ?></span> — PERIODE <span class="text-sky-300 font-extrabold"><?= strtoupper($bulanList[$bulan] ?? '') ?> <?= $tahun ?></span>
+                    </span>
                 </div>
                 <!-- Accordion Quick Triggers -->
-                <div class="flex items-center gap-2 text-xs font-sans font-bold text-slate-900">
-                    <button type="button" onclick="expandAllCompactLogs()" class="px-2 py-0.5 rounded bg-slate-950/15 hover:bg-slate-950 hover:text-white transition">
-                        <i class="fa-solid fa-angles-down mr-1"></i> Buka Semua Log
+                <div class="flex items-center gap-2 text-xs font-sans font-bold">
+                    <button type="button" onclick="expandAllCompactLogs()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 transition flex items-center gap-1.5 active:scale-95 cursor-pointer">
+                        <i class="fa-solid fa-angles-down text-amber-400"></i>
+                        <span>Buka Semua Log</span>
                     </button>
-                    <button type="button" onclick="collapseAllCompactLogs()" class="px-2 py-0.5 rounded bg-slate-950/15 hover:bg-slate-950 hover:text-white transition">
-                        <i class="fa-solid fa-angles-up mr-1"></i> Tutup Semua
+                    <button type="button" onclick="collapseAllCompactLogs()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 transition flex items-center gap-1.5 active:scale-95 cursor-pointer">
+                        <i class="fa-solid fa-angles-up text-amber-400"></i>
+                        <span>Tutup Semua</span>
                     </button>
                 </div>
             </div>
@@ -339,8 +520,18 @@
                     <thead class="bg-[#0B1E4A] text-white font-extrabold uppercase text-[10.5px] border-b-2 border-slate-700 tracking-wider text-center select-none">
                         <tr>
                             <th class="py-2.5 px-2 w-12 border border-slate-700 bg-[#0B1E4A]">No</th>
-                            <th class="py-2.5 px-4 border border-slate-700 bg-[#0B1E4A] min-w-[150px] text-left">Nama Lokasi / Well</th>
-                            <th class="py-2.5 px-3 border border-slate-700 bg-[#0B1E4A] w-24">Tanggal Mulai</th>
+                            <th class="py-2.5 px-4 border border-slate-700 bg-[#0B1E4A] min-w-[170px] text-left">
+                                <div class="flex items-center gap-1.5 justify-start">
+                                    <i class="fa-solid fa-location-dot text-rose-400 text-xs"></i>
+                                    <span>Tempat / Nama Lokasi Sumur</span>
+                                </div>
+                            </th>
+                            <th class="py-2.5 px-3 border border-slate-700 bg-[#0B1E4A] w-32 text-center">
+                                <div class="flex items-center gap-1.5 justify-center">
+                                    <i class="fa-solid fa-calendar-days text-sky-400 text-xs"></i>
+                                    <span>Periode Tanggal</span>
+                                </div>
+                            </th>
                             <th class="py-2.5 px-3 border border-slate-700 bg-[#0B1E4A] w-20 text-right">Jarak</th>
                             <th class="py-2.5 px-3 border border-slate-700 bg-[#0B1E4A] w-24 text-right text-lime-400">MIRU (Jam)</th>
                             <th class="py-2.5 px-3 border border-slate-700 bg-[#0B1E4A] w-24 text-right text-lime-300">OPS (Jam)</th>
@@ -405,15 +596,38 @@
                                 </td>
                                 <td class="py-2.5 px-4 font-bold text-white text-xs border border-slate-800 font-sans">
                                     <div class="flex items-center gap-2">
-                                        <span class="w-2 h-2 rounded-full <?= $isCompleted ? 'bg-emerald-400' : 'bg-amber-400 animate-ping' ?>"></span>
-                                        <span class="text-sky-300 hover:text-yellow-300 transition-colors text-sm font-black"><?= esc($rep['nama_lokasi'] ?? 'Sumur #' . $rep['no_well']) ?></span>
+                                        <span class="w-2.5 h-2.5 rounded-full flex-shrink-0 <?= $isCompleted ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]' : 'bg-amber-400 animate-ping' ?>"></span>
+                                        <div class="min-w-0">
+                                            <a href="<?= base_url('daily-report/detail/' . $repId) ?>" 
+                                               onclick="event.stopPropagation()"
+                                               class="group/link inline-flex items-center gap-1.5 text-sky-300 hover:text-amber-300 transition-colors text-sm font-black"
+                                               title="Buka Halaman Rincian Penuh Sumur <?= esc($rep['nama_lokasi'] ?? '') ?>">
+                                                <span><?= esc($rep['nama_lokasi'] ?? 'Sumur #' . $rep['no_well']) ?></span>
+                                                <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-60 group-hover/link:opacity-100 group-hover/link:translate-x-0.5 transition-all text-amber-400"></i>
+                                            </a>
+                                            <div class="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5 font-sans font-medium">
+                                                <i class="fa-solid fa-map-pin text-rose-400 text-[10px]"></i>
+                                                <span>Tempat: <strong class="text-slate-200"><?= esc($rep['nama_lokasi'] ?? '-') ?></strong></span>
+                                            </div>
+                                        </div>
                                         <?php if ($hasLogs): ?>
-                                            <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-800 text-slate-400 border border-slate-700"><?= count($logs) ?> hari</span>
+                                            <a href="<?= base_url('daily-report/detail/' . $repId) ?>"
+                                               onclick="event.stopPropagation()"
+                                               class="text-[10px] font-mono px-2 py-0.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-bold transition flex items-center gap-1 ml-auto flex-shrink-0"
+                                               title="Buka rincian <?= count($logs) ?> catatan log harian">
+                                                <i class="fa-solid fa-calendar-day text-[9px] text-amber-400"></i>
+                                                <span><?= count($logs) ?> hari</span>
+                                            </a>
                                         <?php endif; ?>
                                     </div>
                                 </td>
                                 <td class="py-2.5 px-3 text-center text-xs text-slate-300 border border-slate-800 font-sans">
-                                    <?= $rep['tanggal_mulai'] ? date('d/m/Y', strtotime($rep['tanggal_mulai'])) : '-' ?>
+                                    <div class="font-bold text-sky-200 tracking-wide text-xs">
+                                        <i class="fa-regular fa-calendar-check text-[10px] text-sky-400 mr-1"></i><?= $rep['tanggal_mulai'] ? date('d/m/Y', strtotime($rep['tanggal_mulai'])) : '-' ?>
+                                    </div>
+                                    <div class="text-[11px] text-slate-400 font-medium mt-0.5">
+                                        s/d <?= $rep['tanggal_selesai'] ? date('d/m/Y', strtotime($rep['tanggal_selesai'])) : '<span class="text-amber-400 font-bold">Sekarang</span>' ?>
+                                    </div>
                                 </td>
                                 <td class="py-2.5 px-3 text-right text-xs text-slate-300 border border-slate-800">
                                     <?= (float)$rep['jarak'] > 0 ? number_format((float)$rep['jarak'], 0) . ' KM' : '-' ?>
@@ -446,6 +660,10 @@
                                 </td>
                                 <td class="py-2.5 px-3 text-center border border-slate-800 whitespace-nowrap" onclick="event.stopPropagation()">
                                     <div class="inline-flex items-center gap-1.5">
+                                        <!-- Halaman Detail Sumur Penuh -->
+                                        <a href="<?= base_url('daily-report/detail/' . $rep['id']) ?>" class="w-7 h-7 rounded-lg bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-slate-950 border border-amber-500/40 flex items-center justify-center transition shadow-sm" title="Buka Halaman Rincian Lengkap Sumur">
+                                            <i class="fa-solid fa-up-right-from-square text-xs"></i>
+                                        </a>
                                         <!-- Quick Modal Look -->
                                         <button type="button" onclick="openWellQuickLook(<?= htmlspecialchars(json_encode([
                                             'no_well' => $rep['no_well'],
@@ -504,7 +722,8 @@
                                             <thead class="bg-[#0A1A3F] text-slate-300 text-[10px] uppercase font-extrabold text-center border-b border-slate-700">
                                                 <tr>
                                                     <th class="py-1.5 px-2 w-10 border border-slate-800">Hari</th>
-                                                    <th class="py-1.5 px-3 border border-slate-800 w-28">Tanggal</th>
+                                                    <th class="py-1.5 px-3 border border-slate-800 w-28 text-center">Tanggal</th>
+                                                    <th class="py-1.5 px-3 border border-slate-800 w-36 text-left">Tempat / Lokasi</th>
                                                     <th class="py-1.5 px-2 border border-slate-800 text-right">MIRU</th>
                                                     <th class="py-1.5 px-2 border border-slate-800 text-right">OPS</th>
                                                     <th class="py-1.5 px-2 border border-slate-800 text-center">SBWC Rain</th>
@@ -525,6 +744,9 @@
                                                 <tr class="hover:bg-slate-800/40 transition">
                                                     <td class="py-1.5 px-2 text-center text-slate-500 font-mono border border-slate-800 bg-slate-900/50"><?= $li + 1 ?></td>
                                                     <td class="py-1.5 px-3 text-center text-sky-300 font-sans border border-slate-800 font-bold"><?= date('d/m/Y', strtotime($lg['tanggal'])) ?></td>
+                                                    <td class="py-1.5 px-3 text-left text-slate-200 font-sans border border-slate-800 font-bold">
+                                                        <i class="fa-solid fa-map-pin text-[9px] text-rose-400 mr-1"></i><?= esc($rep['nama_lokasi'] ?? '-') ?>
+                                                    </td>
                                                     <td class="py-1.5 px-2 text-right text-lime-400 border border-slate-800"><?= (float)$lg['miru_jam'] > 0 ? number_format((float)$lg['miru_jam'], 2) : '-' ?></td>
                                                     <td class="py-1.5 px-2 text-right text-lime-300 border border-slate-800"><?= (float)$lg['ops_jam'] > 0 ? number_format((float)$lg['ops_jam'], 2) : '-' ?></td>
                                                     <td class="py-1.5 px-2 text-center border border-slate-800 <?= (float)$lg['dt_rain'] > 0 ? 'text-yellow-300 font-bold' : 'text-slate-600' ?>"><?= (float)$lg['dt_rain'] > 0 ? number_format((float)$lg['dt_rain'], 2) : '-' ?></td>
@@ -841,6 +1063,109 @@
     </div>
 </div>
 
+<!-- ═══ MODAL PILIHAN EXPORT EXCEL (SENIOR-FRIENDLY & INTUITIF) ══════ -->
+<div id="exportModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm hidden transition-all duration-200">
+    <div class="relative w-full max-w-xl rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl p-6 space-y-5 animate-in fade-in zoom-in-95 duration-150">
+        <!-- Modal Header -->
+        <div class="flex items-start justify-between border-b border-slate-800 pb-4">
+            <div class="flex items-center gap-3.5">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-2xl flex-shrink-0">
+                    <i class="fa-solid fa-file-excel"></i>
+                </div>
+                <div>
+                    <h3 class="text-base sm:text-lg font-black text-white tracking-tight">Pilih Format Download Excel</h3>
+                    <p class="text-xs text-slate-400 mt-0.5">
+                        Periode Aktif: <strong class="text-amber-400 font-semibold"><?= $bulanList[$bulan] ?> <?= $tahun ?></strong> — Rig Aktif: <strong class="text-cyan-400 font-semibold"><?= esc($rig['kode']) ?></strong>
+                    </p>
+                </div>
+            </div>
+            <button type="button" onclick="closeExportModal()" class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition" title="Tutup (Esc)">
+                <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+        </div>
+
+        <!-- Opsi Pilihan Download (Kartu Besar, Kontras Tinggi, Sangat Mudah Diklik) -->
+        <div class="space-y-3">
+            <!-- OPSI 1: Rig Ini Saja (Bulan Ini) -->
+            <a href="<?= base_url("export/daily-report/{$rigId}/{$bulan}/{$tahun}") ?>" onclick="closeExportModal()"
+               class="group flex items-center justify-between p-4 rounded-2xl bg-slate-850 hover:bg-slate-800 border-2 border-slate-700 hover:border-emerald-500 transition-all duration-200 shadow-sm active:scale-[0.99]">
+                <div class="flex items-center gap-4">
+                    <div class="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center text-xl group-hover:bg-emerald-500 group-hover:text-white transition-all duration-200 flex-shrink-0">
+                        <i class="fa-solid fa-oil-well"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm font-bold text-white group-hover:text-emerald-300 transition">Rig Ini Saja (<?= esc($rig['kode']) ?>)</span>
+                            <span class="px-2 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-[10px] font-extrabold text-emerald-400 uppercase">Per Rig</span>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-0.5 leading-relaxed">
+                            Download ringkasan pekerjaan sumur khusus armada <strong class="text-slate-200"><?= esc($rig['kode']) ?></strong> untuk bulan <strong class="text-slate-200"><?= $bulanList[$bulan] ?> <?= $tahun ?></strong>.
+                        </p>
+                    </div>
+                </div>
+                <div class="w-9 h-9 rounded-xl bg-slate-800 group-hover:bg-emerald-500/20 text-slate-400 group-hover:text-emerald-400 flex items-center justify-center transition flex-shrink-0 ml-3">
+                    <i class="fa-solid fa-download text-sm"></i>
+                </div>
+            </a>
+
+            <!-- OPSI 2: Seluruh Rig Sekaligus (All Rigs Bulan Ini) -->
+            <a href="<?= base_url("export/daily-report-all/{$bulan}/{$tahun}") ?>" onclick="closeExportModal()"
+               class="group flex items-center justify-between p-4 rounded-2xl bg-slate-850 hover:bg-slate-800 border-2 border-slate-700 hover:border-cyan-500 transition-all duration-200 shadow-sm active:scale-[0.99]">
+                <div class="flex items-center gap-4">
+                    <div class="w-11 h-11 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 flex items-center justify-center text-xl group-hover:bg-cyan-500 group-hover:text-white transition-all duration-200 flex-shrink-0">
+                        <i class="fa-solid fa-layer-group"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm font-bold text-white group-hover:text-cyan-300 transition">Seluruh Rig Sekaligus (All Rigs)</span>
+                            <span class="px-2 py-0.5 rounded-md bg-cyan-500/15 border border-cyan-500/30 text-[10px] font-extrabold text-cyan-400 uppercase">Multi-Sheet</span>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-0.5 leading-relaxed">
+                            1 file Excel berisi sheet terpisah untuk setiap armada Rig + 1 lembar rekapitulasi semua sumur bulan <strong class="text-slate-200"><?= $bulanList[$bulan] ?> <?= $tahun ?></strong>.
+                        </p>
+                    </div>
+                </div>
+                <div class="w-9 h-9 rounded-xl bg-slate-800 group-hover:bg-cyan-500/20 text-slate-400 group-hover:text-cyan-400 flex items-center justify-center transition flex-shrink-0 ml-3">
+                    <i class="fa-solid fa-download text-sm"></i>
+                </div>
+            </a>
+
+            <!-- OPSI 3: Paket Lengkap Seluruh Laporan (All in One Bundle) -->
+            <a href="<?= base_url("export/bundle-all/{$bulan}/{$tahun}") ?>" onclick="closeExportModal()"
+               class="group flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 to-blue-500/10 hover:from-amber-500/20 hover:to-blue-500/20 border-2 border-amber-500/40 hover:border-amber-400 transition-all duration-200 shadow-sm active:scale-[0.99]">
+                <div class="flex items-center gap-4">
+                    <div class="w-11 h-11 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 flex items-center justify-center text-xl group-hover:bg-amber-500 group-hover:text-slate-950 transition-all duration-200 flex-shrink-0">
+                        <i class="fa-solid fa-crown"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm font-bold text-amber-300 group-hover:text-amber-200 transition">Paket Lengkap Eksekutif (All-in-One)</span>
+                            <span class="px-2 py-0.5 rounded-md bg-amber-500/25 border border-amber-500/40 text-[10px] font-extrabold text-amber-300 uppercase tracking-wider">Terlengkap</span>
+                        </div>
+                        <p class="text-xs text-slate-300 mt-0.5 leading-relaxed">
+                            Download sekaligus: <strong class="text-white">Summary RAU</strong> + <strong class="text-white">Rekap Downtime NPT</strong> + <strong class="text-white">Rekap Pekerjaan Seluruh Sumur</strong> dalam 1 file Excel utuh.
+                        </p>
+                    </div>
+                </div>
+                <div class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-300 group-hover:bg-amber-500 group-hover:text-slate-950 flex items-center justify-center transition flex-shrink-0 ml-3">
+                    <i class="fa-solid fa-download text-sm"></i>
+                </div>
+            </a>
+        </div>
+
+        <!-- Footer Modal -->
+        <div class="flex items-center justify-between pt-2 border-t border-slate-800 text-xs text-slate-500">
+            <span class="flex items-center gap-1.5">
+                <i class="fa-solid fa-circle-check text-emerald-400"></i>
+                <span>Format Excel standar Besmindo (.xlsx)</span>
+            </span>
+            <button type="button" onclick="closeExportModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold transition">
+                Tutup Jendela
+            </button>
+        </div>
+    </div>
+</div>
+
 <?= $this->endSection() ?>
 
 <?= $this->section('scripts') ?>
@@ -849,6 +1174,11 @@
         const rigId = document.getElementById('selectRig').value;
         const bulan = document.getElementById('selectBulan').value;
         const tahun = document.getElementById('selectTahun').value;
+        try {
+            localStorage.setItem('dr_last_rig', rigId);
+            localStorage.setItem('dr_last_bulan', bulan);
+            localStorage.setItem('dr_last_tahun', tahun);
+        } catch (e) {}
         window.location.href = `<?= base_url('daily-report') ?>/${rigId}/${bulan}/${tahun}`;
     }
 
@@ -856,18 +1186,25 @@
 
     function setStatusFilter(status) {
         activeStatusFilter = status;
-        ['ALL', 'COMPLETED', 'PROGRESS'].forEach(s => {
-            const btn = document.getElementById(`btnFilter_${s}`);
-            if (btn) {
-                if (s === status) {
-                    btn.classList.add('bg-blue-600', 'text-white', 'shadow');
-                    btn.classList.remove('text-slate-400');
-                } else {
-                    btn.classList.remove('bg-blue-600', 'text-white', 'shadow');
-                    btn.classList.add('text-slate-400');
-                }
-            }
-        });
+        try {
+            sessionStorage.setItem('dr_status_filter', status);
+        } catch (e) {}
+        const allBtn = document.getElementById('btnFilter_ALL');
+        const compBtn = document.getElementById('btnFilter_COMPLETED');
+        const progBtn = document.getElementById('btnFilter_PROGRESS');
+
+        if (allBtn) allBtn.classList.remove('active-all');
+        if (compBtn) compBtn.classList.remove('active-completed');
+        if (progBtn) progBtn.classList.remove('active-progress');
+
+        if (status === 'ALL' && allBtn) {
+            allBtn.classList.add('active-all');
+        } else if (status === 'COMPLETED' && compBtn) {
+            compBtn.classList.add('active-completed');
+        } else if (status === 'PROGRESS' && progBtn) {
+            progBtn.classList.add('active-progress');
+        }
+
         filterWellsTable();
     }
 
@@ -877,8 +1214,7 @@
             const btn = document.getElementById(`btnView_${m}`);
             if (container) container.classList.add('hidden');
             if (btn) {
-                btn.classList.remove('bg-blue-600', 'text-white', 'shadow', 'font-black');
-                btn.classList.add('text-slate-400', 'font-bold');
+                btn.classList.remove('active');
             }
         });
 
@@ -886,8 +1222,7 @@
         const activeBtn = document.getElementById(`btnView_${mode}`);
         if (activeContainer) activeContainer.classList.remove('hidden');
         if (activeBtn) {
-            activeBtn.classList.remove('text-slate-400', 'font-bold');
-            activeBtn.classList.add('bg-blue-600', 'text-white', 'shadow', 'font-black');
+            activeBtn.classList.add('active');
         }
     }
 
@@ -932,12 +1267,22 @@
         const input = document.getElementById('searchWellInput');
         input.value = '';
         document.getElementById('btnClearSearch').classList.add('hidden');
+        try {
+            sessionStorage.removeItem('dr_search_query');
+        } catch (e) {}
         filterWellsTable();
     }
 
     function filterWellsTable() {
         const input = document.getElementById('searchWellInput');
         const filter = input.value.toLowerCase().trim();
+        try {
+            if (filter !== '') {
+                sessionStorage.setItem('dr_search_query', input.value);
+            } else {
+                sessionStorage.removeItem('dr_search_query');
+            }
+        } catch (e) {}
         const btnClear = document.getElementById('btnClearSearch');
         if (btnClear) {
             if (filter !== '') btnClear.classList.remove('hidden');
@@ -1005,10 +1350,51 @@
         document.getElementById('quickLookModal').classList.add('hidden');
     }
 
+    // Export Modal Handlers
+    function openExportModal() {
+        const modal = document.getElementById('exportModal');
+        if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeExportModal() {
+        const modal = document.getElementById('exportModal');
+        if (modal) modal.classList.add('hidden');
+    }
+
     // Close on Escape or click outside
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') closeWellQuickLook();
+        if (e.key === 'Escape') {
+            closeWellQuickLook();
+            closeExportModal();
+            const searchInput = document.getElementById('searchWellInput');
+            if (searchInput && (document.activeElement === searchInput || searchInput.value !== '')) {
+                clearSearch();
+                searchInput.blur();
+            }
+        }
+    });
+
+    // Restore search and filter state on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        try {
+            const savedQuery = sessionStorage.getItem('dr_search_query');
+            const savedStatus = sessionStorage.getItem('dr_status_filter');
+
+            const searchInput = document.getElementById('searchWellInput');
+            if (savedQuery && searchInput) {
+                searchInput.value = savedQuery;
+                const btnClear = document.getElementById('btnClearSearch');
+                if (btnClear) btnClear.classList.remove('hidden');
+            }
+
+            if (savedStatus && ['ALL', 'COMPLETED', 'PROGRESS'].includes(savedStatus)) {
+                setStatusFilter(savedStatus);
+            } else if (savedQuery) {
+                filterWellsTable();
+            }
+        } catch (e) {
+            console.error(e);
+        }
     });
 </script>
 <?= $this->endSection() ?>
-

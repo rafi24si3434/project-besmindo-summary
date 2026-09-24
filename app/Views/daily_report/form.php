@@ -1,7 +1,7 @@
 <?= $this->extend('layout/main') ?>
 
 <?= $this->section('content') ?>
-<div class="max-w-4xl mx-auto space-y-6">
+<div class="ui-screen ui-screen--form max-w-4xl mx-auto space-y-6">
     <div class="p-6 rounded-2xl bg-slate-800 border border-slate-700 shadow-xl space-y-6">
         <div class="border-b border-slate-700 pb-4 flex items-center justify-between">
             <div>
@@ -28,15 +28,80 @@
                 </div>
 
                 <div class="sm:col-span-2">
-                    <label class="block text-xs font-bold text-slate-300 uppercase mb-1.5">Location (Nama Sumur)</label>
-                    <select name="lokasi_id" required class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white text-xs font-semibold focus:ring-2 focus:ring-blue-500">
-                        <option value="">-- Pilih Lokasi --</option>
-                        <?php foreach ($lokasiList as $lok): ?>
-                            <option value="<?= $lok['id'] ?>" <?= (old('lokasi_id', $report['lokasi_id'] ?? '') == $lok['id']) ? 'selected' : '' ?>>
-                                <?= esc($lok['nama_lokasi']) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
+                    <?php
+                        $selectedLokId = old('lokasi_id', $report['lokasi_id'] ?? '');
+                        $selectedLokNama = '';
+                        foreach ($lokasiList as $lok) {
+                            if ($lok['id'] == $selectedLokId) {
+                                $selectedLokNama = $lok['nama_lokasi'];
+                                break;
+                            }
+                        }
+                    ?>
+                    <label class="block text-xs font-bold text-slate-300 uppercase mb-1.5 flex items-center justify-between">
+                        <span>Location (Nama Sumur) <span class="text-rose-400">*</span></span>
+                        <span class="text-[10px] text-amber-400 font-normal">Ketik untuk mencari cepat</span>
+                    </label>
+
+                    <!-- Hidden Input for Form Submission -->
+                    <input type="hidden" name="lokasi_id" id="lokasi_id" value="<?= esc($selectedLokId) ?>" required>
+
+                    <!-- Searchable Combobox Container -->
+                    <div class="relative" id="lokasiComboboxWrapper">
+                        <div class="flex items-center bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 focus-within:border-amber-400 focus-within:ring-2 focus-within:ring-amber-400/20 transition shadow-inner">
+                            <i class="fa-solid fa-location-dot text-amber-400 text-xs mr-2 flex-shrink-0"></i>
+                            <input type="text" id="lokasiSearchInput" 
+                                   placeholder="Ketik untuk mencari lokasi (cth: 3J, Duri, Minas...)" 
+                                   value="<?= esc($selectedLokNama) ?>"
+                                   data-selected-name="<?= esc($selectedLokNama) ?>"
+                                   autocomplete="off"
+                                   class="bg-transparent border-0 text-xs font-bold text-white focus:outline-none w-full placeholder-slate-500">
+                            
+                            <!-- Clear Selection Button -->
+                            <button type="button" id="btnClearLokasi" onclick="clearLokasiSelection()" 
+                                    class="text-slate-400 hover:text-white px-1.5 py-0.5 rounded text-xs transition <?= empty($selectedLokId) ? 'hidden' : '' ?>" title="Hapus / Ganti Lokasi">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+
+                            <!-- Dropdown Toggle Arrow -->
+                            <button type="button" id="btnToggleLokasiDropdown" onclick="toggleLokasiDropdown()"
+                                    class="text-slate-400 hover:text-amber-300 px-1.5 py-0.5 rounded text-xs transition ml-0.5" title="Buka / Tutup Daftar Lokasi">
+                                <i class="fa-solid fa-chevron-down transition-transform duration-200" id="lokasiChevronIcon"></i>
+                            </button>
+                        </div>
+
+                        <!-- Dropdown List of Locations with Live Filter -->
+                        <div id="lokasiDropdownMenu" class="hidden absolute left-0 right-0 top-full mt-1.5 bg-slate-900 border-2 border-slate-700 rounded-xl shadow-2xl z-50 overflow-hidden max-h-60 flex flex-col">
+                            <div class="px-3.5 py-2 bg-slate-850 border-b border-slate-750 flex items-center justify-between text-[11px] text-slate-400 font-bold">
+                                <span>PILIH NAMA LOKASI:</span>
+                                <span id="lokasiMatchCount" class="text-amber-400 font-mono"><?= count($lokasiList) ?> lokasi</span>
+                            </div>
+                            <div class="overflow-y-auto custom-scrollbar divide-y divide-slate-800/80" id="lokasiOptionsList">
+                                <?php foreach ($lokasiList as $lok): 
+                                    $isSel = ($selectedLokId == $lok['id']);
+                                ?>
+                                <div class="lokasi-option-item px-3.5 py-2 hover:bg-amber-500/20 hover:text-white cursor-pointer transition flex items-center justify-between text-xs text-slate-200 <?= $isSel ? 'bg-amber-500/15 text-amber-300 font-black' : '' ?>"
+                                     data-id="<?= $lok['id'] ?>" 
+                                     data-nama="<?= esc($lok['nama_lokasi']) ?>"
+                                     onclick="selectLokasi(<?= $lok['id'] ?>, '<?= esc($lok['nama_lokasi'], 'js') ?>')">
+                                    <span class="flex items-center gap-2">
+                                        <i class="fa-solid fa-location-dot text-[10px] text-amber-400"></i>
+                                        <span class="lokasi-text font-bold"><?= esc($lok['nama_lokasi']) ?></span>
+                                    </span>
+                                    <?php if ($isSel): ?>
+                                        <span class="text-[10px] text-amber-400 font-bold flex items-center gap-1">
+                                            <i class="fa-solid fa-check"></i> Terpilih
+                                        </span>
+                                    <?php endif; ?>
+                                </div>
+                                <?php endforeach; ?>
+                                <div id="lokasiEmptyState" class="hidden px-4 py-5 text-center text-xs text-slate-400">
+                                    <i class="fa-solid fa-circle-question text-base text-slate-500 mb-1 block"></i>
+                                    Tidak ada lokasi yang cocok dengan kata kunci tersebut.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div>
@@ -175,5 +240,122 @@
         document.getElementById('previewTotalJam').innerText = total.toFixed(2) + ' Jam';
     }
     calcTotalJam();
+
+    // ═══ Searchable Location Combobox Logic ═══
+    function toggleLokasiDropdown() {
+        const menu = document.getElementById('lokasiDropdownMenu');
+        if (menu.classList.contains('hidden')) {
+            openLokasiDropdown();
+        } else {
+            closeLokasiDropdown();
+        }
+    }
+
+    function openLokasiDropdown() {
+        const menu = document.getElementById('lokasiDropdownMenu');
+        const icon = document.getElementById('lokasiChevronIcon');
+        menu.classList.remove('hidden');
+        if (icon) icon.classList.add('rotate-180');
+        filterLokasiList();
+    }
+
+    function closeLokasiDropdown() {
+        const menu = document.getElementById('lokasiDropdownMenu');
+        const icon = document.getElementById('lokasiChevronIcon');
+        menu.classList.add('hidden');
+        if (icon) icon.classList.remove('rotate-180');
+    }
+
+    function filterLokasiList() {
+        const input = document.getElementById('lokasiSearchInput');
+        const q = input.value.toLowerCase().trim();
+        const items = document.querySelectorAll('#lokasiOptionsList .lokasi-option-item');
+        const emptyState = document.getElementById('lokasiEmptyState');
+        const countEl = document.getElementById('lokasiMatchCount');
+
+        let matches = 0;
+        items.forEach(item => {
+            const name = (item.getAttribute('data-nama') || '').toLowerCase();
+            if (q === '' || name.includes(q)) {
+                item.style.display = '';
+                matches++;
+            } else {
+                item.style.display = 'none';
+            }
+        });
+
+        if (countEl) countEl.innerText = matches + ' lokasi';
+        if (emptyState) {
+            emptyState.style.display = matches === 0 ? 'block' : 'none';
+        }
+    }
+
+    function selectLokasi(id, nama) {
+        document.getElementById('lokasi_id').value = id;
+        const input = document.getElementById('lokasiSearchInput');
+        input.value = nama;
+        input.setAttribute('data-selected-name', nama);
+        document.getElementById('btnClearLokasi').classList.remove('hidden');
+        closeLokasiDropdown();
+
+        // Highlight selected item
+        document.querySelectorAll('#lokasiOptionsList .lokasi-option-item').forEach(item => {
+            if (item.getAttribute('data-id') == id) {
+                item.classList.add('bg-amber-500/15', 'text-amber-300', 'font-black');
+            } else {
+                item.classList.remove('bg-amber-500/15', 'text-amber-300', 'font-black');
+            }
+        });
+    }
+
+    function clearLokasiSelection() {
+        document.getElementById('lokasi_id').value = '';
+        const input = document.getElementById('lokasiSearchInput');
+        input.value = '';
+        input.setAttribute('data-selected-name', '');
+        input.focus();
+        document.getElementById('btnClearLokasi').classList.add('hidden');
+        openLokasiDropdown();
+    }
+
+    // Event Listeners for Combobox
+    const lokasiInput = document.getElementById('lokasiSearchInput');
+    if (lokasiInput) {
+        lokasiInput.addEventListener('focus', () => {
+            openLokasiDropdown();
+        });
+        lokasiInput.addEventListener('input', () => {
+            openLokasiDropdown();
+            // Invalidate hidden id if text is modified
+            const selectedName = lokasiInput.getAttribute('data-selected-name');
+            if (lokasiInput.value !== selectedName) {
+                document.getElementById('lokasi_id').value = '';
+                document.getElementById('btnClearLokasi').classList.add('hidden');
+            }
+            filterLokasiList();
+        });
+        lokasiInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                // Select first visible match
+                const firstVisible = document.querySelector('#lokasiOptionsList .lokasi-option-item:not([style*="display: none"])');
+                if (firstVisible) {
+                    const id = firstVisible.getAttribute('data-id');
+                    const nama = firstVisible.getAttribute('data-nama');
+                    selectLokasi(id, nama);
+                }
+            } else if (e.key === 'Escape') {
+                closeLokasiDropdown();
+            }
+        });
+    }
+
+    // Close when clicking outside
+    document.addEventListener('click', (e) => {
+        const wrapper = document.getElementById('lokasiComboboxWrapper');
+        if (wrapper && !wrapper.contains(e.target)) {
+            closeLokasiDropdown();
+        }
+    });
 </script>
 <?= $this->endSection() ?>

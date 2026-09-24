@@ -27,6 +27,7 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
 
     // ---- MASTER DATA ----
     $routes->group('master', function ($routes) {
+        $routes->get('/', 'Master::index');
 
         // Rig
         $routes->get('rig', 'Master\Rig::index');
@@ -65,8 +66,11 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
     $routes->group('npt', function ($routes) {
         $routes->get('/', 'Npt::index');
         $routes->get('(:num)/(:num)/(:num)', 'Npt::grid/$1/$2/$3');           // rig_id/bulan/tahun
+        $routes->get('(:num)/(:num)', 'Npt::grid/$1/$2');                     // rig_id/bulan (auto default tahun)
         $routes->post('simpan', 'Npt::simpan');
         $routes->get('data/(:num)/(:num)/(:num)', 'Npt::getData/$1/$2/$3');   // AJAX
+        $routes->get('get-rig-wells/(:num)/(:num)/(:num)', 'Npt::getRigWells/$1/$2/$3'); // AJAX detail sumur
+        $routes->get('get-rig-wells/(:num)/(:num)', 'Npt::getRigWells/$1/$2');           // AJAX detail sumur (default tahun)
     });
 
     // ---- DAILY REPORT ----
@@ -75,8 +79,12 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
         $routes->get('(:num)/(:num)/(:num)', 'DailyReport::grid/$1/$2/$3');   // rig_id/bulan/tahun
         $routes->get('tambah/(:num)/(:num)/(:num)', 'DailyReport::tambah/$1/$2/$3');
         $routes->post('simpan', 'DailyReport::simpan');
+        $routes->post('simpan-sumur-cepat', 'DailyReport::simpanSumurCepat');
+        $routes->get('log-harian', 'DailyReport::logHarianDefault');
         $routes->get('log-harian/(:num)/(:num)/(:num)', 'DailyReport::logHarian/$1/$2/$3');
         $routes->post('simpan-log', 'DailyReport::simpanLog');
+        $routes->post('hapus-log/(:num)', 'DailyReport::hapusLog/$1');
+        $routes->get('detail/(:num)', 'DailyReport::detail/$1');
         $routes->get('edit/(:num)', 'DailyReport::edit/$1');
         $routes->post('update/(:num)', 'DailyReport::update/$1');
         $routes->post('hapus/(:num)', 'DailyReport::hapus/$1');
@@ -103,8 +111,13 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
         $routes->get('npt/(:num)/(:num)/(:num)', 'Export::npt/$1/$2/$3');              // rig_id/bulan/tahun
         $routes->get('npt-all/(:num)/(:num)', 'Export::nptAll/$1/$2');                 // bulan/tahun
         $routes->get('daily-report/(:num)/(:num)/(:num)', 'Export::dailyReport/$1/$2/$3');
+        $routes->get('daily-report-all/(:num)/(:num)', 'Export::dailyReportAll/$1/$2');               // All Rigs in Bulan/Tahun
         $routes->get('monthly-report/(:num)/(:num)', 'Export::monthlyReport/$1/$2');
         $routes->get('rekap-tahunan/(:num)', 'Export::rekapTahunan/$1');
         $routes->get('rekap-npt-tahunan/(:num)', 'Export::rekapNptTahunan/$1');
+        $routes->get('bundle-all/(:num)/(:num)', 'Export::bundleAll/$1/$2');                          // Complete All-in-One Package
     });
+
+    // ---- AUDIT TRAIL / RIWAYAT AKTIVITAS ----
+    $routes->get('audit-log', 'AuditLog::index');
 });

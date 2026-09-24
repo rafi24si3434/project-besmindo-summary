@@ -1,31 +1,43 @@
 <?= $this->extend('layout/main') ?>
 
 <?= $this->section('content') ?>
-<div class="space-y-6">
-    <!-- Header Bar -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-slate-800/80 border border-slate-700/70 shadow-lg">
+<div class="ui-screen ui-screen--report space-y-6">
+    <!-- Header / Toolbar -->
+    <div class="ui-toolbar flex-wrap justify-between">
         <div class="flex items-center gap-3">
-            <a href="<?= base_url("rekap-tahunan/{$tahun}") ?>" class="p-2.5 rounded-xl bg-slate-700 text-slate-300 hover:text-white transition">
-                <i class="fa-solid fa-arrow-left"></i>
+            <a href="<?= base_url("rekap-tahunan/{$tahun}") ?>"
+                class="w-8 h-8 rounded-md flex items-center justify-center transition"
+                style="background:var(--secondary);color:var(--muted-foreground)"
+                onmouseover="this.style.background='var(--accent)';this.style.color='var(--foreground)'"
+                onmouseout="this.style.background='var(--secondary)';this.style.color='var(--muted-foreground)'">
+                <i class="fa-solid fa-arrow-left text-xs"></i>
             </a>
             <div>
-                <h3 class="text-lg font-bold text-white"><?= esc($rig['kode']) ?> <span class="text-slate-400 font-medium">(<?= esc($rig['nama_rig']) ?>)</span> — Rekap 12 Bulan</h3>
-                <p class="text-sm text-slate-400">Rincian performa bulanan dan indikator RAU sepanjang Tahun <span class="text-yellow-300 font-semibold"><?= $tahun ?></span></p>
+                <h3 class="text-sm font-bold" style="color:var(--foreground)">
+                    <?= esc($rig['kode']) ?>
+                    <span style="color:var(--muted-foreground);font-weight:500">(<?= esc($rig['nama_rig']) ?>)</span>
+                    — Rekap 12 Bulan
+                </h3>
+                <p class="text-xs" style="color:var(--muted-foreground)">Performa bulanan &amp; RAU Tahun
+                    <strong class="font-mono" style="color:var(--primary)"><?= $tahun ?></strong>
+                </p>
             </div>
         </div>
-
         <div class="flex items-center gap-2">
-            <span class="px-4 py-2 rounded-xl bg-blue-600/10 text-blue-400 border border-blue-500/20 text-sm font-mono font-semibold">
-                ODR: Rp <?= number_format($rig['odr'], 0, ',', '.') ?> / Hari
+            <span class="ui-badge ui-badge--info font-mono">
+                <i class="fa-solid fa-money-bill-wave text-xs"></i>
+                ODR: Rp <?= number_format($rig['odr'], 0, ',', '.') ?>/Hari
             </span>
         </div>
     </div>
 
     <!-- 12 Months Detailed Table -->
-    <div class="rounded-2xl bg-slate-800/80 border border-slate-700/80 shadow-lg overflow-hidden">
-        <div class="px-5 py-3.5 border-b border-slate-700 flex items-center gap-2">
-            <i class="fa-solid fa-calendar-days text-blue-400 text-sm"></i>
-            <span class="text-sm font-bold text-slate-300">Rincian Performa Per Bulan — <?= $tahun ?></span>
+    <div class="ui-card overflow-hidden">
+        <div class="ui-card-header">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-calendar-days text-sm" style="color:var(--primary)"></i>
+                <span class="ui-card-header-title">Rincian Performa Per Bulan — <?= $tahun ?></span>
+            </div>
         </div>
         <div class="overflow-x-auto custom-scrollbar">
             <table class="w-full text-left text-sm border-collapse">
@@ -125,4 +137,3 @@
     </div>
 </div>
 <?= $this->endSection() ?>
-

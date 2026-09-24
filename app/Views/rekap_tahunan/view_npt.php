@@ -1,75 +1,86 @@
 <?= $this->extend('layout/main') ?>
 
 <?= $this->section('content') ?>
-<div class="space-y-5">
-    <!-- Filter Navigation Bar (Identik Monthly Report) -->
-    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 p-4 rounded-xl bg-slate-800/90 border border-slate-700 shadow">
+<div class="ui-screen ui-screen--report space-y-5">
+    <!-- Filter Navigation Bar -->
+    <div class="ui-toolbar flex-wrap justify-between">
         <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 flex items-center justify-center flex-shrink-0">
-                <i class="fa-solid fa-clock-rotate-left text-lg"></i>
+            <div class="w-9 h-9 rounded-md flex items-center justify-center flex-shrink-0"
+                style="background:var(--danger-bg);color:var(--danger-fg);border:1px solid var(--danger-border)">
+                <i class="fa-solid fa-clock-rotate-left"></i>
             </div>
             <div>
-                <h3 class="text-sm font-extrabold text-white uppercase tracking-wider">REKAPITULASI NON-PRODUCTIVE TIME (NPT) RIG BMS</h3>
-                <p class="text-xs text-slate-400">Tahun Pelaporan: <strong class="text-yellow-400 font-mono text-sm"><?= $tahun ?></strong> · Periode Terpilih: <strong class="text-emerald-400 font-semibold"><?= [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni',7=>'Juli',8=>'Agustus',9=>'September',10=>'Oktober',11=>'November',12=>'Desember'][$activeMonth] ?? '' ?> <?= $tahun ?></strong></p>
+                <h3 class="text-sm font-bold" style="color:var(--foreground)">Rekapitulasi NPT (Non-Productive Time)</h3>
+                <p class="text-xs" style="color:var(--muted-foreground)">
+                    Tahun <strong class="font-mono" style="color:var(--primary)"><?= $tahun ?></strong>
+                    &mdash; Periode:
+                    <strong style="color:var(--success-fg)"><?= [1=>'Jan',2=>'Feb',3=>'Mar',4=>'Apr',5=>'Mei',6=>'Jun',7=>'Jul',8=>'Agu',9=>'Sep',10=>'Okt',11=>'Nov',12=>'Des'][$activeMonth] ?? '' ?> <?= $tahun ?></strong>
+                </p>
             </div>
         </div>
 
-        <div class="flex flex-wrap items-center gap-2.5">
+        <div class="flex flex-wrap items-center gap-2">
+            <?php 
+            $monthNames = [
+                1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+                5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+                9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+            ]; ?>
+
             <!-- Selector Bulan -->
-            <div class="flex items-center bg-slate-900 border border-slate-600 rounded-xl px-2.5 py-1.5 shadow-sm focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
-                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mr-2 flex items-center gap-1.5">
-                    <i class="fa-solid fa-calendar text-blue-400 text-xs"></i>
-                    <span>Bulan:</span>
-                </span>
-                <select id="selectBulanNpt" onchange="navigateNptMonth()" class="bg-transparent border-0 text-xs font-bold text-white focus:outline-none cursor-pointer pr-1">
-                    <?php 
-                    $monthNames = [
-                        1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
-                        5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus'
-                    ];
-                    foreach ($monthNames as $num => $nama): ?>
-                        <option value="<?= $num ?>" class="bg-slate-900 text-white" <?= $activeMonth == $num ? 'selected' : '' ?>><?= $nama ?></option>
+            <div class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md" style="background:var(--input);border:1px solid var(--border)">
+                <i class="fa-solid fa-calendar text-xs" style="color:var(--muted-foreground)"></i>
+                <select id="selectBulanNpt" onchange="navigateNptMonth()"
+                    class="bg-transparent border-0 text-xs font-semibold focus:outline-none cursor-pointer"
+                    style="color:var(--foreground)">
+                    <?php foreach ($monthNames as $num => $nama): ?>
+                        <option value="<?= $num ?>" style="background:var(--popover)" <?= $activeMonth == $num ? 'selected' : '' ?>><?= $nama ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
 
             <!-- Selector Tahun -->
-            <div class="flex items-center bg-slate-900 border border-slate-600 rounded-xl px-2.5 py-1.5 shadow-sm focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
-                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mr-2 flex items-center gap-1.5">
-                    <i class="fa-solid fa-calendar-days text-blue-400 text-xs"></i>
-                    <span>Tahun:</span>
-                </span>
-                <select id="selectTahunNpt" onchange="navigateNptYear()" class="bg-transparent border-0 text-xs font-bold text-white focus:outline-none cursor-pointer pr-1">
+            <div class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md" style="background:var(--input);border:1px solid var(--border)">
+                <i class="fa-solid fa-calendar-days text-xs" style="color:var(--muted-foreground)"></i>
+                <select id="selectTahunNpt" onchange="navigateNptYear()"
+                    class="bg-transparent border-0 text-xs font-semibold focus:outline-none cursor-pointer"
+                    style="color:var(--foreground)">
                     <?php for ($y = 2024; $y <= 2028; $y++): ?>
-                        <option value="<?= $y ?>" class="bg-slate-900 text-white" <?= $tahun == $y ? 'selected' : '' ?>><?= $y ?></option>
+                        <option value="<?= $y ?>" style="background:var(--popover)" <?= $tahun == $y ? 'selected' : '' ?>><?= $y ?></option>
                     <?php endfor; ?>
                 </select>
             </div>
 
-            <!-- Tombol Export Excel Asli -->
-            <a href="<?= base_url('export/rekap-npt-tahunan/' . $tahun) ?>" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-500/20 transition flex items-center gap-1.5 active:scale-95">
-                <i class="fa-solid fa-file-excel text-xs"></i>
-                <span>Download Excel (SYS)</span>
+            <a href="<?= base_url('export/rekap-npt-tahunan/' . $tahun) ?>"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition"
+                style="background:var(--success-bg);color:var(--success-fg);border:1px solid var(--success-border)"
+                onmouseover="this.style.background='var(--success)';this.style.color='#fff'"
+                onmouseout="this.style.background='var(--success-bg)';this.style.color='var(--success-fg)'">
+                <i class="fa-solid fa-file-excel text-xs"></i> Export Excel
             </a>
         </div>
     </div>
 
-    <!-- Navigation Tabs (Identik Monthly Report) -->
-    <div class="flex border-b border-slate-700 gap-2 overflow-x-auto">
-        <button onclick="switchNptTab('summary')" id="tabBtn_summary" class="tab-btn px-4 py-2 text-xs font-bold rounded-t-xl transition border-b-2 border-yellow-400 text-yellow-300 bg-slate-800 flex items-center gap-2 whitespace-nowrap">
+    <!-- Navigation Tabs -->
+    <div class="ui-tabs overflow-x-auto custom-scrollbar">
+        <button onclick="switchNptTab('summary')" id="tabBtn_summary"
+            class="ui-tab active whitespace-nowrap flex items-center gap-1.5">
             <i class="fa-solid fa-table text-xs"></i>
-            <span>Ringkasan NPT All Rig (Bulan <?= $monthNames[$activeMonth] ?? '' ?>)</span>
+            <span>Ringkasan NPT All Rig (<?= $monthNames[$activeMonth] ?? '' ?>)</span>
         </button>
-        <button onclick="switchNptTab('chrono')" id="tabBtn_chrono" class="tab-btn px-4 py-2 text-xs font-bold rounded-t-xl transition border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/40 flex items-center gap-2 whitespace-nowrap">
-            <i class="fa-solid fa-list-ol text-xs text-amber-400"></i>
+        <button onclick="switchNptTab('chrono')" id="tabBtn_chrono"
+            class="ui-tab whitespace-nowrap flex items-center gap-1.5">
+            <i class="fa-solid fa-list-ol text-xs"></i>
             <span>Log Kronologis Per Rig</span>
         </button>
-        <button onclick="switchNptTab('matrixDetail')" id="tabBtn_matrixDetail" class="tab-btn px-4 py-2 text-xs font-bold rounded-t-xl transition border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/40 flex items-center gap-2 whitespace-nowrap">
-            <i class="fa-solid fa-table-cells text-xs text-cyan-400"></i>
-            <span>Matriks Lengkap SYS (30+ Kolom)</span>
+        <button onclick="switchNptTab('matrixDetail')" id="tabBtn_matrixDetail"
+            class="ui-tab whitespace-nowrap flex items-center gap-1.5">
+            <i class="fa-solid fa-table-cells text-xs"></i>
+            <span>Matriks Lengkap SYS</span>
         </button>
-        <button onclick="switchNptTab('grandTotal')" id="tabBtn_grandTotal" class="tab-btn px-4 py-2 text-xs font-bold rounded-t-xl transition border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/40 flex items-center gap-2 whitespace-nowrap">
-            <i class="fa-solid fa-trophy text-xs text-emerald-400"></i>
+        <button onclick="switchNptTab('grandTotal')" id="tabBtn_grandTotal"
+            class="ui-tab whitespace-nowrap flex items-center gap-1.5">
+            <i class="fa-solid fa-trophy text-xs"></i>
             <span>Grand Total Tahunan <?= $tahun ?></span>
         </button>
     </div>
@@ -391,47 +402,52 @@
                 <table class="w-full text-center border-collapse text-xs border border-slate-700 select-text">
                     <thead class="sticky top-0 z-20 font-bold text-white shadow-sm bg-[#002060]">
                         <tr class="border-b border-blue-900">
-                            <th rowspan="3" class="py-2.5 px-2 border border-blue-900 bg-[#002060] w-10 text-center text-white">NO</th>
-                            <th rowspan="3" class="py-2.5 px-3 border border-blue-900 bg-[#002060] min-w-[100px] text-left text-white">NAME RIG</th>
+                            <th rowspan="3" class="py-2.5 px-2 border border-blue-900 bg-[#002060] w-10 text-center text-white sticky left-0 z-30">NO</th>
+                            <th rowspan="3" class="py-2.5 px-3 border border-blue-900 bg-[#002060] min-w-[110px] text-left text-white sticky left-10 z-30">NAME RIG</th>
                             <th colspan="2" class="py-1.5 px-2 border border-blue-900 bg-[#002060] text-center text-rose-300">UNPAID</th>
                             <th colspan="28" class="py-1.5 px-2 border border-blue-900 bg-[#002060] text-center text-yellow-300">STAND BY WITH CREW ( SBWC )</th>
                             <th rowspan="3" class="py-2.5 px-3 border border-blue-900 bg-[#002060] min-w-[80px] text-right text-yellow-300 font-bold">TOTAL (HRS)</th>
                             <th rowspan="3" class="py-2.5 px-4 border border-blue-900 bg-[#002060] min-w-[200px] text-left text-white">REMARK UNPAID</th>
                         </tr>
                         <tr class="bg-[#002060] border-b border-blue-900 text-[10px]">
-                            <th class="py-1.5 px-1.5 border border-blue-900">Repaire Rig</th>
-                            <th class="py-1.5 px-1.5 border border-blue-900">PERSONEL</th>
-                            <th class="py-1.5 px-1.5 border border-blue-900">SWA Rain</th>
-                            <th class="py-1.5 px-1.5 border border-blue-900">Dry Road</th>
-                            <th class="py-1.5 px-1.5 border border-blue-900">Dry Pad</th>
-                            <th class="py-1.5 px-1.5 border border-blue-900">Daylight</th>
-                            <th class="py-1.5 px-1.5 border border-blue-900"><?= esc($monthData['cols'][8]['h3'] ?? 'PT. CHAST') ?></th>
-                            <th class="py-1.5 px-1.5 border border-blue-900"><?= esc($monthData['cols'][9]['h3'] ?? 'WO PDC') ?></th>
-                            <th class="py-1.5 px-1.5 border border-blue-900">PHR Well</th>
-                            <th class="py-1.5 px-1.5 border border-blue-900">ESP</th>
-                            <th colspan="10" class="py-1 px-1.5 border border-blue-900 text-center bg-[#001745] text-amber-300">3rd Party (10 Vendor)</th>
-                            <th class="py-1.5 px-1.5 border border-blue-900">UNISAT</th>
-                            <th class="py-1.5 px-1.5 border border-blue-900">TRANS</th>
-                            <th class="py-1.5 px-1.5 border border-blue-900">Foam Unit</th>
-                            <th class="py-1.5 px-1.5 border border-blue-900"><?= esc($monthData['cols'][25]['h3'] ?? 'WO Decision') ?></th>
-                            <th class="py-1.5 px-1.5 border border-blue-900"><?= esc($monthData['cols'][26]['h3'] ?? 'PEMILU') ?></th>
-                            <th class="py-1.5 px-1.5 border border-blue-900"><?= esc($monthData['cols'][27]['h3'] ?? 'WO OMS') ?></th>
-                            <th class="py-1.5 px-1.5 border border-blue-900"><?= esc($monthData['cols'][28]['h3'] ?? 'PT. PCM') ?></th>
-                            <th class="py-1.5 px-1.5 border border-blue-900"><?= esc($monthData['cols'][29]['h3'] ?? 'WO COSL') ?></th>
-                            <th class="py-1.5 px-1.5 border border-blue-900"><?= esc($monthData['cols'][30]['h3'] ?? 'SAFARI') ?></th>
-                            <th class="py-1.5 px-1.5 border border-blue-900"><?= esc($monthData['cols'][31]['h3'] ?? 'IDUL FITRI') ?></th>
+                            <th rowspan="2" class="py-2 px-1.5 border border-blue-900 bg-rose-950/30 text-rose-300 font-bold">Repaire Rig</th>
+                            <th rowspan="2" class="py-2 px-1.5 border border-blue-900 bg-rose-950/30 text-rose-300 font-bold">PERSONEL</th>
+                            <th rowspan="2" class="py-2 px-1.5 border border-blue-900 text-yellow-300">SWA Rain</th>
+                            <th rowspan="2" class="py-2 px-1.5 border border-blue-900 text-yellow-300">Dry Road</th>
+                            <th rowspan="2" class="py-2 px-1.5 border border-blue-900 text-yellow-300">Dry Pad</th>
+                            <th rowspan="2" class="py-2 px-1.5 border border-blue-900 text-yellow-300">Daylight</th>
+                            <th rowspan="2" class="py-2 px-1.5 border border-blue-900 text-yellow-300"><?= esc($monthData['cols'][8]['h3'] ?? 'PT. CHAST') ?></th>
+                            <th rowspan="2" class="py-2 px-1.5 border border-blue-900 text-yellow-300"><?= esc($monthData['cols'][9]['h3'] ?? 'WO PDC') ?></th>
+                            <th rowspan="2" class="py-2 px-1.5 border border-blue-900 text-yellow-300">PHR Well</th>
+                            <th rowspan="2" class="py-2 px-1.5 border border-blue-900 text-yellow-300">ESP</th>
+                            <th colspan="10" class="py-1.5 px-1.5 border-x-2 border-y border-indigo-400 text-center bg-indigo-950 text-amber-300 font-black tracking-wider shadow-inner">
+                                <div class="flex items-center justify-center gap-1.5">
+                                    <i class="fa-solid fa-handshake text-xs"></i>
+                                    <span>3RD PARTY (10 VENDOR)</span>
+                                </div>
+                            </th>
+                            <th rowspan="2" class="py-2 px-1.5 border border-blue-900 text-yellow-300">UNISAT</th>
+                            <th rowspan="2" class="py-2 px-1.5 border border-blue-900 text-yellow-300">TRANS</th>
+                            <th rowspan="2" class="py-2 px-1.5 border border-blue-900 text-yellow-300">Foam Unit</th>
+                            <th rowspan="2" class="py-2 px-1.5 border border-blue-900 text-yellow-300"><?= esc($monthData['cols'][25]['h3'] ?? 'WO Decision') ?></th>
+                            <th rowspan="2" class="py-2 px-1.5 border border-blue-900 text-yellow-300"><?= esc($monthData['cols'][26]['h3'] ?? 'PEMILU') ?></th>
+                            <th rowspan="2" class="py-2 px-1.5 border border-blue-900 text-yellow-300"><?= esc($monthData['cols'][27]['h3'] ?? 'WO OMS') ?></th>
+                            <th rowspan="2" class="py-2 px-1.5 border border-blue-900 text-yellow-300"><?= esc($monthData['cols'][28]['h3'] ?? 'PT. PCM') ?></th>
+                            <th rowspan="2" class="py-2 px-1.5 border border-blue-900 text-yellow-300"><?= esc($monthData['cols'][29]['h3'] ?? 'WO COSL') ?></th>
+                            <th rowspan="2" class="py-2 px-1.5 border border-blue-900 text-yellow-300"><?= esc($monthData['cols'][30]['h3'] ?? 'SAFARI') ?></th>
+                            <th rowspan="2" class="py-2 px-1.5 border border-blue-900 text-yellow-300"><?= esc($monthData['cols'][31]['h3'] ?? 'IDUL FITRI') ?></th>
                         </tr>
-                        <tr class="bg-[#001745] border-b border-blue-900 text-[9px]">
-                            <th class="py-1 px-1 border border-blue-900">BHI</th>
-                            <th class="py-1 px-1 border border-blue-900">HLS</th>
-                            <th class="py-1 px-1 border border-blue-900">WI</th>
-                            <th class="py-1 px-1 border border-blue-900">HALCO</th>
-                            <th class="py-1 px-1 border border-blue-900">EJP</th>
-                            <th class="py-1 px-1 border border-blue-900">SCHL</th>
-                            <th class="py-1 px-1 border border-blue-900">MGA</th>
-                            <th class="py-1 px-1 border border-blue-900">SGN</th>
-                            <th class="py-1 px-1 border border-blue-900">BUKAKA</th>
-                            <th class="py-1 px-1 border border-blue-900">PESI</th>
+                        <tr class="bg-indigo-950/90 border-b border-indigo-700/60 text-[9px] text-amber-200 font-bold">
+                            <th class="py-1 px-1 border border-indigo-700/60 hover:bg-indigo-900 transition">BHI</th>
+                            <th class="py-1 px-1 border border-indigo-700/60 hover:bg-indigo-900 transition">HLS</th>
+                            <th class="py-1 px-1 border border-indigo-700/60 hover:bg-indigo-900 transition">WI</th>
+                            <th class="py-1 px-1 border border-indigo-700/60 hover:bg-indigo-900 transition">HALCO</th>
+                            <th class="py-1 px-1 border border-indigo-700/60 hover:bg-indigo-900 transition">EJP</th>
+                            <th class="py-1 px-1 border border-indigo-700/60 hover:bg-indigo-900 transition">SCHL</th>
+                            <th class="py-1 px-1 border border-indigo-700/60 hover:bg-indigo-900 transition">MGA</th>
+                            <th class="py-1 px-1 border border-indigo-700/60 hover:bg-indigo-900 transition">SGN</th>
+                            <th class="py-1 px-1 border border-indigo-700/60 hover:bg-indigo-900 transition">BUKAKA</th>
+                            <th class="py-1 px-1 border border-indigo-700/60 hover:bg-indigo-900 transition">PESI</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-800 text-slate-200 font-num">
@@ -439,28 +455,62 @@
                             foreach ($monthData['rows'] as $r):
                                 $vals = $r['vals'] ?? [];
                         ?>
-                        <tr class="hover:bg-slate-800/80 transition">
-                            <td class="py-1.5 px-1.5 border border-slate-800 bg-slate-900/50 text-slate-400 font-mono text-center"><?= $r['no'] ?></td>
-                            <td class="py-1.5 px-3 border border-slate-800 bg-slate-900/50 font-bold text-white text-left whitespace-nowrap font-sans"><?= esc($r['rig']) ?></td>
+                        <tr class="hover:bg-slate-800/80 transition group">
+                            <td class="py-1.5 px-1.5 border border-slate-800 bg-slate-900/90 text-slate-400 font-mono text-center sticky left-0 z-10 group-hover:bg-slate-800"><?= $r['no'] ?></td>
+                            <td class="py-1.5 px-3 border border-slate-800 bg-slate-900/90 font-bold text-white text-left whitespace-nowrap font-sans sticky left-10 z-10 group-hover:bg-slate-800"><?= esc($r['rig']) ?></td>
                             <?php for ($c = 2; $c <= 31; $c++): 
                                 $val = $vals[$c] ?? 0;
                                 $hasVal = ($val > 0);
                                 $isUnpaid = ($c == 2 || $c == 3);
+                                $isTp = ($c >= 12 && $c <= 21);
                             ?>
-                                <td class="py-1.5 px-1 border border-slate-800 text-center font-mono text-xs <?= $hasVal ? ($isUnpaid ? 'text-rose-400 font-bold bg-rose-950/20' : 'text-yellow-300 font-bold bg-amber-950/20') : 'text-slate-600' ?>">
+                                <td class="py-1.5 px-1 border border-slate-800 text-center font-mono text-xs <?= $hasVal ? ($isUnpaid ? 'text-rose-400 font-bold bg-rose-950/25' : ($isTp ? 'text-amber-300 font-bold bg-indigo-950/30' : 'text-yellow-300 font-bold bg-amber-950/20')) : ($isTp ? 'text-slate-600 bg-indigo-950/10' : 'text-slate-600') ?>">
                                     <?= $hasVal ? (fmod($val, 1) !== 0.0 ? number_format($val, 2) : (int)$val) : '-' ?>
                                 </td>
                             <?php endfor; ?>
-                            <td class="py-1.5 px-2 border border-slate-800 font-bold font-mono text-right bg-[#0E2A66]/30 text-yellow-300">
+                            <td class="py-1.5 px-2 border border-slate-800 font-bold font-mono text-right bg-[#0E2A66]/40 text-yellow-300">
                                 <?= number_format((float)($vals[32] ?? 0), 2) ?>
                             </td>
-                            <td class="py-1.5 px-3 border border-slate-800 text-left text-xs text-slate-400 truncate max-w-[200px]" title="<?= esc($vals[33] ?? '') ?>">
+                            <td class="py-1.5 px-3 border border-slate-800 text-left text-xs text-slate-300 truncate max-w-[200px]" title="<?= esc($vals[33] ?? '') ?>">
                                 <?= esc($vals[33] ?? '-') ?>
                             </td>
                         </tr>
                         <?php endforeach; ?>
+                        <?php else: ?>
+                        <tr>
+                            <td colspan="34" class="py-8 text-center text-slate-500">
+                                Belum ada data matriks rinci SYS untuk periode <?= $bulanList[$bulan] ?? '' ?> <?= $tahun ?>.
+                            </td>
+                        </tr>
                         <?php endif; ?>
                     </tbody>
+                    <?php if ($monthData && !empty($monthData['totals'])): 
+                        $totals = $monthData['totals'];
+                    ?>
+                    <tfoot class="bg-[#0B1E4A] font-extrabold text-white border-t-2 border-slate-600 sticky bottom-0 z-20 shadow-lg">
+                        <tr>
+                            <td colspan="2" class="py-2.5 px-3 text-center border border-slate-700 uppercase tracking-wider text-xs sticky left-0 bg-[#0B1E4A] z-30 font-black text-yellow-300">
+                                TOTAL
+                            </td>
+                            <?php for ($c = 2; $c <= 31; $c++): 
+                                $totVal = $totals[$c] ?? 0;
+                                $hasTot = ($totVal > 0);
+                                $isUnp = ($c == 2 || $c == 3);
+                                $isTp = ($c >= 12 && $c <= 21);
+                            ?>
+                                <td class="py-2 px-1 border border-slate-700 text-center font-mono text-xs <?= $isUnp ? 'text-rose-300' : ($isTp ? 'text-amber-300 font-black bg-indigo-950/40' : 'text-yellow-300') ?> font-bold">
+                                    <?= $hasTot ? (fmod($totVal, 1) !== 0.0 ? number_format($totVal, 2) : (int)$totVal) : '-' ?>
+                                </td>
+                            <?php endfor; ?>
+                            <td class="py-2 px-2 border border-slate-700 font-black font-mono text-right text-yellow-300 bg-[#0E2A66]">
+                                <?= number_format((float)($totals[32] ?? 0), 2) ?>
+                            </td>
+                            <td class="py-2 px-3 border border-slate-700 text-left text-xs text-slate-400">
+                                -
+                            </td>
+                        </tr>
+                    </tfoot>
+                    <?php endif; ?>
                 </table>
             </div>
         </div>
@@ -547,18 +597,14 @@
 
     function switchNptTab(tabId) {
         document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.classList.remove('border-yellow-400', 'text-yellow-300', 'bg-slate-800');
-            btn.classList.add('border-transparent', 'text-slate-400');
+        document.querySelectorAll('.ui-tab, .tab-btn').forEach(btn => {
+            btn.classList.remove('active', 'border-yellow-400', 'text-yellow-300', 'bg-slate-800');
         });
 
         const target = document.getElementById(`tabContent_${tabId}`);
         const targetBtn = document.getElementById(`tabBtn_${tabId}`);
         if (target) target.classList.remove('hidden');
-        if (targetBtn) {
-            targetBtn.classList.remove('border-transparent', 'text-slate-400');
-            targetBtn.classList.add('border-yellow-400', 'text-yellow-300', 'bg-slate-800');
-        }
+        if (targetBtn) targetBtn.classList.add('active');
     }
 
     function filterChronoTable() {

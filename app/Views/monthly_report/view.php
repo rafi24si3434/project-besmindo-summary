@@ -1,212 +1,531 @@
 <?= $this->extend('layout/main') ?>
 
 <?= $this->section('content') ?>
+<?php
+$bulanList = [
+    1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+    5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+    9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+];
+
+$prevBulan = $bulan - 1;
+$prevTahun = $tahun;
+if ($prevBulan < 1) {
+    $prevBulan = 12;
+    $prevTahun--;
+}
+
+$nextBulan = $bulan + 1;
+$nextTahun = $tahun;
+if ($nextBulan > 12) {
+    $nextBulan = 1;
+    $nextTahun++;
+}
+
+$revPct = $totRevTarget > 0 ? min(100, round(($totRevActual / $totRevTarget) * 100, 1)) : 0;
+$productiveHoursAll = $totMiru + $totOps;
+$productivePctAll   = $totJam > 0 ? round(($productiveHoursAll / $totJam) * 100, 1) : 0;
+$dtHoursAll         = $totSbwc + $totUnpaid;
+$dtPctAll           = $totJam > 0 ? round(($dtHoursAll / $totJam) * 100, 1) : 0;
+
+$decodeRemarkDisplay = static function (?string $raw): string {
+    $raw = trim((string)$raw);
+    if ($raw === '') return '-';
+    $dec = json_decode($raw, true);
+    if (is_array($dec) && (isset($dec['notes']) || isset($dec['schedule_mtc']))) {
+        $items = [];
+        foreach (($dec['notes'] ?? []) as $ni) {
+            $lbl = trim(($ni['lokasi'] ?? '') . ' ' . ($ni['tanggal'] ?? ''));
+            $txt = trim(($ni['isi'] ?? '') . ' ' . ($ni['waktu'] ?? ''));
+            if ($txt !== '') {
+                $items[] = ($lbl !== '' ? "[{$lbl}] " : '') . $txt;
+            }
+        }
+        return !empty($items) ? implode(' | ', $items) : '-';
+    }
+    return $raw;
+};
+?>
+
+<style>
+    .dr-filter-panel {
+        background-color: var(--card);
+        border: 1.5px solid var(--border-strong);
+        border-radius: 16px;
+        box-shadow: var(--shadow-sm);
+    }
+    .dr-stat-card {
+        background-color: var(--card);
+        border: 1.5px solid var(--border-strong);
+        border-radius: 16px;
+        box-shadow: var(--shadow-sm);
+        transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+    }
+    .dr-stat-card:hover {
+        border-color: #3b82f6;
+        box-shadow: 0 8px 20px -6px rgba(37, 99, 235, 0.14);
+    }
+    .dr-filter-label {
+        display: block;
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--muted-foreground);
+        margin-bottom: 6px;
+    }
+    .dr-filter-select {
+        display: block;
+        width: 100%;
+        height: 44px;
+        padding: 0 14px;
+        border-radius: 12px !important;
+        background-color: var(--background) !important;
+        border: 1.5px solid var(--border-strong) !important;
+        color: var(--foreground) !important;
+        font-size: 14px !important;
+        font-weight: 800 !important;
+        transition: border-color 150ms ease, box-shadow 150ms ease;
+        cursor: pointer;
+    }
+    .dr-filter-select:hover {
+        border-color: #3b82f6 !important;
+    }
+    .dr-filter-select:focus {
+        outline: none !important;
+        border-color: #2563eb !important;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18) !important;
+    }
+    .dr-step-btn {
+        height: 44px;
+        padding: 0 14px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        border-radius: 12px;
+        background-color: var(--background);
+        border: 1.5px solid var(--border-strong);
+        color: var(--foreground);
+        font-size: 13px;
+        font-weight: 800;
+        white-space: nowrap;
+        transition: all 150ms ease;
+        cursor: pointer;
+        text-decoration: none;
+    }
+    .dr-step-btn:hover {
+        border-color: #2563eb;
+        background-color: rgba(37, 99, 235, 0.08);
+        color: #2563eb;
+    }
+    .dr-action-secondary {
+        height: 42px;
+        background-color: var(--background);
+        border: 1.5px solid var(--border-strong);
+        color: var(--foreground);
+    }
+    .dr-action-secondary:hover {
+        border-color: #2563eb;
+        background-color: rgba(37, 99, 235, 0.08);
+    }
+    .mr-segmented-group {
+        background-color: var(--background);
+        border: 1.5px solid var(--border-strong);
+        padding: 4px;
+        border-radius: 12px;
+        display: inline-flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 4px;
+    }
+    .mr-tab-pill {
+        padding: 9px 15px;
+        border-radius: 9px;
+        font-size: 13px;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        color: var(--muted-foreground);
+        background: transparent;
+        border: 1px solid transparent;
+        transition: all 150ms ease;
+        cursor: pointer;
+        user-select: none;
+        white-space: nowrap;
+    }
+    .mr-tab-pill:hover {
+        color: var(--foreground);
+        background-color: rgba(148, 163, 184, 0.12);
+    }
+    .mr-tab-pill.active {
+        background-color: #2563eb !important;
+        color: #ffffff !important;
+        border-color: #1d4ed8 !important;
+        box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+    }
+    .mr-tab-pill.active i {
+        color: #ffffff !important;
+    }
+</style>
+
 <div class="ui-screen ui-screen--report space-y-5">
-    <!-- Filter Navigation Bar -->
-    <div class="ui-toolbar flex-wrap justify-between">
-        <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-md flex items-center justify-center flex-shrink-0"
-                style="background:var(--warning-bg);color:var(--warning-fg);border:1px solid var(--warning-border)">
-                <i class="fa-solid fa-table-list"></i>
+
+    <!-- ═══ 1. PANEL KONTROL & FILTER PERIODE BULANAN (SERAGAM DENGAN DAILY REPORT) ═══ -->
+    <div class="dr-filter-panel p-5 sm:p-6 space-y-5">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b" style="border-color: var(--border);">
+            <div class="flex items-start sm:items-center gap-3.5">
+                <div class="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-500 text-xl shrink-0 shadow-inner">
+                    <i class="fa-solid fa-chart-pie"></i>
+                </div>
+                <div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="px-2.5 py-0.5 rounded-md bg-amber-500/15 text-amber-500 border border-amber-500/30 text-[11px] font-mono font-extrabold uppercase tracking-wider">
+                            MONTHLY SUMMARY RAU
+                        </span>
+                        <span class="text-xs font-semibold" style="color: var(--muted-foreground);">
+                            Rekapitulasi Kinerja <?= count($summaries) ?> Armada Rig BMS
+                        </span>
+                    </div>
+                    <h2 class="text-lg sm:text-xl font-black tracking-tight mt-1" style="color: var(--foreground);">
+                        Summary Report Operation RIG BMS — <span class="text-amber-500"><?= $bulanList[$bulan] ?> <?= $tahun ?></span>
+                    </h2>
+                </div>
             </div>
-            <div>
-                <h3 class="text-sm font-bold" style="color:var(--foreground);letter-spacing:-.01em">Summary Report Operation RIG BMS</h3>
-                <p class="text-xs" style="color:var(--muted-foreground)">Periode:
-                    <strong class="font-mono" style="color:var(--primary)"><?= $bulan ?>/<?= $tahun ?></strong>
-                </p>
+
+            <!-- Tombol Aksi Utama (Hitung Ulang & Export Excel) -->
+            <div class="flex flex-wrap items-center gap-2.5">
+                <form action="<?= base_url('monthly-report/hitung') ?>" method="POST" class="inline">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="bulan" value="<?= $bulan ?>">
+                    <input type="hidden" name="tahun" value="<?= $tahun ?>">
+                    <button type="submit"
+                        class="dr-action-secondary px-4 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold flex items-center gap-2 transition cursor-pointer">
+                        <i class="fa-solid fa-arrows-rotate text-sky-500"></i>
+                        <span>Sinkron &amp; Hitung Ulang KPI</span>
+                    </button>
+                </form>
+
+                <button type="button" onclick="openExportModal()"
+                    class="h-[42px] px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs sm:text-sm font-extrabold flex items-center gap-2 shadow-md transition cursor-pointer">
+                    <i class="fa-solid fa-file-excel"></i>
+                    <span>Download Excel (.xlsx)</span>
+                    <i class="fa-solid fa-chevron-down text-[10px] opacity-80"></i>
+                </button>
             </div>
         </div>
 
-        <!-- Period Selector Toolbar -->
-        <div class="flex flex-wrap items-center gap-2">
-            <?php 
-            $bulanList = [
-                1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
-                5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
-                9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
-            ]; ?>
-
-            <!-- Selector Bulan -->
-            <div class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md" style="background:var(--input);border:1px solid var(--border)">
-                <i class="fa-solid fa-calendar text-xs" style="color:var(--muted-foreground)"></i>
-                <select id="selectBulan" onchange="navigateReport()"
-                    class="bg-transparent border-0 text-xs font-semibold focus:outline-none cursor-pointer"
-                    style="color:var(--foreground)">
+        <!-- Baris Pilih Bulan, Tahun, & Navigasi Cepat Bulan -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-3.5 items-end">
+            <!-- Pilih Bulan (4 Col) -->
+            <div class="md:col-span-4">
+                <label for="selectBulan" class="dr-filter-label">
+                    <i class="fa-regular fa-calendar text-sky-500 mr-1"></i> Pilih Bulan Laporan
+                </label>
+                <select id="selectBulan" onchange="navigateReport()" class="dr-filter-select">
                     <?php foreach ($bulanList as $num => $nama): ?>
-                        <option value="<?= $num ?>" style="background:var(--popover)" <?= $bulan == $num ? 'selected' : '' ?>><?= $nama ?></option>
+                        <option value="<?= $num ?>" <?= $bulan == $num ? 'selected' : '' ?>>
+                            Bulan <?= sprintf('%02d', $num) ?> — <?= $nama ?>
+                        </option>
                     <?php endforeach; ?>
                 </select>
             </div>
 
-            <!-- Selector Tahun -->
-            <div class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md" style="background:var(--input);border:1px solid var(--border)">
-                <i class="fa-solid fa-calendar-days text-xs" style="color:var(--muted-foreground)"></i>
-                <select id="selectTahun" onchange="navigateReport()"
-                    class="bg-transparent border-0 text-xs font-semibold focus:outline-none cursor-pointer"
-                    style="color:var(--foreground)">
+            <!-- Pilih Tahun (3 Col) -->
+            <div class="md:col-span-3">
+                <label for="selectTahun" class="dr-filter-label">
+                    <i class="fa-solid fa-calendar-days text-amber-500 mr-1"></i> Pilih Tahun
+                </label>
+                <select id="selectTahun" onchange="navigateReport()" class="dr-filter-select">
                     <?php for ($y = 2024; $y <= 2028; $y++): ?>
-                        <option value="<?= $y ?>" style="background:var(--popover)" <?= $tahun == $y ? 'selected' : '' ?>><?= $y ?></option>
+                        <option value="<?= $y ?>" <?= $tahun == $y ? 'selected' : '' ?>>Tahun <?= $y ?></option>
                     <?php endfor; ?>
                 </select>
             </div>
 
-            <button type="button" onclick="navigateReport()"
-                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white transition">
-                <i class="fa-solid fa-magnifying-glass text-xs"></i> Tampilkan
-            </button>
-
-            <div class="ui-separator--vertical h-5 mx-0.5 hidden sm:block"></div>
-
-            <form action="<?= base_url('monthly-report/hitung') ?>" method="POST" class="inline">
-                <?= csrf_field() ?>
-                <input type="hidden" name="bulan" value="<?= $bulan ?>">
-                <input type="hidden" name="tahun" value="<?= $tahun ?>">
-                <button type="submit"
-                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition"
-                    style="background:var(--secondary);color:var(--secondary-foreground);border:1px solid var(--border)"
-                    onmouseover="this.style.background='var(--accent)'"
-                    onmouseout="this.style.background='var(--secondary)'">
-                    <i class="fa-solid fa-arrows-rotate text-xs"></i> Hitung Ulang
-                </button>
-            </form>
-
-            <button type="button" onclick="openExportModal()"
-                class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-xs font-semibold transition shadow-sm"
-                style="background:var(--success-bg);color:var(--success-fg);border:1px solid var(--success-border)"
-                onmouseover="this.style.background='var(--success)';this.style.color='#fff';this.style.borderColor='var(--success)'"
-                onmouseout="this.style.background='var(--success-bg)';this.style.color='var(--success-fg)';this.style.borderColor='var(--success-border)'">
-                <i class="fa-solid fa-file-excel text-xs"></i> <span>Export Excel</span>
-                <i class="fa-solid fa-chevron-down text-[10px] opacity-75"></i>
-            </button>
+            <!-- Navigasi Cepat Bulan Sebelumnya / Berikutnya (5 Col) -->
+            <div class="md:col-span-5">
+                <span class="dr-filter-label">
+                    <i class="fa-solid fa-compass text-emerald-500 mr-1"></i> Navigasi Cepat Periode
+                </span>
+                <div class="flex items-center gap-2">
+                    <a href="<?= base_url("monthly-report/{$prevBulan}/{$prevTahun}") ?>"
+                       class="dr-step-btn flex-1 justify-center">
+                        <i class="fa-solid fa-chevron-left text-xs"></i>
+                        <span><?= substr($bulanList[$prevBulan], 0, 3) ?> <?= $prevTahun ?></span>
+                    </a>
+                    <button type="button" onclick="navigateReport()"
+                        class="h-[44px] px-5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-extrabold flex items-center justify-center gap-1.5 shadow transition cursor-pointer shrink-0">
+                        <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                        <span>Tampilkan</span>
+                    </button>
+                    <a href="<?= base_url("monthly-report/{$nextBulan}/{$nextTahun}") ?>"
+                       class="dr-step-btn flex-1 justify-center">
+                        <span><?= substr($bulanList[$nextBulan], 0, 3) ?> <?= $nextTahun ?></span>
+                        <i class="fa-solid fa-chevron-right text-xs"></i>
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Navigation Tabs (shadcn ui-tabs) -->
-    <div class="ui-tabs overflow-x-auto custom-scrollbar">
-        <button onclick="switchTab('summary')" id="tabBtn_summary"
-            class="ui-tab active whitespace-nowrap flex items-center gap-1.5">
-            <i class="fa-solid fa-table text-xs"></i>
-            <span>Summary Operation</span>
-        </button>
-        <button onclick="switchTab('charts')" id="tabBtn_charts"
-            class="ui-tab whitespace-nowrap flex items-center gap-1.5">
-            <i class="fa-solid fa-chart-column text-xs"></i>
-            <span>Grafik Analisis</span>
-        </button>
-        <button onclick="switchTab('odrTable')" id="tabBtn_odrTable"
-            class="ui-tab whitespace-nowrap flex items-center gap-1.5">
-            <i class="fa-solid fa-money-bill-1-wave text-xs"></i>
-            <span>Nilai Kontrak ODR</span>
-        </button>
-        <button onclick="switchTab('nptAll')" id="tabBtn_nptAll"
-            class="ui-tab whitespace-nowrap flex items-center gap-1.5">
-            <i class="fa-solid fa-clock-rotate-left text-xs"></i>
-            <span>NPT Breakdown</span>
-        </button>
+    <!-- ═══ 2. EMPAT KARTU RINGKASAN EKSEKUTIF (BENTO KPI CARDS) ═══ -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <!-- Card 1: Indeks RAU Rata-Rata Armada -->
+        <div class="dr-stat-card p-4 sm:p-5 relative overflow-hidden">
+            <div class="flex items-start justify-between gap-2">
+                <div>
+                    <span class="text-[11px] font-extrabold uppercase tracking-wider block" style="color: var(--muted-foreground);">
+                        Rata-Rata Indeks RAU Armada
+                    </span>
+                    <div class="flex items-baseline gap-2 mt-1.5 font-num">
+                        <span class="text-2xl sm:text-3xl font-black text-emerald-500">
+                            <?= number_format($avgReliability * 100, 1) ?>%
+                        </span>
+                        <span class="text-xs font-bold" style="color: var(--muted-foreground);">Reliability</span>
+                    </div>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-500 shrink-0">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+            </div>
+            <div class="mt-3 pt-2.5 border-t flex items-center justify-between text-xs font-num" style="border-color: var(--border); color: var(--muted-foreground);">
+                <span>Availability: <strong class="text-sky-500"><?= number_format($avgAvailability * 100, 1) ?>%</strong></span>
+                <span>Utilization: <strong class="text-indigo-500"><?= number_format($avgUtilization * 100, 1) ?>%</strong></span>
+            </div>
+        </div>
+
+        <!-- Card 2: Total Realisasi Revenue vs Target -->
+        <div class="dr-stat-card p-4 sm:p-5 relative overflow-hidden">
+            <div class="flex items-start justify-between gap-2">
+                <div class="min-w-0">
+                    <span class="text-[11px] font-extrabold uppercase tracking-wider block" style="color: var(--muted-foreground);">
+                        Realisasi Pendapatan (Actual)
+                    </span>
+                    <div class="text-lg sm:text-xl font-black text-amber-500 mt-1.5 font-num truncate" title="Rp <?= number_format($totRevActual, 0, ',', '.') ?>">
+                        Rp <?= number_format($totRevActual, 0, ',', '.') ?>
+                    </div>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-500 shrink-0">
+                    <i class="fa-solid fa-sack-dollar"></i>
+                </div>
+            </div>
+            <div class="mt-3 pt-2.5 border-t flex items-center justify-between text-xs font-num" style="border-color: var(--border); color: var(--muted-foreground);">
+                <span class="truncate">Target: <strong>Rp <?= number_format($totRevTarget, 0, ',', '.') ?></strong></span>
+                <span class="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-500 font-bold"><?= $revPct ?>%</span>
+            </div>
+        </div>
+
+        <!-- Card 3: Total Sumur & Jam Produktif -->
+        <div class="dr-stat-card p-4 sm:p-5 relative overflow-hidden">
+            <div class="flex items-start justify-between gap-2">
+                <div>
+                    <span class="text-[11px] font-extrabold uppercase tracking-wider block" style="color: var(--muted-foreground);">
+                        Total Sumur &amp; Jam Produktif
+                    </span>
+                    <div class="flex items-baseline gap-2 mt-1.5 font-num">
+                        <span class="text-2xl sm:text-3xl font-black text-sky-500">
+                            <?= number_format($totWell, 0, ',', '.') ?>
+                        </span>
+                        <span class="text-xs font-bold" style="color: var(--muted-foreground);">Sumur (Well Job)</span>
+                    </div>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-sky-500/15 border border-sky-500/30 flex items-center justify-center text-sky-500 shrink-0">
+                    <i class="fa-solid fa-oil-well"></i>
+                </div>
+            </div>
+            <div class="mt-3 pt-2.5 border-t flex items-center justify-between text-xs font-num" style="border-color: var(--border); color: var(--muted-foreground);">
+                <span>OPS: <strong class="text-emerald-500"><?= number_format($totOps, 1) ?>j</strong></span>
+                <span>MIRU: <strong class="text-sky-500"><?= number_format($totMiru, 1) ?>j</strong> (<?= $productivePctAll ?>%)</span>
+            </div>
+        </div>
+
+        <!-- Card 4: Total Downtime (SBWC & Unpaid) -->
+        <div class="dr-stat-card p-4 sm:p-5 relative overflow-hidden">
+            <div class="flex items-start justify-between gap-2">
+                <div>
+                    <span class="text-[11px] font-extrabold uppercase tracking-wider block" style="color: var(--muted-foreground);">
+                        Total Downtime / NPT Armada
+                    </span>
+                    <div class="flex items-baseline gap-2 mt-1.5 font-num">
+                        <span class="text-2xl sm:text-3xl font-black text-rose-500">
+                            <?= number_format($dtHoursAll, 2) ?>
+                        </span>
+                        <span class="text-xs font-bold" style="color: var(--muted-foreground);">Jam (<?= $dtPctAll ?>%)</span>
+                    </div>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-500 shrink-0">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+            </div>
+            <div class="mt-3 pt-2.5 border-t flex items-center justify-between text-xs font-num" style="border-color: var(--border); color: var(--muted-foreground);">
+                <span>SBWC: <strong class="text-amber-500"><?= number_format($totSbwc, 2) ?>j</strong></span>
+                <span>UNPAID: <strong class="text-rose-500"><?= number_format($totUnpaid, 2) ?>j</strong></span>
+            </div>
+        </div>
     </div>
 
-    <!-- TAB 1: SUMMARY OPERATION PERSIS EXCEL ASLI -->
+    <!-- ═══ 3. BARIS TAB MODE TAMPILAN & PENCARIAN CEPAT RIG ═══ -->
+    <div class="dr-filter-panel p-3.5 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+        <div class="mr-segmented-group">
+            <button type="button" onclick="switchTab('summary')" id="tabBtn_summary"
+                class="mr-tab-pill active">
+                <i class="fa-solid fa-table text-amber-500"></i>
+                <span>1. Summary Operation (Excel)</span>
+            </button>
+            <button type="button" onclick="switchTab('charts')" id="tabBtn_charts"
+                class="mr-tab-pill">
+                <i class="fa-solid fa-chart-column text-sky-500"></i>
+                <span>2. Grafik Performa (5 Chart)</span>
+            </button>
+            <button type="button" onclick="switchTab('odrTable')" id="tabBtn_odrTable"
+                class="mr-tab-pill">
+                <i class="fa-solid fa-money-bill-1-wave text-emerald-500"></i>
+                <span>3. Nilai Kontrak ODR &amp; Tarif</span>
+            </button>
+            <button type="button" onclick="switchTab('nptAll')" id="tabBtn_nptAll"
+                class="mr-tab-pill">
+                <i class="fa-solid fa-clock-rotate-left text-rose-500"></i>
+                <span>4. Rincian NPT Semua Rig</span>
+            </button>
+        </div>
+
+        <!-- Pencarian Cepat Kode Rig -->
+        <div class="relative w-full lg:w-72">
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style="color: var(--muted-foreground);"></i>
+            <input type="text" id="searchMonthlyRigInput" oninput="filterMonthlyRigRows()"
+                placeholder="Cari kode rig (misal: BMS#15)..."
+                class="dr-filter-select w-full !pl-9 !pr-8 !py-2 text-xs">
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════════════ -->
+    <!-- TAB 1: SUMMARY OPERATION PERSIS EXCEL ASLI + TOMBOL DRILL-DOWN KE RIG    -->
+    <!-- ════════════════════════════════════════════════════════════════════════ -->
     <div id="tabContent_summary" class="tab-content space-y-4">
-        <div class="rounded-xl bg-slate-900 border border-slate-700 shadow-xl overflow-hidden">
-            
-            <!-- Banner Judul Kuning Persis Excel -->
-            <div class="bg-yellow-400 text-slate-950 py-2.5 px-4 text-center font-black text-sm uppercase tracking-wider border-b-2 border-yellow-500">
-                SUMMARY REPORT OPERATION RIG BMS PERIODE <?= $bulanList[$bulan] ?> <?= $tahun ?>
+        <div class="rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl overflow-hidden">
+            <!-- Banner Judul Kuning Persis Excel + Info Klik -->
+            <div class="bg-amber-400 text-slate-950 py-3 px-5 flex flex-col sm:flex-row items-center justify-between gap-2 border-b-2 border-amber-500">
+                <div class="font-black text-xs sm:text-sm uppercase tracking-wider text-center sm:text-left">
+                    <i class="fa-solid fa-file-spreadsheet mr-1.5"></i>
+                    SUMMARY REPORT OPERATION RIG BMS PERIODE <?= strtoupper($bulanList[$bulan]) ?> <?= $tahun ?>
+                </div>
+                <span class="text-[11px] font-extrabold bg-slate-950/15 px-3 py-1 rounded-lg">
+                    Klik nama Rig atau tombol "Rekap Sumur" untuk membuka Daily Report Rig terkait
+                </span>
             </div>
 
             <div class="overflow-x-auto custom-scrollbar">
                 <table class="w-full text-left border-collapse border border-slate-700">
-                    <thead class="bg-[#0B1E4A] text-white font-extrabold uppercase text-[10.5px] border-b-2 border-slate-700 tracking-wider text-center select-none">
+                    <thead class="bg-[#0B1E4A] text-white font-extrabold uppercase text-[11px] border-b-2 border-slate-700 tracking-wider text-center select-none">
                         <tr>
-                            <th rowspan="2" class="py-2 px-2.5 w-10 border border-slate-700 bg-[#0B1E4A]">NO</th>
-                            <th rowspan="2" class="py-2 px-3 border border-slate-700 bg-[#0B1E4A] min-w-[90px]">NAME RIG</th>
-                            <th colspan="3" class="py-1.5 px-2 border border-slate-700 bg-[#0E2A66]">RAU</th>
-                            <th rowspan="2" class="py-2 px-2.5 border border-slate-700 bg-[#0B1E4A] min-w-[85px]">TOTAL MIRU (HRS)</th>
-                            <th rowspan="2" class="py-2 px-2.5 border border-slate-700 bg-[#0B1E4A] min-w-[85px]">TOTAL OPS</th>
-                            <th rowspan="2" class="py-2 px-2.5 border border-slate-700 bg-[#0B1E4A] min-w-[85px]">AVERAGE MIRU (HRS)</th>
-                            <th rowspan="2" class="py-2 px-2.5 border border-slate-700 bg-[#0B1E4A] min-w-[85px]">AVERAGE CYCLE TIME (HRS)</th>
-                            <th rowspan="2" class="py-2 px-2 border border-slate-700 bg-[#0B1E4A] min-w-[70px]">TOTAL WELL JOB</th>
-                            <th colspan="2" class="py-1.5 px-2 border border-slate-700 bg-[#0E2A66]">DOWNTIME</th>
-                            <th colspan="2" class="py-1.5 px-3 border border-slate-700 bg-[#0E2A66]">REVENUE</th>
-                            <th rowspan="2" class="py-2 px-2.5 border border-slate-700 bg-[#0B1E4A] min-w-[75px]">TOTAL HOURS</th>
-                            <th rowspan="2" class="py-2 px-3 border border-slate-700 bg-[#0B1E4A] min-w-[110px]">REMARK</th>
+                            <th rowspan="2" class="py-2.5 px-2.5 w-10 border border-slate-700 bg-[#0B1E4A]">NO</th>
+                            <th rowspan="2" class="py-2.5 px-3 border border-slate-700 bg-[#0B1E4A] min-w-[105px]">NAME RIG</th>
+                            <th colspan="3" class="py-2 px-2 border border-slate-700 bg-[#0E2A66]">RAU INDEX</th>
+                            <th rowspan="2" class="py-2.5 px-2.5 border border-slate-700 bg-[#0B1E4A] min-w-[85px]">TOTAL MIRU<br>(HRS)</th>
+                            <th rowspan="2" class="py-2.5 px-2.5 border border-slate-700 bg-[#0B1E4A] min-w-[85px]">TOTAL OPS<br>(HRS)</th>
+                            <th rowspan="2" class="py-2.5 px-2.5 border border-slate-700 bg-[#0B1E4A] min-w-[85px]">AVG MIRU<br>(HRS)</th>
+                            <th rowspan="2" class="py-2.5 px-2.5 border border-slate-700 bg-[#0B1E4A] min-w-[85px]">AVG CYCLE<br>TIME (HRS)</th>
+                            <th rowspan="2" class="py-2.5 px-2 border border-slate-700 bg-[#0B1E4A] min-w-[72px]">TOTAL<br>WELL JOB</th>
+                            <th colspan="2" class="py-2 px-2 border border-slate-700 bg-[#0E2A66]">DOWNTIME (NPT)</th>
+                            <th colspan="2" class="py-2 px-3 border border-slate-700 bg-[#0E2A66]">REVENUE (Rp)</th>
+                            <th rowspan="2" class="py-2.5 px-2.5 border border-slate-700 bg-[#0B1E4A] min-w-[78px]">TOTAL<br>HOURS</th>
+                            <th rowspan="2" class="py-2.5 px-3 border border-slate-700 bg-[#0B1E4A] min-w-[160px]">REMARK / NOTE</th>
+                            <th rowspan="2" class="py-2.5 px-3 border border-slate-700 bg-[#0B1E4A] min-w-[115px]">DETAIL SUMUR</th>
                         </tr>
-                        <tr class="text-[9.5px] bg-[#0A1A3F] border-t border-slate-700 text-slate-300">
-                            <th class="py-1 px-1.5 border border-slate-700 text-sky-300">RELIABILITY (%)</th>
-                            <th class="py-1 px-1.5 border border-slate-700 text-sky-300">AVAILABILITY (%)</th>
-                            <th class="py-1 px-1.5 border border-slate-700 text-sky-300">UTILIZATION (%)</th>
-                            <th class="py-1 px-2 border border-slate-700 text-yellow-300">SBWC (HRS)</th>
-                            <th class="py-1 px-2 border border-slate-700 text-rose-300">UNPAID (HRS)</th>
-                            <th class="py-1 px-2 border border-slate-700 text-slate-300">INCENTIVE TARGET (Rp)</th>
-                            <th class="py-1 px-2 border border-slate-700 text-emerald-300">ACTUAL (Rp)</th>
+                        <tr class="text-[10px] bg-[#0A1A3F] border-t border-slate-700 text-slate-300">
+                            <th class="py-1.5 px-2 border border-slate-700 text-sky-300">RELIABILITY (%)</th>
+                            <th class="py-1.5 px-2 border border-slate-700 text-sky-300">AVAILABILITY (%)</th>
+                            <th class="py-1.5 px-2 border border-slate-700 text-sky-300">UTILIZATION (%)</th>
+                            <th class="py-1.5 px-2 border border-slate-700 text-amber-300">SBWC (HRS)</th>
+                            <th class="py-1.5 px-2 border border-slate-700 text-rose-300">UNPAID (HRS)</th>
+                            <th class="py-1.5 px-2.5 border border-slate-700 text-slate-300">INCENTIVE TARGET</th>
+                            <th class="py-1.5 px-2.5 border border-slate-700 text-emerald-300">ACTUAL REVENUE</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-800 text-slate-200 font-num">
-                        <?php $no = 1; foreach ($summaries as $s): 
+                        <?php $no = 1; foreach ($summaries as $s):
                             $rel = (float)($s['reliability'] ?? 0) * 100;
                             $ava = (float)($s['availability'] ?? 0) * 100;
                             $uti = (float)($s['utilization'] ?? 0) * 100;
+                            $cleanRemark = $decodeRemarkDisplay($s['remark'] ?? '');
+                            $dailyUrl = base_url("daily-report/{$s['rig_id']}/{$bulan}/{$tahun}");
                         ?>
-                        <tr class="hover:bg-slate-800/80 transition">
-                            <td class="py-2 px-2.5 text-center text-xs text-slate-400 border border-slate-800 bg-slate-900/50"><?= $no++ ?></td>
-                            <td class="py-2 px-3 font-bold text-white text-xs border border-slate-800 font-sans bg-slate-900/50"><?= esc($s['kode']) ?></td>
-                            
-                            <!-- Kolom RAU Index (Abu-abu lembut seperti di Excel) -->
-                            <td class="py-2 px-1 text-center border border-slate-800 bg-slate-850/60">
-                                <span class="text-[13px] font-bold text-emerald-400"><?= number_format($rel, 1) ?>%</span>
+                        <tr class="hover:bg-slate-800/80 transition monthly-rig-row" data-rig="<?= strtolower(esc($s['kode'] . ' ' . ($s['nama_rig'] ?? '') . ' ' . $cleanRemark)) ?>">
+                            <td class="py-2.5 px-2.5 text-center text-xs text-slate-400 border border-slate-800 bg-slate-900/50"><?= $no++ ?></td>
+                            <td class="py-2.5 px-3 font-extrabold text-white text-xs sm:text-[13px] border border-slate-800 font-sans bg-slate-900/50">
+                                <a href="<?= $dailyUrl ?>" class="hover:text-amber-400 flex items-center justify-between gap-1.5 transition" title="Buka Laporan Per Well <?= esc($s['kode']) ?>">
+                                    <span><?= esc($s['kode']) ?></span>
+                                    <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-60"></i>
+                                </a>
                             </td>
-                            <td class="py-2 px-1 text-center border border-slate-800 bg-slate-850/60">
-                                <span class="text-[13px] font-bold text-emerald-400"><?= number_format($ava, 1) ?>%</span>
+
+                            <!-- Kolom RAU Index -->
+                            <td class="py-2.5 px-2 text-center border border-slate-800 bg-slate-850/60">
+                                <span class="text-[13px] font-bold <?= $rel >= 99.9 ? 'text-emerald-400' : 'text-amber-400' ?>"><?= number_format($rel, 2) ?>%</span>
                             </td>
-                            <td class="py-2 px-1 text-center border border-slate-800 bg-slate-850/60">
-                                <span class="text-[13px] font-bold text-indigo-400"><?= number_format($uti, 1) ?>%</span>
+                            <td class="py-2.5 px-2 text-center border border-slate-800 bg-slate-850/60">
+                                <span class="text-[13px] font-bold <?= $ava >= 99.9 ? 'text-emerald-400' : 'text-amber-400' ?>"><?= number_format($ava, 2) ?>%</span>
+                            </td>
+                            <td class="py-2.5 px-2 text-center border border-slate-800 bg-slate-850/60">
+                                <span class="text-[13px] font-bold text-indigo-400"><?= number_format($uti, 2) ?>%</span>
                             </td>
 
                             <!-- Total MIRU & Total OPS -->
-                            <td class="py-2 px-2.5 text-right font-medium text-[13px] border border-slate-800 text-slate-200"><?= number_format((float)($s['total_miru'] ?? 0), 2) ?></td>
-                            <td class="py-2 px-2.5 text-right font-medium text-[13px] border border-slate-800 text-slate-200"><?= number_format((float)($s['total_ops'] ?? 0), 2) ?></td>
+                            <td class="py-2.5 px-2.5 text-right font-semibold text-[13px] border border-slate-800 text-sky-300"><?= number_format((float)($s['total_miru'] ?? 0), 2) ?></td>
+                            <td class="py-2.5 px-2.5 text-right font-semibold text-[13px] border border-slate-800 text-emerald-300"><?= number_format((float)($s['total_ops'] ?? 0), 2) ?></td>
 
                             <!-- Average MIRU & Cycle Time -->
-                            <td class="py-2 px-2.5 text-right text-xs border border-slate-800 text-slate-400"><?= number_format((float)($s['avg_miru'] ?? 0), 2) ?></td>
-                            <td class="py-2 px-2.5 text-right text-xs border border-slate-800 text-slate-400"><?= number_format((float)($s['avg_cycle_time'] ?? 0), 2) ?></td>
-                            
+                            <td class="py-2.5 px-2.5 text-right text-xs border border-slate-800 text-slate-300"><?= number_format((float)($s['avg_miru'] ?? 0), 2) ?></td>
+                            <td class="py-2.5 px-2.5 text-right text-xs border border-slate-800 text-slate-300"><?= number_format((float)($s['avg_cycle_time'] ?? 0), 2) ?></td>
+
                             <!-- Total Well Job -->
-                            <td class="py-2 px-2 text-center text-[13.5px] font-extrabold text-white border border-slate-800"><?= (int)($s['total_well_job'] ?? 0) ?></td>
+                            <td class="py-2.5 px-2 text-center text-[13.5px] font-extrabold text-white border border-slate-800"><?= (int)($s['total_well_job'] ?? 0) ?></td>
 
                             <!-- Downtime SBWC & UNPAID -->
-                            <td class="py-2 px-2.5 text-right text-[13px] font-semibold border border-slate-800 text-yellow-400"><?= number_format((float)($s['sbwc_jam'] ?? 0), 2) ?></td>
-                            <td class="py-2 px-2.5 text-right text-[13px] font-semibold border border-slate-800 text-rose-400"><?= number_format((float)($s['unpaid_jam'] ?? 0), 2) ?></td>
+                            <td class="py-2.5 px-2.5 text-right text-[13px] font-bold border border-slate-800 <?= (float)($s['sbwc_jam'] ?? 0) > 0 ? 'text-amber-400' : 'text-slate-500' ?>"><?= number_format((float)($s['sbwc_jam'] ?? 0), 2) ?></td>
+                            <td class="py-2.5 px-2.5 text-right text-[13px] font-bold border border-slate-800 <?= (float)($s['unpaid_jam'] ?? 0) > 0 ? 'text-rose-400' : 'text-slate-500' ?>"><?= number_format((float)($s['unpaid_jam'] ?? 0), 2) ?></td>
 
                             <!-- Revenue Incentive Target & Actual -->
-                            <td class="py-2 px-2.5 text-right text-xs font-medium border border-slate-800 text-slate-300">
+                            <td class="py-2.5 px-2.5 text-right text-xs font-medium border border-slate-800 text-slate-300 whitespace-nowrap">
                                 Rp <?= number_format((float)($s['revenue_target'] ?? 0), 0, ',', '.') ?>
                             </td>
-                            <td class="py-2 px-2.5 text-right text-[13.5px] font-extrabold border border-slate-800 text-emerald-400">
+                            <td class="py-2.5 px-2.5 text-right text-[13.5px] font-extrabold border border-slate-800 text-emerald-400 whitespace-nowrap">
                                 Rp <?= number_format((float)($s['revenue_actual'] ?? 0), 0, ',', '.') ?>
                             </td>
 
-                            <td class="py-2 px-2.5 text-right text-xs border border-slate-800 text-slate-400"><?= number_format((float)($s['total_jam'] ?? 0), 2) ?></td>
-                            <td class="py-2 px-3 text-[11px] text-slate-400 font-sans truncate max-w-xs border border-slate-800" title="<?= esc($s['remark'] ?? '') ?>"><?= esc($s['remark'] ?? '-') ?></td>
+                            <td class="py-2.5 px-2.5 text-right text-xs font-bold border border-slate-800 text-slate-300"><?= number_format((float)($s['total_jam'] ?? 0), 2) ?></td>
+                            <td class="py-2.5 px-3 text-xs text-slate-300 font-sans max-w-xs truncate border border-slate-800" title="<?= esc($cleanRemark) ?>">
+                                <?= esc($cleanRemark) ?>
+                            </td>
+                            <td class="py-2 px-2.5 text-center border border-slate-800 whitespace-nowrap">
+                                <a href="<?= $dailyUrl ?>"
+                                   class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-sky-500/15 hover:bg-sky-500 text-sky-300 hover:text-white border border-sky-500/30 text-[11px] font-extrabold font-sans transition">
+                                    <i class="fa-solid fa-table-list text-[10px]"></i>
+                                    <span>Rekap Sumur</span>
+                                </a>
+                            </td>
                         </tr>
                         <?php endforeach; ?>
                     </tbody>
-                    <tfoot class="bg-[#0B1E4A] font-extrabold text-white border-t-2 border-slate-600 text-xs">
+                    <tfoot class="bg-[#0B1E4A] font-extrabold text-white border-t-2 border-slate-600 text-xs font-num">
                         <tr>
-                            <td colspan="2" class="py-2.5 px-3 text-center border border-slate-700 font-sans uppercase">AVERAGE / TOTAL</td>
-                            <td class="py-2.5 px-1 text-center border border-slate-700 text-emerald-400"><?= number_format($avgReliability * 100, 1) ?>%</td>
-                            <td class="py-2.5 px-1 text-center border border-slate-700 text-emerald-400"><?= number_format($avgAvailability * 100, 1) ?>%</td>
-                            <td class="py-2.5 px-1 text-center border border-slate-700 text-indigo-300"><?= number_format($avgUtilization * 100, 1) ?>%</td>
-                            <td class="py-2.5 px-2.5 text-right border border-slate-700"><?= number_format($totMiru, 2) ?></td>
-                            <td class="py-2.5 px-2.5 text-right border border-slate-700"><?= number_format($totOps, 2) ?></td>
-                            <td class="py-2.5 px-2.5 text-right border border-slate-700 text-slate-300"><?= number_format($avgMiruAll, 2) ?></td>
-                            <td class="py-2.5 px-2.5 text-right border border-slate-700 text-slate-300"><?= number_format($avgCycleTimeAll, 2) ?></td>
-                            <td class="py-2.5 px-2 text-center border border-slate-700 text-white"><?= $totWell ?></td>
-                            <td class="py-2.5 px-2.5 text-right border border-slate-700 text-yellow-300"><?= number_format($totSbwc, 2) ?></td>
-                            <td class="py-2.5 px-2.5 text-right border border-slate-700 text-rose-300"><?= number_format($totUnpaid, 2) ?></td>
-                            <td class="py-2.5 px-2.5 text-right border border-slate-700 text-slate-300">Rp <?= number_format($totRevTarget, 0, ',', '.') ?></td>
-                            <td class="py-2.5 px-2.5 text-right border border-slate-700 text-emerald-400 text-[14px]">Rp <?= number_format($totRevActual, 0, ',', '.') ?></td>
-                            <td class="py-2.5 px-2.5 text-right border border-slate-700"><?= number_format($totJam, 2) ?></td>
-                            <td class="border border-slate-700"></td>
+                            <td colspan="2" class="py-3 px-3 text-center border border-slate-700 font-sans uppercase">AVERAGE / TOTAL</td>
+                            <td class="py-3 px-2 text-center border border-slate-700 text-emerald-400"><?= number_format($avgReliability * 100, 2) ?>%</td>
+                            <td class="py-3 px-2 text-center border border-slate-700 text-emerald-400"><?= number_format($avgAvailability * 100, 2) ?>%</td>
+                            <td class="py-3 px-2 text-center border border-slate-700 text-indigo-300"><?= number_format($avgUtilization * 100, 2) ?>%</td>
+                            <td class="py-3 px-2.5 text-right border border-slate-700 text-sky-300"><?= number_format($totMiru, 2) ?></td>
+                            <td class="py-3 px-2.5 text-right border border-slate-700 text-emerald-300"><?= number_format($totOps, 2) ?></td>
+                            <td class="py-3 px-2.5 text-right border border-slate-700 text-slate-300"><?= number_format($avgMiruAll, 2) ?></td>
+                            <td class="py-3 px-2.5 text-right border border-slate-700 text-slate-300"><?= number_format($avgCycleTimeAll, 2) ?></td>
+                            <td class="py-3 px-2 text-center border border-slate-700 text-white text-sm"><?= $totWell ?></td>
+                            <td class="py-3 px-2.5 text-right border border-slate-700 text-amber-300"><?= number_format($totSbwc, 2) ?></td>
+                            <td class="py-3 px-2.5 text-right border border-slate-700 text-rose-300"><?= number_format($totUnpaid, 2) ?></td>
+                            <td class="py-3 px-2.5 text-right border border-slate-700 text-slate-300 whitespace-nowrap">Rp <?= number_format($totRevTarget, 0, ',', '.') ?></td>
+                            <td class="py-3 px-2.5 text-right border border-slate-700 text-emerald-400 text-sm whitespace-nowrap">Rp <?= number_format($totRevActual, 0, ',', '.') ?></td>
+                            <td class="py-3 px-2.5 text-right border border-slate-700"><?= number_format($totJam, 2) ?></td>
+                            <td colspan="2" class="border border-slate-700"></td>
                         </tr>
                     </tfoot>
                 </table>
@@ -214,84 +533,134 @@
         </div>
     </div>
 
-    <!-- TAB 2: DAFTAR NILAI KONTRAK ODR PERSIS GAMBAR 2 -->
+    <!-- ════════════════════════════════════════════════════════════════════════ -->
+    <!-- TAB 3: DAFTAR NILAI KONTRAK ODR & MATRIKS TARIF PER JAM                  -->
+    <!-- ════════════════════════════════════════════════════════════════════════ -->
     <div id="tabContent_odrTable" class="tab-content hidden space-y-4">
-        <div class="max-w-md mx-auto rounded-xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden">
-            <div class="bg-blue-600 text-white py-2 px-4 font-black text-sm uppercase tracking-wider flex items-center justify-between">
-                <span>TABEL ODR: OPERATOR DAILY RATE</span>
-                <i class="fa-solid fa-file-invoice-dollar"></i>
+        <div class="grid grid-cols-1 xl:grid-cols-12 gap-5 items-start">
+            <!-- Kiri (4 Col): Tabel ODR Warna Asli Excel -->
+            <div class="xl:col-span-4 rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl overflow-hidden">
+                <div class="bg-blue-600 text-white py-3 px-4 font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-between">
+                    <span>TABEL ODR (EXCEL ASLI)</span>
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                </div>
+                <table class="w-full text-left border-collapse border border-slate-700 text-xs font-num">
+                    <tbody class="divide-y divide-slate-700">
+                        <?php
+                        $odrColors = [
+                            'BMS#01'  => 'bg-slate-850 text-white',
+                            'BMS#02'  => 'bg-sky-200 text-slate-900',
+                            'BMS#17'  => 'bg-amber-100 text-slate-900',
+                            'BMS#03'  => 'bg-sky-300 text-slate-900',
+                            'BMS#08'  => 'bg-sky-300 text-slate-900',
+                            'BMS#03A' => 'bg-sky-400 text-slate-900',
+                            'BMS#05'  => 'bg-sky-400 text-slate-900',
+                            'BMS#06'  => 'bg-sky-400 text-slate-900',
+                            'BMS#11'  => 'bg-sky-400 text-slate-900',
+                            'BMS#07'  => 'bg-yellow-300 text-slate-900',
+                            'BMS#15'  => 'bg-yellow-300 text-slate-900',
+                            'BMS#18'  => 'bg-yellow-300 text-slate-900',
+                            'BMS#09'  => 'bg-lime-400 text-slate-900',
+                            'BMS#10'  => 'bg-lime-400 text-slate-900',
+                            'BMS#16'  => 'bg-lime-400 text-slate-900',
+                            'BMS#19'  => 'bg-yellow-300 text-slate-900',
+                            'BMS#20'  => 'bg-yellow-300 text-slate-900',
+                            'BMS#21'  => 'bg-yellow-300 text-slate-900',
+                        ];
+                        foreach ($summaries as $s):
+                            $kd = $s['kode'];
+                            $rowStyle = $odrColors[$kd] ?? 'bg-slate-800 text-white';
+                        ?>
+                        <tr class="border-b border-slate-700 font-extrabold monthly-rig-row" data-rig="<?= strtolower(esc($kd)) ?>">
+                            <td class="py-2.5 px-4 border-r border-slate-700 <?= $rowStyle ?> font-sans w-32">
+                                <?= esc($kd) ?>
+                            </td>
+                            <td class="py-2.5 px-4 text-right <?= $rowStyle ?>">
+                                Rp <?= number_format((float)($s['odr'] ?? 0), 0, ',', '.') ?>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
             </div>
-            <table class="w-full text-left border-collapse border border-slate-700 text-xs font-num">
-                <tbody class="divide-y divide-slate-700">
-                    <?php 
-                    $odrColors = [
-                        'BMS#01' => 'bg-slate-850 text-white',
-                        'BMS#02' => 'bg-sky-200 text-slate-900',
-                        'BMS#17' => 'bg-amber-100 text-slate-900',
-                        'BMS#03' => 'bg-sky-300 text-slate-900',
-                        'BMS#08' => 'bg-sky-300 text-slate-900',
-                        'BMS#03A' => 'bg-sky-400 text-slate-900',
-                        'BMS#05' => 'bg-sky-400 text-slate-900',
-                        'BMS#06' => 'bg-sky-400 text-slate-900',
-                        'BMS#11' => 'bg-sky-400 text-slate-900',
-                        'BMS#07' => 'bg-yellow-300 text-slate-900',
-                        'BMS#15' => 'bg-yellow-300 text-slate-900',
-                        'BMS#18' => 'bg-yellow-300 text-slate-900',
-                        'BMS#09' => 'bg-lime-400 text-slate-900',
-                        'BMS#10' => 'bg-lime-400 text-slate-900',
-                        'BMS#16' => 'bg-lime-400 text-slate-900',
-                        'BMS#19' => 'bg-yellow-300 text-slate-900',
-                        'BMS#20' => 'bg-yellow-300 text-slate-900',
-                        'BMS#21' => 'bg-yellow-300 text-slate-900',
-                    ];
-                    foreach ($summaries as $s): 
-                        $kd = $s['kode'];
-                        $rowStyle = $odrColors[$kd] ?? 'bg-slate-800 text-white';
-                    ?>
-                    <tr class="border-b border-slate-700 font-extrabold">
-                        <td class="py-2 px-4 border-r border-slate-700 <?= $rowStyle ?> font-sans w-32">
-                            <?= esc($kd) ?>
-                        </td>
-                        <td class="py-2 px-4 text-right <?= $rowStyle ?>">
-                            Rp <?= number_format((float)($s['odr'] ?? 0), 0, ',', '.') ?>
-                        </td>
-                    </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
+
+            <!-- Kanan (8 Col): Matriks Lengkap Tarif Per Jam (OPS 100%, MIRU 75%, SBWC 65%) -->
+            <div class="xl:col-span-8 rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl overflow-hidden">
+                <div class="bg-slate-950 text-white py-3 px-5 border-b border-slate-700 flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                        <h4 class="text-xs sm:text-sm font-black uppercase tracking-wider text-amber-400">
+                            Matriks Rincian Tarif Kontrak Per Jam (ODR Breakdown)
+                        </h4>
+                        <p class="text-[11px] text-slate-400">
+                            Acuan perhitungan otomatis baris tarif merah (`Rp`) pada laporan Summary Report Per Well
+                        </p>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs font-num">
+                        <thead class="bg-[#0B1E4A] text-white uppercase text-[11px] font-extrabold text-center">
+                            <tr>
+                                <th class="py-2.5 px-3 border border-slate-700">Kode Rig</th>
+                                <th class="py-2.5 px-3 border border-slate-700 text-right">ODR Harian (24 Jam)</th>
+                                <th class="py-2.5 px-3 border border-slate-700 text-right text-emerald-300">Tarif OPS / Jam (100%)</th>
+                                <th class="py-2.5 px-3 border border-slate-700 text-right text-sky-300">Tarif MIRU / Jam (75%)</th>
+                                <th class="py-2.5 px-3 border border-slate-700 text-right text-amber-300">Tarif SBWC / Jam (65%)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800 text-slate-200">
+                            <?php foreach ($summaries as $s):
+                                $rOdr  = (float)($s['odr'] ?? 0);
+                                $rOps  = round($rOdr / 24);
+                                $rMiru = round(($rOdr / 24) * 0.75);
+                                $rSbwc = round(($rOdr / 24) * 0.65);
+                            ?>
+                            <tr class="hover:bg-slate-800/70 transition monthly-rig-row" data-rig="<?= strtolower(esc($s['kode'])) ?>">
+                                <td class="py-2.5 px-3 font-extrabold text-white border border-slate-800 font-sans text-center"><?= esc($s['kode']) ?></td>
+                                <td class="py-2.5 px-3 text-right font-bold text-white border border-slate-800">Rp <?= number_format($rOdr, 0, ',', '.') ?></td>
+                                <td class="py-2.5 px-3 text-right font-semibold text-emerald-400 border border-slate-800">Rp <?= number_format($rOps, 0, ',', '.') ?></td>
+                                <td class="py-2.5 px-3 text-right font-semibold text-sky-400 border border-slate-800">Rp <?= number_format($rMiru, 0, ',', '.') ?></td>
+                                <td class="py-2.5 px-3 text-right font-semibold text-amber-400 border border-slate-800">Rp <?= number_format($rSbwc, 0, ',', '.') ?></td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- TAB 3: NPT ALL RIG -->
+    <!-- ════════════════════════════════════════════════════════════════════════ -->
+    <!-- TAB 4: NPT ALL RIG (MATRIKS RINCIAN 18 KATEGORI DOWNTIME)                 -->
+    <!-- ════════════════════════════════════════════════════════════════════════ -->
     <div id="tabContent_nptAll" class="tab-content hidden space-y-4">
-        <div class="rounded-xl bg-slate-900 border border-slate-700 shadow-md overflow-hidden">
+        <div class="rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl overflow-hidden">
             <div class="overflow-x-auto custom-scrollbar">
                 <table class="w-full text-left border-collapse border border-slate-700">
                     <thead class="bg-[#0B1E4A] text-white font-extrabold uppercase text-[10px] border-b-2 border-slate-700 tracking-wider text-center select-none">
                         <tr>
                             <th class="py-2.5 px-2.5 w-10 border border-slate-700 sticky left-0 bg-[#0B1E4A]">NO</th>
-                            <th class="py-2.5 px-3 border border-slate-700 min-w-[90px] sticky left-10 bg-[#0B1E4A]">NAME RIG</th>
+                            <th class="py-2.5 px-3 border border-slate-700 min-w-[95px] sticky left-10 bg-[#0B1E4A]">NAME RIG</th>
                             <?php foreach ($kategoriList as $kat): ?>
-                                <th class="py-2 px-2 min-w-[75px] border border-slate-700" title="<?= esc($kat['nama']) ?>">
+                                <th class="py-2 px-2 min-w-[78px] border border-slate-700" title="<?= esc($kat['nama']) ?>">
                                     <span class="block truncate <?= $kat['tipe'] == 'UNPAID' ? 'text-rose-400' : 'text-yellow-300' ?>"><?= esc($kat['nama']) ?></span>
                                     <span class="text-[8px] font-mono opacity-70"><?= $kat['tipe'] ?></span>
                                 </th>
                             <?php endforeach; ?>
-                            <th class="py-2.5 px-3 text-right min-w-[80px] bg-[#0E2A66] font-bold text-yellow-300 border border-slate-700">TOTAL (HRS)</th>
+                            <th class="py-2.5 px-3 text-right min-w-[85px] bg-[#0E2A66] font-bold text-yellow-300 border border-slate-700">TOTAL (HRS)</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-800 text-slate-200 font-num">
-                        <?php 
-                        $no = 1; 
+                        <?php
+                        $no = 1;
                         $grandTotalDT = 0;
                         $colTotals = [];
-                        foreach ($summaries as $s): 
+                        foreach ($summaries as $s):
                             $rigTotalDT = 0;
                         ?>
-                        <tr class="hover:bg-slate-800 transition">
+                        <tr class="hover:bg-slate-800 transition monthly-rig-row" data-rig="<?= strtolower(esc($s['kode'])) ?>">
                             <td class="py-2 px-2.5 text-center text-xs text-slate-400 border border-slate-800 sticky left-0 bg-slate-900"><?= $no++ ?></td>
                             <td class="py-2 px-3 font-bold text-white text-xs border border-slate-800 sticky left-10 bg-slate-900 font-sans"><?= esc($s['kode']) ?></td>
-                            <?php foreach ($kategoriList as $kat): 
+                            <?php foreach ($kategoriList as $kat):
                                 $val = (float)($summaryAllRig[$s['rig_id']][$kat['id']] ?? 0);
                                 $rigTotalDT += $val;
                                 $colTotals[$kat['id']] = ($colTotals[$kat['id']] ?? 0) + $val;
@@ -304,12 +673,12 @@
                                 <?= number_format($rigTotalDT, 2) ?>
                             </td>
                         </tr>
-                        <?php 
+                        <?php
                             $grandTotalDT += $rigTotalDT;
-                        endforeach; 
+                        endforeach;
                         ?>
                     </tbody>
-                    <tfoot class="bg-[#0B1E4A] font-extrabold text-white border-t-2 border-slate-600 text-xs">
+                    <tfoot class="bg-[#0B1E4A] font-extrabold text-white border-t-2 border-slate-600 text-xs font-num">
                         <tr>
                             <td colspan="2" class="py-2.5 px-3 text-center border border-slate-700 sticky left-0 bg-[#0B1E4A] font-sans">TOTAL DOWNTIME</td>
                             <?php foreach ($kategoriList as $kat): ?>
@@ -327,7 +696,7 @@
         </div>
     </div>
 
-    <!-- TAB 4: GRAFIK ANALISIS RESMI (NPT ALL RIG, RAU ALL RIG, AVERAGE MIRU, AVERAGE CYCLE TIME, TOTAL WELL JOB) -->
+    <!-- TAB 2: GRAFIK ANALISIS RESMI (NPT ALL RIG, RAU ALL RIG, AVERAGE MIRU, AVERAGE CYCLE TIME, TOTAL WELL JOB) -->
     <div id="tabContent_charts" class="tab-content hidden space-y-6">
 
         <!-- Sub-header & Quick Jump Links -->
@@ -634,13 +1003,21 @@
         window.location.href = `<?= base_url('monthly-report') ?>/${bulan}/${tahun}`;
     }
 
+    function filterMonthlyRigRows() {
+        const q = (document.getElementById('searchMonthlyRigInput')?.value || '').toLowerCase().trim();
+        document.querySelectorAll('.monthly-rig-row').forEach(tr => {
+            const hay = (tr.getAttribute('data-rig') || '').toLowerCase();
+            tr.style.display = (!q || hay.includes(q)) ? '' : 'none';
+        });
+    }
+
     let chartsInitialized = false;
 
     function switchTab(tabKey) {
         // Hide all tab content
         document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-        // Remove active from all tabs (works for both ui-tab and legacy tab-btn)
-        document.querySelectorAll('.ui-tab, .tab-btn').forEach(btn => {
+        // Remove active from all tabs (works for mr-tab-pill, ui-tab, and legacy tab-btn)
+        document.querySelectorAll('.mr-tab-pill, .ui-tab, .tab-btn').forEach(btn => {
             btn.classList.remove('active', 'border-yellow-400', 'text-yellow-300', 'bg-slate-800');
             btn.classList.add('border-transparent');
         });

@@ -16,13 +16,7 @@ class Lokasi extends BaseController
 
     public function index()
     {
-        $data = [
-            'title'         => 'Master Lokasi / Sumur',
-            'page_title'    => 'Daftar Lokasi Sumur Minyak',
-            'page_subtitle' => 'Pencatatan titik lokasi pekerjaan sumur pengeboran & workover',
-            'lokasi'        => $this->lokasiModel->orderBy('nama_lokasi', 'ASC')->findAll(),
-        ];
-        return view('master/lokasi/index', $data);
+        return redirect()->to(base_url('master?tab=lokasi'));
     }
 
     public function tambah()
@@ -47,14 +41,14 @@ class Lokasi extends BaseController
             'aktif'       => $this->request->getPost('aktif') ? 1 : 0,
         ]);
 
-        return redirect()->to(base_url('master/lokasi'))->with('success', 'Lokasi sumur berhasil ditambahkan.');
+        return redirect()->to(base_url('master?tab=lokasi'))->with('success', 'Lokasi sumur berhasil ditambahkan.');
     }
 
     public function edit($id)
     {
         $lokasi = $this->lokasiModel->find($id);
         if (!$lokasi) {
-            return redirect()->to(base_url('master/lokasi'))->with('error', 'Lokasi tidak ditemukan.');
+            return redirect()->to(base_url('master?tab=lokasi'))->with('error', 'Lokasi tidak ditemukan.');
         }
 
         $data = [
@@ -78,12 +72,12 @@ class Lokasi extends BaseController
             'aktif'       => $this->request->getPost('aktif') ? 1 : 0,
         ]);
 
-        return redirect()->to(base_url('master/lokasi'))->with('success', 'Lokasi sumur berhasil diperbarui.');
+        return redirect()->to(base_url('master?tab=lokasi'))->with('success', 'Lokasi sumur berhasil diperbarui.');
     }
 
     public function hapus($id)
     {
         $this->lokasiModel->delete($id);
-        return redirect()->to(base_url('master/lokasi'))->with('success', 'Lokasi berhasil dihapus.');
+        return redirect()->to(base_url('master?tab=lokasi'))->with('success', 'Lokasi berhasil dihapus.');
     }
 }

@@ -1,594 +1,1072 @@
 <?= $this->extend('layout/main') ?>
 
 <?= $this->section('content') ?>
-<div class="ui-screen ui-screen--operations space-y-5">
+<style>
+    /* ═══ LOG HARIAN — EXECUTIVE LEDGER DUAL-THEME SYSTEM (DARK & LIGHT) ═══ */
+    :root {
+        --lh-card-bg: #0d111a;
+        --lh-card-border: rgba(255, 255, 255, 0.08);
+        --lh-card-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.45);
+        --lh-sub-bg: #080b11;
+        --lh-sub-border: rgba(255, 255, 255, 0.06);
+        --lh-input-bg: #06080d;
+        --lh-input-border: #222d40;
+        --lh-input-text: #f8fafc;
+        --lh-text-title: #f8fafc;
+        --lh-text-sec: #cbd5e1;
+        --lh-text-muted: #64748b;
+        --lh-divider: rgba(255, 255, 255, 0.07);
+        --lh-btn-bg: #141c2b;
+        --lh-btn-border: #25334a;
+        --lh-btn-text: #e2e8f0;
+        --lh-btn-hover-bg: #1e293b;
+        --lh-btn-hover-border: #38bdf8;
+        --lh-table-head-bg: #080b12;
+        --lh-table-head-text: #94a3b8;
+        --lh-row-hover: rgba(56, 189, 248, 0.05);
+        --lh-row-active: rgba(56, 189, 248, 0.12);
+        --lh-ledger-row-bg: #090d14;
+        --lh-ledger-row-hover: #0e1420;
+        --lh-dt-active-amber-bg: rgba(245, 158, 11, 0.10);
+        --lh-dt-active-amber-border: rgba(245, 158, 11, 0.45);
+        --lh-dt-active-rose-bg: rgba(244, 63, 94, 0.10);
+        --lh-dt-active-rose-border: rgba(244, 63, 94, 0.45);
+    }
 
-    <!-- ═══ 1. NAVIGASI ALUR KERJA (3 LANGKAH) ═══════════════════════════════ -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <!-- Step 1: Rekap Sumur -->
-        <a href="<?= base_url("daily-report/{$rigId}/{$bulan}/{$tahun}") ?>" 
-           class="p-3 rounded-xl bg-slate-800/90 hover:bg-slate-800 border border-slate-700/80 hover:border-slate-600 transition flex items-center justify-between group">
-            <div class="flex items-center gap-3">
-                <span class="w-7 h-7 rounded-lg bg-slate-700 text-slate-300 font-black text-xs flex items-center justify-center group-hover:bg-blue-500/20 group-hover:text-blue-400 transition">1</span>
-                <div>
-                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tahap 1</div>
-                    <div class="text-xs font-bold text-white group-hover:text-blue-300 transition">Rekap Sumur (Well)</div>
+    :root[data-theme="light"] {
+        --lh-card-bg: #ffffff;
+        --lh-card-border: #e2e8f0;
+        --lh-card-shadow: 0 1px 4px rgba(15, 23, 42, 0.05);
+        --lh-sub-bg: #f8fafc;
+        --lh-sub-border: #e2e8f0;
+        --lh-input-bg: #ffffff;
+        --lh-input-border: #cbd5e1;
+        --lh-input-text: #0f172a;
+        --lh-text-title: #0f172a;
+        --lh-text-sec: #334155;
+        --lh-text-muted: #64748b;
+        --lh-divider: #e2e8f0;
+        --lh-btn-bg: #f8fafc;
+        --lh-btn-border: #cbd5e1;
+        --lh-btn-text: #1e293b;
+        --lh-btn-hover-bg: #f0f9ff;
+        --lh-btn-hover-border: #0284c7;
+        --lh-table-head-bg: #f1f5f9;
+        --lh-table-head-text: #475569;
+        --lh-row-hover: rgba(2, 132, 199, 0.04);
+        --lh-row-active: rgba(2, 132, 199, 0.09);
+        --lh-ledger-row-bg: #ffffff;
+        --lh-ledger-row-hover: #f8fafc;
+        --lh-dt-active-amber-bg: #fffbeb;
+        --lh-dt-active-amber-border: #f59e0b;
+        --lh-dt-active-rose-bg: #fff1f2;
+        --lh-dt-active-rose-border: #f43f5e;
+    }
+
+    .lh-surface-card {
+        background: var(--lh-card-bg);
+        border: 1px solid var(--lh-card-border);
+        border-radius: 14px;
+        box-shadow: var(--lh-card-shadow);
+        color: var(--lh-text-sec);
+    }
+
+    .lh-sub-panel {
+        background: var(--lh-sub-bg);
+        border: 1px solid var(--lh-sub-border);
+        border-radius: 11px;
+        color: var(--lh-text-sec);
+    }
+
+    .lh-text-title { color: var(--lh-text-title); }
+    .lh-text-sec   { color: var(--lh-text-sec); }
+    .lh-text-muted { color: var(--lh-text-muted); }
+    .lh-divider-b  { border-bottom: 1px solid var(--lh-divider); }
+    .lh-divider-t  { border-top: 1px solid var(--lh-divider); }
+
+    .lh-control-box {
+        background: var(--lh-input-bg);
+        border: 1px solid var(--lh-input-border);
+        color: var(--lh-input-text);
+        border-radius: 9px;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .lh-control-box:focus {
+        border-color: #0ea5e9;
+        box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+        outline: none;
+    }
+    .lh-control-box option {
+        background: var(--lh-card-bg);
+        color: var(--lh-text-title);
+    }
+
+    .lh-preset-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 11px;
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 700;
+        border: 1px solid var(--lh-btn-border);
+        background: var(--lh-btn-bg);
+        color: var(--lh-btn-text);
+        transition: all 0.15s ease;
+        cursor: pointer;
+        text-decoration: none;
+    }
+    .lh-preset-btn:hover {
+        border-color: var(--lh-btn-hover-border);
+        background: var(--lh-btn-hover-bg);
+        color: var(--lh-text-title);
+    }
+
+    /* ═══ 13 POS DOWNTIME LEDGER TABLE ROWS ═══ */
+    .lh-ledger-grid {
+        display: grid;
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+        gap: 8px;
+    }
+    @media (min-width: 640px) {
+        .lh-ledger-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    .lh-ledger-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 8px 11px;
+        background: var(--lh-ledger-row-bg);
+        border: 1px solid var(--lh-sub-border);
+        border-radius: 10px;
+        transition: all 0.15s ease;
+    }
+    .lh-ledger-item:hover {
+        background: var(--lh-ledger-row-hover);
+        border-color: var(--lh-input-border);
+    }
+    .lh-ledger-item.has-value {
+        background: var(--lh-dt-active-amber-bg);
+        border-color: var(--lh-dt-active-amber-border);
+    }
+    .lh-ledger-item.has-value-unpaid {
+        background: var(--lh-dt-active-rose-bg);
+        border-color: var(--lh-dt-active-rose-border);
+    }
+
+    .lh-num-badge {
+        width: 24px;
+        height: 24px;
+        border-radius: 6px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 10px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        background: var(--lh-btn-bg);
+        border: 1px solid var(--lh-btn-border);
+        color: var(--lh-text-muted);
+    }
+    .lh-ledger-item.has-value .lh-num-badge {
+        background: rgba(245, 158, 11, 0.2);
+        border-color: rgba(245, 158, 11, 0.5);
+        color: #f59e0b;
+    }
+    .lh-ledger-item.has-value-unpaid .lh-num-badge {
+        background: rgba(244, 63, 94, 0.2);
+        border-color: rgba(244, 63, 94, 0.5);
+        color: #f43f5e;
+    }
+
+    .lh-sisa-mini-btn {
+        font-size: 10px;
+        font-weight: 700;
+        padding: 3px 6px;
+        border-radius: 5px;
+        background: var(--lh-btn-bg);
+        border: 1px solid var(--lh-btn-border);
+        color: var(--lh-text-muted);
+        cursor: pointer;
+        transition: all 0.12s ease;
+        flex-shrink: 0;
+    }
+    .lh-sisa-mini-btn:hover {
+        border-color: #0ea5e9;
+        color: #0ea5e9;
+    }
+
+    .lh-table-head {
+        background: var(--lh-table-head-bg);
+        color: var(--lh-table-head-text);
+        border-bottom: 1px solid var(--lh-divider);
+    }
+
+    .lh-table-row {
+        border-bottom: 1px solid var(--lh-divider);
+        transition: background-color 0.12s ease;
+    }
+    .lh-table-row:hover {
+        background: var(--lh-row-hover);
+    }
+    .lh-table-row.is-active-editing {
+        background: var(--lh-row-active) !important;
+        box-shadow: inset 3px 0 0 #0ea5e9;
+    }
+
+    .lh-pill-empty {
+        background: var(--lh-input-bg);
+        color: var(--lh-text-sec);
+        border: 1px solid var(--lh-input-border);
+    }
+    .lh-pill-empty:hover {
+        border-color: #0ea5e9;
+        color: var(--lh-text-title);
+    }
+
+    /* Semantic Badges */
+    .lh-badge-sky {
+        background: rgba(14, 165, 233, 0.12);
+        border: 1px solid rgba(14, 165, 233, 0.3);
+        color: #38bdf8;
+    }
+    :root[data-theme="light"] .lh-badge-sky {
+        background: #e0f2fe;
+        border-color: #7dd3fc;
+        color: #0369a1;
+    }
+
+    .lh-badge-emerald {
+        background: rgba(16, 185, 129, 0.12);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        color: #34d399;
+    }
+    :root[data-theme="light"] .lh-badge-emerald {
+        background: #d1fae5;
+        border-color: #6ee7b7;
+        color: #047857;
+    }
+
+    .lh-badge-amber {
+        background: rgba(245, 158, 11, 0.12);
+        border: 1px solid rgba(245, 158, 11, 0.3);
+        color: #fbbf24;
+    }
+    :root[data-theme="light"] .lh-badge-amber {
+        background: #fef3c7;
+        border-color: #fcd34d;
+        color: #b45309;
+    }
+
+    .lh-badge-rose {
+        background: rgba(244, 63, 94, 0.12);
+        border: 1px solid rgba(244, 63, 94, 0.3);
+        color: #fb7185;
+    }
+    :root[data-theme="light"] .lh-badge-rose {
+        background: #ffe4e6;
+        border-color: #fda4af;
+        color: #be123c;
+    }
+</style>
+
+<?php
+$bulanNames = [
+    1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',
+    5=>'Mei',6=>'Juni',7=>'Juli',8=>'Agustus',
+    9=>'September',10=>'Oktober',11=>'November',12=>'Desember'
+];
+$totalLogsCount  = count($recentLogs ?? []);
+$totalWellsCount = count($wells ?? []);
+$tambahSumurUrl  = base_url("daily-report/tambah/{$rigId}/{$bulan}/{$tahun}");
+?>
+
+<div class="space-y-3.5 pb-12">
+
+    <!-- ═══ 1. HEADER KOMANDO ATAS (COMPACT SINGLE-ROW) ═══ -->
+    <div class="bms-bezel-shell">
+        <div class="bms-bezel-core px-4 py-2.5 flex flex-wrap items-center justify-between gap-2.5">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg lh-badge-sky flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-calendar-day text-xs"></i>
                 </div>
-            </div>
-            <i class="fa-solid fa-arrow-right text-xs text-slate-500 group-hover:text-slate-300 group-hover:translate-x-0.5 transition-transform"></i>
-        </a>
-
-        <!-- Step 2: Input Daily Report (Aktif) -->
-        <div class="p-3 rounded-xl bg-cyan-950/50 border-2 border-cyan-500/80 shadow-lg shadow-cyan-950/40 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <span class="w-7 h-7 rounded-lg bg-cyan-500 text-slate-950 font-black text-xs flex items-center justify-center">2</span>
-                <div>
-                    <div class="text-[10px] font-black text-cyan-300 uppercase tracking-widest flex items-center gap-1.5">
-                        <span>Tahap 2 (Sedang Aktif)</span>
-                        <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
-                    </div>
-                    <div class="text-xs font-black text-white">Input Daily Report</div>
-                </div>
-            </div>
-            <span class="px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 text-[10px] font-bold font-mono">00:00 - 24:00</span>
-        </div>
-
-        <!-- Step 3: Input NPT (Downtime) -->
-        <a href="<?= base_url("npt/{$rigId}/{$bulan}/{$tahun}") ?>" 
-           class="p-3 rounded-xl bg-slate-800/90 hover:bg-slate-800 border border-slate-700/80 hover:border-slate-600 transition flex items-center justify-between group">
-            <div class="flex items-center gap-3">
-                <span class="w-7 h-7 rounded-lg bg-slate-750 text-slate-300 font-black text-xs flex items-center justify-center group-hover:bg-amber-500/20 group-hover:text-amber-400 transition">3</span>
-                <div>
-                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tahap 3</div>
-                    <div class="text-xs font-bold text-white group-hover:text-amber-300 transition">Input NPT (Downtime)</div>
-                </div>
-            </div>
-            <i class="fa-solid fa-arrow-right text-xs text-slate-500 group-hover:text-slate-300 group-hover:translate-x-0.5 transition-transform"></i>
-        </a>
-    </div>
-
-    <!-- ═══ 2. KONTROL RIG & PERIODE ══════════════════════════════════════════ -->
-    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 p-3.5 rounded-xl bg-slate-800/95 border border-slate-700 shadow-sm">
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 flex items-center justify-center flex-shrink-0">
-                <i class="fa-solid fa-calendar-day text-lg"></i>
-            </div>
-            <div>
-                <div class="flex items-center gap-2">
-                    <h3 class="text-sm font-extrabold text-white tracking-wide"><?= esc($rig['kode']) ?> - <?= esc($rig['nama_rig']) ?></h3>
-                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-mono">
-                        <?= sprintf('%02d', $bulan) ?> / <?= $tahun ?>
+                <div class="flex flex-wrap items-center gap-2">
+                    <h2 class="text-sm sm:text-base font-extrabold lh-text-title tracking-tight">
+                        Log Harian Operasional (24 Jam)
+                    </h2>
+                    <span class="px-2 py-0.5 rounded-md lh-badge-sky text-[11px] font-mono font-bold">
+                        <?= esc($rig['kode']) ?>
+                    </span>
+                    <span class="px-2 py-0.5 rounded-md lh-sub-panel text-[11px] font-semibold">
+                        <?= $bulanNames[$bulan] ?> <?= $tahun ?>
                     </span>
                 </div>
-                <p class="text-[11.5px] text-slate-400">Form input manual log operasi harian per tanggal: MIRU, OPS, dan rincian pos downtime</p>
             </div>
-        </div>
 
-        <!-- Filter Selector -->
-        <div class="flex flex-wrap items-center gap-2">
-            <div class="flex items-center bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 shadow-inner">
-                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mr-2 flex items-center gap-1.5">
-                    <i class="fa-solid fa-oil-well text-blue-400 text-xs"></i>
-                    <span>Rig:</span>
-                </span>
-                <select id="selectRig" onchange="navigateLog()" class="bg-transparent border-0 text-xs font-bold text-white focus:outline-none cursor-pointer pr-1">
-                    <?php foreach ($allRigs as $r): ?>
-                        <option value="<?= $r['id'] ?>" class="bg-slate-900 text-white" <?= $r['id'] == $rigId ? 'selected' : '' ?>>
-                            <?= esc($r['kode']) ?> - <?= esc($r['nama_rig']) ?>
-                        </option>
+            <!-- Filter Armada & Navigasi Cepat -->
+            <div class="flex flex-wrap items-center gap-1.5">
+                <select id="selectRig" onchange="navigateLog()"
+                    class="lh-control-box px-2.5 py-1 text-xs font-bold cursor-pointer">
+                    <?php foreach (($allRigs ?? $rigs ?? []) as $r): ?>
+                    <option value="<?= $r['id'] ?>" <?= $r['id'] == $rigId ? 'selected' : '' ?>>
+                        <?= esc($r['kode']) ?> — <?= esc($r['nama_rig']) ?>
+                    </option>
                     <?php endforeach; ?>
                 </select>
-            </div>
 
-            <div class="flex items-center bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 shadow-inner">
-                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mr-2 flex items-center gap-1.5">
-                    <i class="fa-solid fa-calendar text-blue-400 text-xs"></i>
-                    <span>Bulan:</span>
-                </span>
-                <select id="selectBulan" onchange="navigateLog()" class="bg-transparent border-0 text-xs font-bold text-white focus:outline-none cursor-pointer pr-1">
-                    <?php 
-                    $bulanList = [
-                        1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
-                        5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
-                        9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
-                    ];
-                    foreach ($bulanList as $num => $nama): ?>
-                        <option value="<?= $num ?>" class="bg-slate-900 text-white" <?= $bulan == $num ? 'selected' : '' ?>><?= $nama ?></option>
+                <select id="selectBulan" onchange="navigateLog()"
+                    class="lh-control-box px-2 py-1 text-xs font-semibold cursor-pointer">
+                    <?php foreach ($bulanNames as $num => $name): ?>
+                    <option value="<?= $num ?>" <?= $num == $bulan ? 'selected' : '' ?>><?= $name ?></option>
                     <?php endforeach; ?>
                 </select>
-            </div>
 
-            <div class="flex items-center bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 shadow-inner">
-                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mr-2 flex items-center gap-1.5">
-                    <i class="fa-solid fa-calendar-days text-blue-400 text-xs"></i>
-                    <span>Tahun:</span>
-                </span>
-                <select id="selectTahun" onchange="navigateLog()" class="bg-transparent border-0 text-xs font-bold text-white focus:outline-none cursor-pointer pr-1">
-                    <?php for ($y = 2024; $y <= 2028; $y++): ?>
-                        <option value="<?= $y ?>" class="bg-slate-900 text-white" <?= $tahun == $y ? 'selected' : '' ?>><?= $y ?></option>
+                <select id="selectTahun" onchange="navigateLog()"
+                    class="lh-control-box px-2 py-1 text-xs font-mono font-bold cursor-pointer">
+                    <?php for ($y = 2025; $y <= 2028; $y++): ?>
+                    <option value="<?= $y ?>" <?= $y == $tahun ? 'selected' : '' ?>><?= $y ?></option>
                     <?php endfor; ?>
                 </select>
-            </div>
 
-            <a href="<?= base_url("daily-report/{$rigId}/{$bulan}/{$tahun}") ?>" 
-               class="px-3 py-1.5 rounded-lg bg-slate-750 hover:bg-slate-700 text-slate-200 hover:text-white font-bold text-xs border border-slate-650 transition flex items-center gap-1.5 shadow-sm">
-                <i class="fa-solid fa-table-cells text-xs text-cyan-400"></i>
-                <span>Matriks Sumur</span>
-            </a>
+                <a href="<?= $tambahSumurUrl ?>" class="lh-preset-btn !py-1 !px-2.5">
+                    <i class="fa-solid fa-plus text-amber-500"></i>
+                    <span>Sumur Baru</span>
+                </a>
+
+                <a href="<?= base_url("daily-report/{$rigId}/{$bulan}/{$tahun}") ?>" class="lh-preset-btn !py-1 !px-2.5">
+                    <i class="fa-solid fa-table-list text-sky-500"></i>
+                    <span>Daily Report</span>
+                </a>
+
+                <a href="<?= base_url("npt/{$rigId}/{$bulan}/{$tahun}") ?>" class="lh-preset-btn !py-1 !px-2.5">
+                    <i class="fa-solid fa-triangle-exclamation text-amber-500"></i>
+                    <span>Grid NPT</span>
+                </a>
+            </div>
         </div>
     </div>
 
-    <!-- ═══ 3. FORM INPUT DAILY REPORT (ENAK DILIHAT & MANUAL FRIENDLY) ═══════ -->
-    <div id="formSection" class="rounded-2xl bg-slate-850 border border-slate-700 shadow-xl overflow-hidden">
-        
-        <!-- Header Form -->
-        <div class="p-4 border-b border-slate-750 bg-slate-900 flex flex-wrap items-center justify-between gap-3">
-            <div class="flex items-center gap-2.5">
-                <div class="w-3 h-3 rounded-full bg-cyan-400"></div>
-                <h2 class="text-sm font-black text-white uppercase tracking-wider">Form Input Daily Report (00:00 - 24:00)</h2>
-                <span id="formModeBadge" class="px-2 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold uppercase tracking-wider">
-                    Mode: Input Baru
-                </span>
+    <?php if (empty($wells)): ?>
+    <!-- ═══ PERINGATAN BELUM ADA SUMUR ═══ -->
+    <div class="lh-surface-card p-4 border-l-4 border-l-amber-500 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl lh-badge-amber flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-bore-hole text-sm"></i>
             </div>
-            <button type="button" onclick="resetFormToDefault()" class="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition flex items-center gap-1.5">
-                <i class="fa-solid fa-rotate-right text-[11px]"></i>
-                <span>Reset Input Form</span>
-            </button>
+            <div>
+                <h3 class="text-xs font-extrabold lh-text-title uppercase tracking-wide">
+                    Belum Ada Pekerjaan Sumur (Well) di Bulan <?= $bulanNames[$bulan] ?> <?= $tahun ?>
+                </h3>
+                <p class="text-[11px] lh-text-muted">
+                    Tambahkan data sumur terlebih dahulu sebelum mengisi rincian jam operasi harian.
+                </p>
+            </div>
         </div>
+        <a href="<?= $tambahSumurUrl ?>"
+            class="px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs rounded-xl shadow-sm transition flex items-center gap-1.5 shrink-0">
+            <i class="fa-solid fa-plus-circle"></i>
+            <span>+ Tambah Sumur Baru</span>
+        </a>
+    </div>
+    <?php endif; ?>
 
-        <form action="<?= base_url('daily-report/simpan-log') ?>" method="POST" id="formDailyLog" class="p-5 space-y-5">
-            <?= csrf_field() ?>
-            <input type="hidden" name="rig_id" value="<?= $rigId ?>">
-            <input type="hidden" name="bulan" value="<?= $bulan ?>">
-            <input type="hidden" name="tahun" value="<?= $tahun ?>">
+    <!-- ═══ 2. WORKSPACE UTAMA: FORM DI KIRI (8 COL) + MONITOR 24 JAM & DAFTAR SUMUR DI KANAN (4 COL) ═══ -->
+    <form method="POST" action="<?= base_url('daily-report/simpan-log') ?>" id="formDailyLog">
+        <?= csrf_field() ?>
+        <input type="hidden" name="rig_id" value="<?= $rigId ?>">
+        <input type="hidden" name="bulan" value="<?= $bulan ?>">
+        <input type="hidden" name="tahun" value="<?= $tahun ?>">
 
-            <!-- ── SEKSI 1: IDENTITAS OPERASI & SUMUR ── -->
-            <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-750 space-y-3">
-                <div class="flex items-center gap-2 border-b border-slate-800 pb-2">
-                    <i class="fa-solid fa-id-badge text-cyan-400 text-sm"></i>
-                    <span class="text-xs font-bold text-white uppercase tracking-wider">1. Identitas Tanggal &amp; Sumur Pekerjaan</span>
-                </div>
+        <div class="grid grid-cols-1 xl:grid-cols-12 gap-4 items-start" id="formSection">
 
-                <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
-                    <!-- Tanggal -->
-                    <div class="md:col-span-4">
-                        <label for="inputTanggal" class="block text-xs font-bold text-slate-300 uppercase mb-1.5">
-                            Tanggal Laporan <span class="text-rose-400">*</span>
-                        </label>
-                        <?php 
-                        $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $bulan, $tahun);
-                        $defaultDay = min((int)date('j'), $daysInMonth);
-                        $defaultDateStr = sprintf('%04d-%02d-%02d', $tahun, $bulan, $defaultDay);
-                        ?>
-                        <input type="date" name="tanggal" id="inputTanggal" required
-                            value="<?= $defaultDateStr ?>"
-                            min="<?= sprintf('%04d-%02d-01', $tahun, $bulan) ?>"
-                            max="<?= sprintf('%04d-%02d-%02d', $tahun, $bulan, $daysInMonth) ?>"
-                            class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs font-bold focus:ring-2 focus:ring-cyan-500 focus:outline-none">
+            <!-- ══════════════════════════════════════════════════════════════════
+                 KOLOM KIRI (8 COL): FORMULIR INPUT BERSIH & TERSTRUKTUR
+                 ══════════════════════════════════════════════════════════════════ -->
+            <div class="xl:col-span-8 space-y-3.5">
+
+                <!-- ─── PANEL UTAMA ATAS: 01. SUMUR & TANGGAL + 02. JAM PRODUKTIF (MIRU & OPERASI) LANGSUNG TERLIHAT TANPA SCROLL ─── -->
+                <div class="lh-surface-card p-4 space-y-3.5">
+
+                    <!-- BARIS HEADER 01: SUMUR & JADWAL -->
+                    <div class="flex flex-wrap items-center justify-between gap-2 lh-divider-b pb-2.5">
+                        <div class="flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-md lh-badge-sky font-mono text-[11px] font-black flex items-center justify-center">01</span>
+                            <h3 class="text-xs font-extrabold uppercase tracking-wider lh-text-title">
+                                Sumur (Well), Tanggal Operasi &amp; Status Pekerjaan
+                            </h3>
+                            <span id="wellScheduleNotice" class="hidden sm:inline-block text-[11px] lh-text-muted ml-1"></span>
+                        </div>
+                        <a href="<?= $tambahSumurUrl ?>"
+                            class="px-2.5 py-1 rounded-lg lh-badge-amber text-[11px] font-extrabold transition flex items-center gap-1">
+                            <i class="fa-solid fa-plus text-[10px]"></i>
+                            <span>+ Sumur Baru</span>
+                        </a>
                     </div>
 
-                    <!-- Pilih Sumur -->
-                    <div class="md:col-span-5">
-                        <label for="selectWell" class="flex items-center justify-between block text-xs font-bold text-slate-300 uppercase mb-1.5">
-                            <span>Pilih Sumur <span class="text-rose-400">*</span></span>
-                            <button type="button" onclick="openQuickSumurModal()" class="px-2 py-0.5 bg-sky-500/20 hover:bg-sky-500/40 text-sky-300 rounded font-bold text-[10px] transition border border-sky-500/30">+ Sumur Baru</button>
-                        </label>
-                        <select name="daily_report_id" id="selectWell" required 
-                                class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs font-bold focus:ring-2 focus:ring-sky-500 focus:outline-none">
-                            <option value="">-- Pilih Sumur yang Dikerjakan --</option>
-                            <?php foreach ($wells as $w): ?>
-                                <option value="<?= $w['id'] ?>">
-                                    Well #<?= $w['no_well'] ?> - <?= esc($w['nama_lokasi'] ?? 'N/A') ?> (<?= $w['status_job'] ?>)
+                    <!-- BARIS KONTROL 1 BARIS (SUMUR + TANGGAL + JARAK + STATUS) -->
+                    <?php
+                        $requestedWellId = (int)($_GET['well_id'] ?? 0);
+                        if ($requestedWellId <= 0 && !empty($wells)) {
+                            $latestWell = end($wells);
+                            $requestedWellId = (int)($latestWell['id'] ?? 0);
+                            reset($wells);
+                        }
+                    ?>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-2.5 items-end">
+                        <!-- Pilih Sumur (5 Col) -->
+                        <div class="lg:col-span-5">
+                            <label class="block text-[10px] font-extrabold lh-text-sec uppercase mb-1">
+                                Pilih Pekerjaan Sumur (Well) <span class="text-rose-500">*</span>
+                            </label>
+                            <select name="daily_report_id" id="selectWell" required onchange="onWellSelectChange(true)"
+                                class="lh-control-box w-full px-2.5 py-2 text-xs font-bold cursor-pointer">
+                                <?php foreach ($wells as $w): ?>
+                                <?php
+                                    $wStart = $w['tanggal_mulai'] ?? sprintf('%04d-%02d-01', $tahun, $bulan);
+                                    $wEnd   = $w['tanggal_selesai'] ?? $wStart;
+                                    $isSelectedWell = ((int)$w['id'] === $requestedWellId);
+                                ?>
+                                <option value="<?= $w['id'] ?>"
+                                    <?= $isSelectedWell ? 'selected' : '' ?>
+                                    data-start="<?= esc($wStart) ?>"
+                                    data-end="<?= esc($wEnd) ?>"
+                                    data-jarak="<?= (float)($w['jarak'] ?? 0) ?>"
+                                    data-nowell="<?= esc($w['no_well']) ?>"
+                                    data-lokasi="<?= esc($w['nama_lokasi']) ?>"
+                                    data-status="<?= esc($w['status_job'] ?: 'JOB PROGRESS') ?>">
+                                    Well #<?= $w['no_well'] ?> — <?= esc($w['nama_lokasi']) ?>
+                                    (<?= date('d/m', strtotime($wStart)) ?> - <?= date('d/m/Y', strtotime($wEnd)) ?>)
                                 </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-
-                    <!-- Distance (KM) -->
-                    <div class="md:col-span-3">
-                        <label for="inputJarak" class="block text-xs font-bold text-slate-300 uppercase mb-1.5">
-                            Distance (Jarak KM)
-                        </label>
-                        <div class="relative">
-                            <input type="number" step="0.5" min="0" name="jarak" id="inputJarak" value="0"
-                                class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white font-mono text-xs font-bold focus:ring-2 focus:ring-blue-500 focus:outline-none pr-10">
-                            <span class="absolute right-3 top-2.5 text-xs text-slate-500 font-bold font-mono">KM</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ── SEKSI 2: JAM OPERASI UTAMA (MIRU & OPS) ── -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- MIRU Input -->
-                <div class="p-4 rounded-xl bg-slate-900/90 border border-sky-500/30 space-y-2">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-sky-400"></span>
-                            <label for="inputMiru" class="text-xs font-bold text-sky-300 uppercase tracking-wide">
-                                MIRU (Move In / Rig Up)
-                            </label>
-                        </div>
-                        <span class="text-[11px] text-slate-400 font-mono">Maks 24 Jam</span>
-                    </div>
-                    <div class="relative">
-                        <input type="number" step="0.25" min="0" max="24" name="miru_jam" id="inputMiru" value="0" oninput="calcDailyTotal()" required
-                            class="w-full px-4 py-3 bg-slate-950 border border-sky-500/40 rounded-xl text-sky-300 font-mono font-black text-xl text-center focus:ring-2 focus:ring-sky-400 focus:outline-none shadow-inner">
-                        <span class="absolute right-3.5 top-3.5 text-xs text-slate-500 font-bold font-mono">JAM</span>
-                    </div>
-                    <p class="text-[11px] text-slate-400">Waktu mobilisasi, rig up, dan persiapan sumur.</p>
-                </div>
-
-                <!-- OPS Input -->
-                <div class="p-4 rounded-xl bg-slate-900/90 border border-emerald-500/30 space-y-2">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
-                            <label for="inputOps" class="text-xs font-bold text-emerald-300 uppercase tracking-wide">
-                                OPS (Jam Operasi Kerja Efektif)
-                            </label>
-                        </div>
-                        <span class="text-[11px] text-slate-400 font-mono">Maks 24 Jam</span>
-                    </div>
-                    <div class="relative">
-                        <input type="number" step="0.25" min="0" max="24" name="ops_jam" id="inputOps" value="0" oninput="calcDailyTotal()" required
-                            class="w-full px-4 py-3 bg-slate-950 border border-emerald-500/40 rounded-xl text-emerald-300 font-mono font-black text-xl text-center focus:ring-2 focus:ring-emerald-400 focus:outline-none shadow-inner">
-                        <span class="absolute right-3.5 top-3.5 text-xs text-slate-500 font-bold font-mono">JAM</span>
-                    </div>
-                    <p class="text-[11px] text-slate-400">Waktu pengerjaan sumur produktif (pengeboran / workover).</p>
-                </div>
-            </div>
-
-            <!-- ── SEKSI 3: POS DOWNTIME SBWC (11 POS LENGKAP) ── -->
-            <div class="p-4 rounded-xl bg-slate-900/90 border border-amber-500/30 space-y-3.5">
-                <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
-                    <div class="flex items-center gap-2">
-                        <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
-                        <span class="text-xs font-bold text-amber-300 uppercase tracking-wide">
-                            3. Pos Downtime SBWC (Standby by Weather &amp; Client - Paid)
-                        </span>
-                    </div>
-                    <div class="text-xs text-slate-300 font-mono">
-                        Subtotal SBWC: <strong id="labelSbwcTotal" class="text-amber-300 font-bold">0.00</strong> Jam
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                    <!-- 1. Rain -->
-                    <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 focus-within:border-amber-400/60 transition">
-                        <label for="dt_rain" class="block text-[11px] font-bold text-slate-300 mb-1 truncate" title="Rain (U.C) / SWA Rain">1. Rain (U.C)</label>
-                        <input type="number" step="0.25" min="0" max="24" name="dt_rain" id="dt_rain" value="0" oninput="calcDailyTotal()"
-                            class="dt-input dt-sbwc w-full px-2 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-center text-white font-mono text-xs font-bold focus:ring-1 focus:ring-amber-400 focus:outline-none">
-                    </div>
-
-                    <!-- 2. Dry Road -->
-                    <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 focus-within:border-amber-400/60 transition">
-                        <label for="dt_dry_road" class="block text-[11px] font-bold text-slate-300 mb-1 truncate" title="Dry Road">2. Dry Road</label>
-                        <input type="number" step="0.25" min="0" max="24" name="dt_dry_road" id="dt_dry_road" value="0" oninput="calcDailyTotal()"
-                            class="dt-input dt-sbwc w-full px-2 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-center text-white font-mono text-xs font-bold focus:ring-1 focus:ring-amber-400 focus:outline-none">
-                    </div>
-
-                    <!-- 3. Dry Well Pad -->
-                    <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 focus-within:border-amber-400/60 transition">
-                        <label for="dt_dry_pad" class="block text-[11px] font-bold text-slate-300 mb-1 truncate" title="Dry Well Pad">3. Dry Well Pad</label>
-                        <input type="number" step="0.25" min="0" max="24" name="dt_dry_pad" id="dt_dry_pad" value="0" oninput="calcDailyTotal()"
-                            class="dt-input dt-sbwc w-full px-2 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-center text-white font-mono text-xs font-bold focus:ring-1 focus:ring-amber-400 focus:outline-none">
-                    </div>
-
-                    <!-- 4. PHR Operator -->
-                    <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 focus-within:border-amber-400/60 transition">
-                        <label for="dt_phr_op" class="block text-[11px] font-bold text-slate-300 mb-1 truncate" title="PHR Operator">4. PHR Operator</label>
-                        <input type="number" step="0.25" min="0" max="24" name="dt_phr_op" id="dt_phr_op" value="0" oninput="calcDailyTotal()"
-                            class="dt-input dt-sbwc w-full px-2 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-center text-white font-mono text-xs font-bold focus:ring-1 focus:ring-amber-400 focus:outline-none">
-                    </div>
-
-                    <!-- 5. Trans Sharing -->
-                    <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 focus-within:border-amber-400/60 transition">
-                        <label for="dt_trans" class="block text-[11px] font-bold text-slate-300 mb-1 truncate" title="Trans Sharing">5. Trans Sharing</label>
-                        <input type="number" step="0.25" min="0" max="24" name="dt_trans" id="dt_trans" value="0" oninput="calcDailyTotal()"
-                            class="dt-input dt-sbwc w-full px-2 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-center text-white font-mono text-xs font-bold focus:ring-1 focus:ring-amber-400 focus:outline-none">
-                    </div>
-
-                    <!-- 6. CE/PE -->
-                    <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 focus-within:border-amber-400/60 transition">
-                        <label for="dt_ce_pe" class="block text-[11px] font-bold text-slate-300 mb-1 truncate" title="CE/PE">6. CE/PE</label>
-                        <input type="number" step="0.25" min="0" max="24" name="dt_ce_pe" id="dt_ce_pe" value="0" oninput="calcDailyTotal()"
-                            class="dt-input dt-sbwc w-full px-2 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-center text-white font-mono text-xs font-bold focus:ring-1 focus:ring-amber-400 focus:outline-none">
-                    </div>
-
-                    <!-- 7. 3rd Party (Breakdown Collapsible) -->
-                    <div class="col-span-2 sm:col-span-3 md:col-span-4 lg:col-span-6 rounded-xl bg-slate-950 border border-slate-800 focus-within:border-indigo-500/50 transition overflow-hidden">
-                        <div class="flex items-center justify-between p-2.5 cursor-pointer hover:bg-slate-900/80 transition select-none" onclick="document.getElementById('tpBreakdownContainer').classList.toggle('hidden'); document.getElementById('tpIcon').classList.toggle('rotate-180');">
-                            <label class="block text-[11px] font-bold text-slate-300 pointer-events-none">7. 3rd Party Breakdown</label>
-                            <div class="flex items-center gap-3 pointer-events-none">
-                                <span class="text-[11px] text-amber-300 font-mono font-bold"><span id="label3rdTotal">0.00</span> Jam</span>
-                                <i id="tpIcon" class="fa-solid fa-chevron-down text-slate-500 text-[10px] transition-transform duration-200"></i>
-                            </div>
-                        </div>
-                        <div id="tpBreakdownContainer" class="hidden border-t border-slate-800/60 p-3 bg-slate-900/30">
-                            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
-                                <?php foreach($thirdParties ?? [] as $tp): ?>
-                                <div class="p-1.5 rounded-lg bg-slate-950 border border-slate-800">
-                                    <label class="block text-[9px] font-bold text-slate-400 mb-1 truncate"><?= esc($tp['nama']) ?></label>
-                                    <input type="number" step="0.25" min="0" max="24" name="tp_jam[<?= $tp['id'] ?>]" value="0" oninput="calc3rdPartyTotal()"
-                                        class="dt-tp-input w-full px-1.5 py-1 bg-slate-900 border border-slate-700 rounded text-center text-white font-mono text-[10px] font-bold focus:ring-1 focus:ring-indigo-400 focus:outline-none">
-                                </div>
                                 <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <!-- Tanggal Operasi (3 Col) -->
+                        <div class="lg:col-span-3">
+                            <label class="block text-[10px] font-extrabold lh-text-sec uppercase mb-1 flex items-center justify-between">
+                                <span>Tanggal <span class="text-rose-500">*</span></span>
+                                <span id="dateRangeLockLabel" class="text-[10px] font-mono text-amber-500 font-semibold"></span>
+                            </label>
+                            <input type="date" name="tanggal" id="inputTanggal" required
+                                value="<?= sprintf('%04d-%02d-%02d', $tahun, $bulan, min((int)date('d'), cal_days_in_month(CAL_GREGORIAN, $bulan, $tahun))) ?>"
+                                min="<?= sprintf('%04d-%02d-01', $tahun, $bulan) ?>"
+                                max="<?= sprintf('%04d-%02d-%02d', $tahun, $bulan, cal_days_in_month(CAL_GREGORIAN, $bulan, $tahun)) ?>"
+                                onchange="onTanggalInputChange()"
+                                class="lh-control-box w-full px-2.5 py-2 text-xs font-mono font-bold">
+                        </div>
+
+                        <!-- Distance / Jarak (2 Col) -->
+                        <div class="lg:col-span-2">
+                            <label class="block text-[10px] font-extrabold lh-text-sec uppercase mb-1">
+                                Distance / Jarak
+                            </label>
+                            <input type="text" inputmode="decimal" name="jarak" id="inputJarak" value="0" placeholder="0"
+                                class="lh-control-box w-full px-2.5 py-2 text-xs font-mono font-bold text-right">
+                        </div>
+
+                        <!-- Status Pekerjaan (2 Col) -->
+                        <div class="lg:col-span-2">
+                            <label class="block text-[10px] font-extrabold lh-text-sec uppercase mb-1">
+                                Status Sumur
+                            </label>
+                            <select name="status_job" id="selectStatusJob"
+                                class="lh-control-box w-full px-2 py-2 text-xs font-bold cursor-pointer">
+                                <option value="JOB PROGRESS">JOB PROGRESS</option>
+                                <option value="JOB COMPLETED">JOB COMPLETED</option>
+                                <option value="JOB SUSPEND">JOB SUSPEND</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Navigasi Cepat Pill Tanggal Sumur (Compact Inline Bar) -->
+                    <div id="wellDatePillsWrapper" class="lh-sub-panel px-3 py-2 hidden">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <div class="flex flex-wrap items-center gap-1.5">
+                                <span class="text-[11px] font-bold lh-text-sec flex items-center gap-1 mr-1">
+                                    <i class="fa-regular fa-calendar-check text-sky-500"></i>
+                                    <span>Jadwal Tanggal:</span>
+                                </span>
+                                <div id="wellDatePillsContainer" class="flex flex-wrap gap-1.5"></div>
+                            </div>
+                            <div class="flex items-center gap-2 shrink-0">
+                                <span id="wellDateRangeSummary" class="text-[11px] lh-text-muted font-mono"></span>
+                                <button type="button" onclick="jumpToNextUnfilledDate()"
+                                    class="lh-sisa-mini-btn">
+                                    <i class="fa-solid fa-forward-step mr-0.5"></i> Tgl Kosong Berikutnya
+                                </button>
                             </div>
                         </div>
-                        <input type="hidden" name="dt_3rd_party" id="dt_3rd_party" value="0" class="dt-input dt-sbwc">
                     </div>
 
-                    <!-- 8. WO Daylight -->
-                    <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 focus-within:border-amber-400/60 transition">
-                        <label for="dt_daylight" class="block text-[11px] font-bold text-slate-300 mb-1 truncate" title="WO Daylight">8. WO Daylight</label>
-                        <input type="number" step="0.25" min="0" max="24" name="dt_daylight" id="dt_daylight" value="0" oninput="calcDailyTotal()"
-                            class="dt-input dt-sbwc w-full px-2 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-center text-white font-mono text-xs font-bold focus:ring-1 focus:ring-amber-400 focus:outline-none">
+                    <!-- ─── BAGIAN 2 (TERINTEGRASI LANGSUNG): JAM PRODUKTIF RIG (MIRU & OPERASI) ─── -->
+                    <div class="pt-2.5 border-t" style="border-color: var(--lh-border);">
+                        <div class="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+                            <div class="flex items-center gap-2">
+                                <span class="w-5 h-5 rounded-md lh-badge-emerald font-mono text-[11px] font-black flex items-center justify-center">02</span>
+                                <h3 class="text-xs font-extrabold uppercase tracking-wider lh-text-title">
+                                    Jam Produktif Rig (MIRU &amp; Operasi)
+                                </h3>
+                            </div>
+
+                            <div class="flex flex-wrap items-center gap-1.5">
+                                <button type="button" onclick="setFullOpsDay()" class="lh-preset-btn !py-1 !px-2.5" title="Set 24 Jam (atau sisa jam hari ini) ke Operasi Normal">
+                                    <i class="fa-solid fa-bolt text-emerald-500"></i>
+                                    <span>Full Operasi 24j</span>
+                                </button>
+                                <button type="button" onclick="fillRemainingToField('inputOps')" class="lh-preset-btn !py-1 !px-2.5" title="Masukkan sisa jam hari ini ke Operasi">
+                                    <span>+ Sisa ke OPS</span>
+                                </button>
+                                <button type="button" onclick="fillRemainingToField('inputMiru')" class="lh-preset-btn !py-1 !px-2.5" title="Masukkan sisa jam hari ini ke MIRU">
+                                    <span>+ Sisa ke MIRU</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                            <!-- MIRU -->
+                            <div class="lh-sub-panel p-3.5 sm:p-4 flex items-center justify-between gap-3 border-l-4" style="border-left-color: #6366f1;">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border"
+                                         style="background: rgba(99, 102, 241, 0.12); border-color: rgba(99, 102, 241, 0.28); color: #6366f1;">
+                                        <i class="fa-solid fa-truck-moving text-sm"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <label for="inputMiru" class="text-sm sm:text-[15px] font-extrabold lh-text-title block cursor-pointer leading-tight">
+                                            MIRU (Moving &amp; Rig Up)
+                                        </label>
+                                        <span class="text-[11px] lh-text-muted block mt-0.5">Pindah lokasi &amp; pasang menara</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2 shrink-0">
+                                    <button type="button" onclick="fillRemainingToField('inputMiru')"
+                                        class="lh-sisa-mini-btn !px-3 !py-2 !text-xs !rounded-lg" title="Isi sisa jam ke MIRU">+Sisa</button>
+                                    <div class="relative w-36 sm:w-40">
+                                        <input type="number" step="0.01" min="0" max="24" name="miru_jam" id="inputMiru" value="0"
+                                            oninput="calcDailyTotal()"
+                                            class="lh-control-box w-full px-3.5 py-2.5 font-mono text-lg sm:text-xl font-black text-right pr-11">
+                                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-mono font-bold lh-text-muted pointer-events-none">jam</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- OPERASI -->
+                            <div class="lh-sub-panel p-3.5 sm:p-4 flex items-center justify-between gap-3 border-l-4" style="border-left-color: #10b981;">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border"
+                                         style="background: rgba(16, 185, 129, 0.12); border-color: rgba(16, 185, 129, 0.28); color: #10b981;">
+                                        <i class="fa-solid fa-gears text-sm"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <label for="inputOps" class="text-sm sm:text-[15px] font-extrabold lh-text-title block cursor-pointer leading-tight">
+                                            OPERASI (Wellwork)
+                                        </label>
+                                        <span class="text-[11px] lh-text-muted block mt-0.5">Jam kerja operasi sumur</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2 shrink-0">
+                                    <button type="button" onclick="fillRemainingToField('inputOps')"
+                                        class="lh-sisa-mini-btn !px-3 !py-2 !text-xs !rounded-lg" title="Isi sisa jam ke Operasi">+Sisa</button>
+                                    <div class="relative w-36 sm:w-40">
+                                        <input type="number" step="0.01" min="0" max="24" name="ops_jam" id="inputOps" value="0"
+                                            oninput="calcDailyTotal()"
+                                            class="lh-control-box w-full px-3.5 py-2.5 font-mono text-lg sm:text-xl font-black text-right pr-11">
+                                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-mono font-bold lh-text-muted pointer-events-none">jam</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ─── BAGIAN 3: TABEL 13 POS DOWNTIME / NPT (SELALU TAMPIL RAPI & ENAK DI-INPUT) ─── -->
+                <div class="lh-surface-card p-5 space-y-5">
+                    <div class="flex flex-wrap items-center justify-between gap-2 lh-divider-b pb-3">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-6 h-6 rounded-md lh-badge-amber font-mono text-xs font-black flex items-center justify-center">03</span>
+                            <div>
+                                <h3 class="text-xs font-extrabold uppercase tracking-wider lh-text-title">
+                                    Tabel 13 Kategori Jam Downtime / NPT (SBWC &amp; Unpaid)
+                                </h3>
+                                <p class="text-[11px] lh-text-muted">
+                                    Isi langsung pada baris kategori yang mengalami downtime, atau biarkan <strong>0</strong> jika operasi lancar.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <span class="px-2.5 py-1 rounded-md lh-badge-amber text-[11px] font-mono font-bold">
+                                Subtotal SBWC: <strong id="labelSbwcTotal">0.00</strong>j
+                            </span>
+                            <span class="px-2.5 py-1 rounded-md lh-badge-rose text-[11px] font-mono font-bold">
+                                Subtotal UNPAID: <strong id="labelUnpaidTotal">0.00</strong>j
+                            </span>
+                        </div>
                     </div>
 
-                    <!-- 9. PHR Well -->
-                    <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 focus-within:border-amber-400/60 transition">
-                        <label for="dt_phr_well" class="block text-[11px] font-bold text-slate-300 mb-1 truncate" title="PHR Well">9. PHR Well</label>
-                        <input type="number" step="0.25" min="0" max="24" name="dt_phr_well" id="dt_phr_well" value="0" oninput="calcDailyTotal()"
-                            class="dt-input dt-sbwc w-full px-2 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-center text-white font-mono text-xs font-bold focus:ring-1 focus:ring-amber-400 focus:outline-none">
+                    <!-- A. 11 POS SBWC (STANDBY WITH CREW) -->
+                    <div class="space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-extrabold uppercase tracking-wider text-amber-500 flex items-center gap-1.5">
+                                <i class="fa-solid fa-shield-halved"></i>
+                                A. Kategori SBWC (11 Pos Standby / Cuaca / Eksternal — Tetap Dibayar)
+                            </span>
+                        </div>
+
+                        <?php
+                        $sbwcItems = [
+                            ['no' => '01', 'name' => 'dt_rain',     'label' => 'Rain (Hujan)',             'sub' => 'Waiting on weather'],
+                            ['no' => '02', 'name' => 'dt_dry_road', 'label' => 'Dry Road (Jalan Basah)',   'sub' => 'Waiting on dry road'],
+                            ['no' => '03', 'name' => 'dt_dry_pad',  'label' => 'Dry Pad (Lokasi Becek)',   'sub' => 'Waiting on dry location'],
+                            ['no' => '04', 'name' => 'dt_phr_op',   'label' => 'PHR Operation',            'sub' => 'Waiting on PHR operation'],
+                            ['no' => '05', 'name' => 'dt_trans',    'label' => 'Transportation',           'sub' => 'Waiting on transportation'],
+                            ['no' => '06', 'name' => 'dt_ce_pe',    'label' => 'CE / PE Engineer',         'sub' => 'Waiting on instruction'],
+                            ['no' => '08', 'name' => 'dt_daylight', 'label' => 'Daylight Only',            'sub' => 'Standby malam (12 jam)'],
+                            ['no' => '09', 'name' => 'dt_phr_well', 'label' => 'PHR Well Problem',         'sub' => 'Masalah teknis sumur PHR'],
+                            ['no' => '10', 'name' => 'dt_foam',     'label' => 'Foam Unit',               'sub' => 'Waiting on foam unit'],
+                            ['no' => '11', 'name' => 'dt_shutdown', 'label' => 'Shut Down Area',          'sub' => 'Safety / area stop'],
+                        ];
+                        ?>
+                        <div class="lh-ledger-grid">
+                            <?php foreach ($sbwcItems as $item): ?>
+                            <div class="lh-ledger-item" id="card_<?= $item['name'] ?>">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <span class="lh-num-badge"><?= $item['no'] ?></span>
+                                    <div class="min-w-0">
+                                        <label for="<?= $item['name'] ?>" class="text-xs font-bold lh-text-title block truncate cursor-pointer">
+                                            <?= $item['label'] ?>
+                                        </label>
+                                        <span class="text-[10px] lh-text-muted block truncate"><?= $item['sub'] ?></span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-1.5 shrink-0">
+                                    <button type="button" onclick="fillRemainingToField('<?= $item['name'] ?>')"
+                                        class="lh-sisa-mini-btn" title="Isi sisa jam hari ini ke <?= $item['label'] ?>">
+                                        +Sisa
+                                    </button>
+                                    <div class="relative w-24">
+                                        <input type="number" step="0.25" min="0" max="24"
+                                            name="<?= $item['name'] ?>" id="<?= $item['name'] ?>" value="0"
+                                            oninput="calcDailyTotal()"
+                                            class="dt-input dt-sbwc lh-control-box w-full px-2.5 py-1.5 text-right font-mono text-xs font-bold pr-7">
+                                        <span class="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-mono lh-text-muted pointer-events-none">j</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+
+                        <!-- Pos 07: Waiting on 3rd Party (Bisa Tanpa Perusahaan atau Pilih Perusahaan) -->
+                        <div class="lh-ledger-item flex-col !items-stretch gap-2.5" id="card_dt_3rd_party">
+                            <div class="flex flex-wrap items-center justify-between gap-2">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="lh-num-badge">07</span>
+                                    <div>
+                                        <span class="text-xs font-bold lh-text-title">
+                                            Waiting on 3rd Party (Perusahaan Jasa / Umum)
+                                        </span>
+                                        <span class="text-[11px] lh-text-muted ml-1.5">
+                                            Total: <strong id="label3rdTotal" class="font-mono text-amber-500">0.00</strong> Jam
+                                        </span>
+                                    </div>
+                                </div>
+                                <button type="button" onclick="addTpRow()"
+                                    class="lh-preset-btn !py-1 !px-2.5 !text-[11px]">
+                                    <i class="fa-solid fa-plus text-[10px]"></i>
+                                    <span>Tambah Baris 3rd Party</span>
+                                </button>
+                            </div>
+
+                            <input type="hidden" name="dt_3rd_party" id="dt_3rd_party" value="0" class="dt-input dt-sbwc">
+                            <div id="tpRowsList" class="space-y-2 pt-1">
+                                <div class="tp-entry-row grid grid-cols-12 gap-2 items-center">
+                                    <div class="col-span-7 sm:col-span-8">
+                                        <select name="tp_company[]" class="tp-company-select lh-control-box w-full px-2.5 py-1.5 text-xs font-semibold cursor-pointer">
+                                            <option value="0">— Tanpa Perusahaan (3rd Party Umum) —</option>
+                                            <?php foreach ($thirdParties ?? [] as $tp): ?>
+                                            <option value="<?= $tp['id'] ?>">Perusahaan: <?= esc($tp['nama']) ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                    <div class="col-span-4 sm:col-span-3">
+                                        <input type="number" step="0.25" min="0" max="24" name="tp_hours[]" value="0" oninput="calc3rdPartyTotal()"
+                                            placeholder="0.00 Jam"
+                                            class="dt-tp-input lh-control-box w-full px-2.5 py-1.5 text-right font-mono text-xs font-bold">
+                                    </div>
+                                    <div class="col-span-1 flex justify-end">
+                                        <button type="button" onclick="removeTpRow(this)" title="Hapus / Reset Baris"
+                                            class="lh-sisa-mini-btn w-7 h-7 flex items-center justify-center">
+                                            <i class="fa-solid fa-xmark text-xs"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- 10. Foam Unit -->
-                    <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 focus-within:border-amber-400/60 transition">
-                        <label for="dt_foam" class="block text-[11px] font-bold text-slate-300 mb-1 truncate" title="W.O Foam Unit">10. Foam Unit</label>
-                        <input type="number" step="0.25" min="0" max="24" name="dt_foam" id="dt_foam" value="0" oninput="calcDailyTotal()"
-                            class="dt-input dt-sbwc w-full px-2 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-center text-white font-mono text-xs font-bold focus:ring-1 focus:ring-amber-400 focus:outline-none">
+                    <!-- B. 2 POS UNPAID (NPT INTERNAL RIG) -->
+                    <div class="space-y-2.5 pt-3 lh-divider-t">
+                        <span class="text-[11px] font-extrabold uppercase tracking-wider text-rose-500 flex items-center gap-1.5">
+                            <i class="fa-solid fa-screwdriver-wrench"></i>
+                            B. Kategori UNPAID (2 Pos NPT Internal Rig — Mengurangi Revenue &amp; Reliability)
+                        </span>
+
+                        <div class="lh-ledger-grid">
+                            <!-- Pos 12 (Unpaid 01): Repair / Waiting For Rig -->
+                            <div class="lh-ledger-item" id="card_dt_rig">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <span class="lh-num-badge">12</span>
+                                    <div class="min-w-0">
+                                        <label for="dt_rig" class="text-xs font-bold lh-text-title block truncate cursor-pointer">
+                                            Repair / Waiting For Rig
+                                        </label>
+                                        <span class="text-[10px] lh-text-muted block truncate">Kerusakan mesin rig, drawwork, pompa</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-1.5 shrink-0">
+                                    <button type="button" onclick="fillRemainingToField('dt_rig')"
+                                        class="lh-sisa-mini-btn" title="Isi sisa jam ke Repair Rig">
+                                        +Sisa
+                                    </button>
+                                    <div class="relative w-24">
+                                        <input type="number" step="0.25" min="0" max="24"
+                                            name="dt_rig" id="dt_rig" value="0"
+                                            oninput="calcDailyTotal()"
+                                            class="dt-input dt-unpaid lh-control-box w-full px-2.5 py-1.5 text-right font-mono text-xs font-bold pr-7">
+                                        <span class="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-mono lh-text-muted pointer-events-none">j</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Pos 13 (Unpaid 02): Waiting Tool & Personel -->
+                            <div class="lh-ledger-item" id="card_dt_tool">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <span class="lh-num-badge">13</span>
+                                    <div class="min-w-0">
+                                        <label for="dt_tool" class="text-xs font-bold lh-text-title block truncate cursor-pointer">
+                                            Waiting Tool &amp; Personel
+                                        </label>
+                                        <span class="text-[10px] lh-text-muted block truncate">Kendala peralatan kerja atau kru rig</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-1.5 shrink-0">
+                                    <button type="button" onclick="fillRemainingToField('dt_tool')"
+                                        class="lh-sisa-mini-btn" title="Isi sisa jam ke Waiting Tool">
+                                        +Sisa
+                                    </button>
+                                    <div class="relative w-24">
+                                        <input type="number" step="0.25" min="0" max="24"
+                                            name="dt_tool" id="dt_tool" value="0"
+                                            oninput="calcDailyTotal()"
+                                            class="dt-input dt-unpaid lh-control-box w-full px-2.5 py-1.5 text-right font-mono text-xs font-bold pr-7">
+                                        <span class="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-mono lh-text-muted pointer-events-none">j</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ─── BAGIAN 4: REMARK / KETERANGAN HARIAN ─── -->
+                <div class="lh-surface-card p-5 space-y-3.5">
+                    <div class="flex flex-wrap items-center justify-between gap-2 lh-divider-b pb-3">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-6 h-6 rounded-md lh-badge-sky font-mono text-xs font-black flex items-center justify-center">04</span>
+                            <div>
+                                <h3 class="text-xs font-extrabold uppercase tracking-wider lh-text-title">
+                                    Keterangan / Remark Operasional Harian
+                                </h3>
+                                <p class="text-[11px] lh-text-muted">
+                                    Terisi otomatis sesuai jam Downtime/NPT (contoh: <span class="font-mono font-semibold">0,5 HR SWA Heavy Rain + Thunder. 5,5 HR WO Dry Road.</span>)
+                                </p>
+                            </div>
+                        </div>
+                        <button type="button" onclick="generateSmartRemark(true)"
+                            class="lh-preset-btn text-[11px]">
+                            <i class="fa-solid fa-wand-magic-sparkles text-sky-500"></i>
+                            <span>Buat Remark Otomatis dari Jam</span>
+                        </button>
                     </div>
 
-                    <!-- 11. Idul Fitri & Shutdown -->
-                    <div class="p-2.5 rounded-xl bg-amber-950/20 border border-amber-500/40 sm:col-span-2 focus-within:border-amber-400 transition">
-                        <label for="dt_shutdown" class="block text-[11px] font-bold text-amber-300 mb-1 truncate" title="Idul Fitri, Pilkada & Shutdown Resmi">11. Idul Fitri &amp; Shutdown</label>
-                        <input type="number" step="0.25" min="0" max="24" name="dt_shutdown" id="dt_shutdown" value="0" oninput="calcDailyTotal()"
-                            class="dt-input dt-sbwc w-full px-2 py-1.5 bg-slate-900 border border-amber-500/40 rounded-lg text-center text-amber-200 font-mono text-xs font-bold focus:ring-1 focus:ring-amber-400 focus:outline-none">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[11px] font-bold lh-text-sec uppercase mb-1.5">
+                                Remark Kegiatan / NPT Umum
+                            </label>
+                            <textarea name="remark_npt" id="remarkNpt" rows="2"
+                                oninput="onManualRemarkInput('npt')"
+                                placeholder="Otomatis terisi saat jam diisi (Contoh: 0,5 HR SWA Heavy Rain + Thunder. 5,5 HR WO Dry Road.)"
+                                class="lh-control-box w-full px-3 py-2 text-xs font-medium"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-rose-500 uppercase mb-1.5">
+                                Remark Khusus Unpaid (Jika Ada Kerusakan Rig/Alat)
+                            </label>
+                            <textarea name="remark_unpaid" id="remarkUnpaid" rows="2"
+                                oninput="onManualRemarkInput('unpaid')"
+                                placeholder="Otomatis terisi jika ada jam Unpaid (Contoh: 1,5 HR Repair Rig.)"
+                                class="lh-control-box w-full px-3 py-2 text-xs font-medium"></textarea>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- ── SEKSI 4: POS DOWNTIME UNPAID ── -->
-            <div class="p-4 rounded-xl bg-slate-900/90 border border-rose-500/30 space-y-3.5">
-                <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
-                    <div class="flex items-center gap-2">
-                        <span class="w-2.5 h-2.5 rounded-full bg-rose-400"></span>
-                        <span class="text-xs font-bold text-rose-300 uppercase tracking-wide">
-                            4. Pos UNPAID (Downtime Tanggungan Kontraktor - Memotong Pendapatan)
+            <!-- ══════════════════════════════════════════════════════════════════
+                 KOLOM KANAN (4 COL): MONITOR 24 JAM & TOMBOL SIMPAN + DAFTAR SUMUR
+                 (Berada di sisi kanan sehingga TIDAK menutupi form saat di-scroll!)
+                 ══════════════════════════════════════════════════════════════════ -->
+            <div class="xl:col-span-4 space-y-4 xl:sticky xl:top-4">
+
+                <!-- KARTU 1: MONITOR KALKULATOR 24 JAM & TOMBOL SIMPAN -->
+                <div class="lh-surface-card p-5 space-y-4">
+                    <div class="flex items-center justify-between gap-2 lh-divider-b pb-3">
+                        <div>
+                            <span class="text-[10px] font-mono uppercase tracking-widest lh-text-muted block">Status Kalkulasi</span>
+                            <h3 class="text-xs font-extrabold uppercase tracking-wider lh-text-title mt-0.5">
+                                Monitor Neraca 24 Jam
+                            </h3>
+                        </div>
+                        <span id="formModeBadge" class="px-2.5 py-1 rounded-md lh-badge-emerald text-[10px] font-extrabold uppercase tracking-wider">
+                            Input Baru
                         </span>
                     </div>
-                    <div class="text-xs text-slate-300 font-mono">
-                        Subtotal UNPAID: <strong id="labelUnpaidTotal" class="text-rose-300 font-bold">0.00</strong> Jam
-                    </div>
-                </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- Repair Rig -->
-                    <div class="p-3 rounded-xl bg-slate-950 border border-rose-500/30 focus-within:border-rose-400 transition">
-                        <div class="flex items-center justify-between mb-1.5">
-                            <label for="dt_rig" class="text-xs font-bold text-rose-300">Repair Rig &amp; Equipment (Unpaid)</label>
-                            <span class="text-[10.5px] text-rose-400/80 font-mono">Mesin, Winch, Pompa Rig</span>
+                    <!-- Angka Utama Total Jam -->
+                    <div class="lh-sub-panel p-4 text-center">
+                        <div class="text-[11px] font-bold uppercase tracking-wider lh-text-muted mb-1" id="remainingHoursHint">
+                            Sisa Hari Ini: 24.00 Jam
                         </div>
-                        <input type="number" step="0.25" min="0" max="24" name="dt_rig" id="dt_rig" value="0" oninput="calcDailyTotal()"
-                            class="dt-input dt-unpaid w-full px-3 py-2 bg-slate-900 border border-rose-500/50 rounded-lg text-center text-rose-200 font-mono text-sm font-bold focus:ring-1 focus:ring-rose-400 focus:outline-none">
-                    </div>
-
-                    <!-- BMS Tool -->
-                    <div class="p-3 rounded-xl bg-slate-950 border border-rose-500/30 focus-within:border-rose-400 transition">
-                        <div class="flex items-center justify-between mb-1.5">
-                            <label for="dt_tool" class="text-xs font-bold text-rose-300">BMS Tool / Personnel (Unpaid)</label>
-                            <span class="text-[10.5px] text-rose-400/80 font-mono">Alat BMS / Personel</span>
+                        <div id="labelGrandTotal" class="font-mono font-black text-2xl tracking-tight text-sky-500">
+                            0.00 / 24.00 Jam
                         </div>
-                        <input type="number" step="0.25" min="0" max="24" name="dt_tool" id="dt_tool" value="0" oninput="calcDailyTotal()"
-                            class="dt-input dt-unpaid w-full px-3 py-2 bg-slate-900 border border-rose-500/50 rounded-lg text-center text-rose-200 font-mono text-sm font-bold focus:ring-1 focus:ring-rose-400 focus:outline-none">
-                    </div>
-                </div>
-            </div>
 
-            <!-- ── SEKSI 5: RINGKASAN REKAP TOTAL HARI INI ── -->
-            <div class="p-4 rounded-xl bg-slate-950 border border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-inner">
-                <div>
-                    <span class="text-xs font-bold text-slate-300 uppercase block">KONTROL VALIDASI 24 JAM:</span>
-                    <span class="text-[11.5px] text-slate-400">
-                        MIRU: <strong id="recapMiru" class="text-sky-300 font-mono font-bold">0.00</strong>j + 
-                        OPS: <strong id="recapOps" class="text-emerald-300 font-mono font-bold">0.00</strong>j + 
-                        Downtime: <strong id="recapDt" class="text-amber-300 font-mono font-bold">0.00</strong>j
-                    </span>
-                </div>
+                        <!-- Progress Bar 24 Jam -->
+                        <div class="w-full h-2.5 rounded-full bg-slate-500/15 overflow-hidden flex mt-3">
+                            <div id="barOtherWell" class="h-full bg-violet-500 transition-all duration-200" style="width:0%" title="Jam Sumur Lain"></div>
+                            <div id="barMiru" class="h-full bg-sky-500 transition-all duration-200" style="width:0%" title="MIRU"></div>
+                            <div id="barOps" class="h-full bg-emerald-500 transition-all duration-200" style="width:0%" title="Operasi"></div>
+                            <div id="barSbwc" class="h-full bg-amber-500 transition-all duration-200" style="width:0%" title="SBWC"></div>
+                            <div id="barUnpaid" class="h-full bg-rose-500 transition-all duration-200" style="width:0%" title="Unpaid"></div>
+                        </div>
 
-                <div class="flex items-center gap-4 text-right">
-                    <div>
-                        <span class="text-[10.5px] text-slate-400 uppercase font-bold block">TOTAL JAM HARI INI:</span>
-                        <span id="labelGrandTotal" class="font-mono font-black text-2xl text-emerald-400">0.00 Jam</span>
-                    </div>
-                    <div id="badgeValidation" class="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs font-bold text-slate-300 font-mono">
-                        Belum Diisi
-                    </div>
-                </div>
-            </div>
-
-            <!-- ── SEKSI 6: CATATAN & REMARK ── -->
-            <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-750 space-y-3">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- Remark Operasi Umum -->
-                    <div>
-                        <label for="remarkNpt" class="block text-xs font-bold text-slate-300 uppercase mb-1.5">
-                            Remark Operasi Umum (Cuaca / Instruksi / Progres)
-                        </label>
-                        <textarea name="remark_npt" id="remarkNpt" rows="2" placeholder="Catatan aktivitas lapangan hari ini..."
-                            class="w-full px-3 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
+                        <div id="badgeValidation" class="text-[11px] font-mono font-bold lh-text-sec mt-2.5">
+                            ✓ Siap diisi (Maksimal 24.00 Jam/Hari)
+                        </div>
                     </div>
 
-                    <!-- Remark UNPAID -->
-                    <div>
-                        <label for="remarkUnpaid" class="block text-xs font-bold text-rose-300 uppercase mb-1.5 flex items-center gap-1.5">
-                            <i class="fa-solid fa-triangle-exclamation text-rose-400 text-xs"></i>
-                            <span>Remark UNPAID (Diisi jika ada jam UNPAID)</span>
-                        </label>
-                        <textarea name="remark_unpaid" id="remarkUnpaid" rows="2" placeholder="Contoh: UNPAID 1.5 HR Perbaikan Pompa..."
-                            class="w-full px-3 py-2.5 bg-slate-950 border border-rose-500/40 rounded-xl text-rose-200 text-xs focus:ring-2 focus:ring-rose-400 focus:outline-none"></textarea>
+                    <!-- Breakdown Rincian Jam -->
+                    <div class="grid grid-cols-3 gap-2 text-center">
+                        <div class="lh-sub-panel p-2.5">
+                            <span class="text-[10px] font-bold uppercase lh-text-muted block">MIRU</span>
+                            <strong id="recapMiru" class="font-mono text-sm font-black text-sky-500">0.00</strong>
+                            <span class="text-[10px] lh-text-muted">j</span>
+                        </div>
+                        <div class="lh-sub-panel p-2.5">
+                            <span class="text-[10px] font-bold uppercase lh-text-muted block">Operasi</span>
+                            <strong id="recapOps" class="font-mono text-sm font-black text-emerald-500">0.00</strong>
+                            <span class="text-[10px] lh-text-muted">j</span>
+                        </div>
+                        <div class="lh-sub-panel p-2.5">
+                            <span class="text-[10px] font-bold uppercase lh-text-muted block">Downtime</span>
+                            <strong id="recapDt" class="font-mono text-sm font-black text-amber-500">0.00</strong>
+                            <span class="text-[10px] lh-text-muted">j</span>
+                        </div>
+                    </div>
+
+                    <!-- Tombol Simpan & Reset -->
+                    <div class="space-y-2 pt-1">
+                        <button type="submit" id="btnSubmitDaily" <?= empty($wells) ? 'disabled' : '' ?>
+                            class="w-full py-3 px-4 bg-sky-600 hover:bg-sky-500 text-white font-extrabold text-xs rounded-xl shadow-md transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                            <i class="fa-solid fa-floppy-disk"></i>
+                            <span>SIMPAN DAILY REPORT</span>
+                        </button>
+                        <button type="button" onclick="resetFormToDefault()"
+                            class="lh-preset-btn w-full justify-center py-2">
+                            <i class="fa-solid fa-rotate-left text-[10px]"></i>
+                            <span>Reset / Bersihkan Form</span>
+                        </button>
                     </div>
                 </div>
-            </div>
 
-            <!-- ── SEKSI 7: TOMBOL SIMPAN ── -->
-            <div class="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-750">
-                <span class="text-xs text-slate-400 flex items-center gap-2">
-                    <i class="fa-solid fa-arrows-rotate text-cyan-400"></i>
-                    <span>Data yang disimpan otomatis meng-update sumur terkait dan matriks NPT Harian.</span>
-                </span>
-                <button type="submit" id="btnSubmitDaily" class="w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-cyan-600/25 transition active:scale-95 flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-floppy-disk text-sm"></i>
-                    <span>SIMPAN DAILY REPORT</span>
-                </button>
-            </div>
-        </form>
-    </div>
+                <!-- KARTU 2: DAFTAR SUMUR BULAN INI -->
+                <div class="lh-surface-card p-5">
+                    <div class="flex items-center justify-between gap-2 mb-3 lh-divider-b pb-3">
+                        <div>
+                            <h3 class="text-xs font-extrabold uppercase tracking-wider lh-text-title flex items-center gap-1.5">
+                                <i class="fa-solid fa-oil-well text-sky-500"></i>
+                                <span>Daftar Sumur Bulan Ini (<?= count($wells) ?> Well)</span>
+                            </h3>
+                            <p class="text-[11px] lh-text-muted mt-0.5">
+                                Klik sumur untuk memilih &amp; mengisi tanggalnya.
+                            </p>
+                        </div>
+                        <a href="<?= $tambahSumurUrl ?>" class="lh-preset-btn !py-1.5 !px-3">
+                            <i class="fa-solid fa-plus text-amber-500"></i>
+                            <span>Sumur Baru</span>
+                        </a>
+                    </div>
 
-    <!-- ═══ 4. TABEL RIWAYAT LOG TERCATAT BULAN INI ════════════════════════════ -->
-    <div class="rounded-2xl bg-slate-850 border border-slate-700 shadow-md overflow-hidden space-y-3">
-        <div class="p-4 border-b border-slate-750 bg-slate-900 flex flex-wrap items-center justify-between gap-3">
-            <div class="flex items-center gap-2.5">
-                <div class="w-8 h-8 rounded-lg bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 flex items-center justify-center">
-                    <i class="fa-solid fa-list-check text-sm"></i>
-                </div>
-                <div>
-                    <h4 class="text-xs font-black text-white uppercase tracking-wider">
-                        Riwayat Daily Report Bulan Ini (<?= count($recentLogs) ?> Hari)
-                    </h4>
-                    <p class="text-[11px] text-slate-400">Gunakan tombol "Muat" untuk mengedit kembali log atau tombol tempat sampah untuk menghapus</p>
+                    <?php if (!empty($wells)): ?>
+                    <div class="space-y-2 max-h-72 overflow-y-auto pr-1">
+                        <?php foreach ($wells as $w): ?>
+                        <?php
+                            $wStart = $w['tanggal_mulai'] ?? '';
+                            $wEnd   = $w['tanggal_selesai'] ?? $wStart;
+                            $stJob  = strtoupper($w['status_job'] ?: 'JOB PROGRESS');
+                            $stBadge = 'lh-badge-amber';
+                            if ($stJob === 'JOB COMPLETED') {
+                                $stBadge = 'lh-badge-emerald';
+                            } elseif ($stJob === 'JOB SUSPEND') {
+                                $stBadge = 'lh-badge-rose';
+                            }
+                        ?>
+                        <button type="button"
+                            onclick="selectWellFromCard('<?= $w['id'] ?>')"
+                            id="wellCard_<?= $w['id'] ?>"
+                            class="well-summary-card w-full lh-sub-panel p-2.5 text-left hover:border-sky-500 transition flex items-center justify-between gap-2 cursor-pointer">
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="px-1.5 py-0.5 rounded lh-badge-sky font-mono text-[10px] font-black">
+                                        #<?= esc($w['no_well']) ?>
+                                    </span>
+                                    <span class="text-xs font-extrabold lh-text-title truncate">
+                                        <?= esc($w['nama_lokasi']) ?>
+                                    </span>
+                                </div>
+                                <div class="text-[11px] lh-text-muted font-mono mt-0.5">
+                                    <?= $wStart ? date('d/m', strtotime($wStart)) : '-' ?> s/d <?= $wEnd ? date('d/m/Y', strtotime($wEnd)) : '-' ?>
+                                    · Total: <strong class="lh-text-title"><?= number_format((float)($w['total_jam'] ?? 0), 2) ?>j</strong>
+                                </div>
+                            </div>
+                            <span class="px-2 py-0.5 rounded text-[9px] font-extrabold uppercase shrink-0 <?= $stBadge ?>">
+                                <?= esc($stJob) ?>
+                            </span>
+                        </button>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php else: ?>
+                    <div class="text-center py-5 text-xs lh-text-muted">
+                        Belum ada sumur terdaftar di bulan ini.
+                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
+    </form>
 
-        <div class="overflow-x-auto custom-scrollbar p-2">
-            <table class="w-full text-left text-xs border-collapse">
-                <thead class="bg-slate-950 text-slate-300 font-bold uppercase text-[10.5px] border-b border-slate-750 tracking-wider">
+    <!-- ═══ 3. TABEL RIWAYAT LOG HARIAN BULAN INI (FULL-WIDTH DI BAWAH AGAR LEGA & RAPI) ═══ -->
+    <div class="lh-surface-card overflow-hidden">
+        <div class="p-4 lh-divider-b flex flex-wrap items-center justify-between gap-3">
+            <div>
+                <h3 class="text-xs font-extrabold uppercase tracking-wider lh-text-title flex items-center gap-2">
+                    <i class="fa-solid fa-clock-rotate-left text-emerald-500"></i>
+                    <span>Riwayat Catatan Log Harian Bulan <?= $bulanNames[$bulan] ?> <?= $tahun ?> (<?= $totalLogsCount ?> Hari Tercatat)</span>
+                </h3>
+                <p class="text-[11px] lh-text-muted mt-0.5">
+                    Klik baris tanggal mana saja untuk memuat datanya ke formulir di atas jika ingin merevisi.
+                </p>
+            </div>
+            <input type="text" id="searchHistoryInput" oninput="filterHistoryTable()"
+                placeholder="Cari tanggal / nama sumur..."
+                class="lh-control-box px-3 py-1.5 text-xs w-56">
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+                <thead class="lh-table-head">
                     <tr>
-                        <th class="py-3 px-3 text-center w-12">No</th>
-                        <th class="py-3 px-3">Tanggal</th>
-                        <th class="py-3 px-3">Sumur</th>
-                        <th class="py-3 px-2 text-right">Jarak</th>
-                        <th class="py-3 px-2 text-right text-sky-400">MIRU (j)</th>
-                        <th class="py-3 px-2 text-right text-emerald-400">OPS (j)</th>
-                        <th class="py-3 px-2 text-right text-amber-400">Total DT (j)</th>
-                        <th class="py-3 px-2 text-right text-white">Total Jam</th>
-                        <th class="py-3 px-3">Remark UNPAID</th>
-                        <th class="py-3 px-3">Remark Operasi</th>
-                        <th class="py-3 px-3 text-center w-28">Aksi</th>
+                        <th class="px-4 py-3 text-left font-bold">Tanggal</th>
+                        <th class="px-4 py-3 text-left font-bold">Sumur (Well)</th>
+                        <th class="px-3 py-3 text-right font-bold">Distance</th>
+                        <th class="px-3 py-3 text-right font-bold">MIRU (Jam)</th>
+                        <th class="px-3 py-3 text-right font-bold">Operasi (Jam)</th>
+                        <th class="px-3 py-3 text-right font-bold">SBWC (Jam)</th>
+                        <th class="px-3 py-3 text-right font-bold">Unpaid (Jam)</th>
+                        <th class="px-3 py-3 text-center font-bold">Total Jam</th>
+                        <th class="px-4 py-3 text-left font-bold">Remark Harian</th>
+                        <th class="px-4 py-3 text-center font-bold">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-800 text-slate-300 font-mono">
+                <tbody id="historyTableBody">
                     <?php if (empty($recentLogs)): ?>
                     <tr>
-                        <td colspan="11" class="py-10 text-center text-slate-400 font-sans">
-                            <i class="fa-solid fa-clipboard-list text-3xl block mb-2 opacity-30 text-slate-500"></i>
-                            <span class="font-bold block text-sm text-slate-300">Belum ada catatan log harian pada bulan ini</span>
-                            <span class="text-xs text-slate-500">Silakan gunakan formulir di atas untuk mengisi.</span>
+                        <td colspan="10" class="px-4 py-10 text-center lh-text-muted">
+                            Belum ada catatan log harian di bulan <?= $bulanNames[$bulan] ?> <?= $tahun ?>.
                         </td>
                     </tr>
                     <?php else: ?>
-                        <?php 
-                        $no = 1;
-                        foreach ($recentLogs as $rl): 
-                            $totHrs = (float)$rl['total_hrs'];
-                            $is24 = abs($totHrs - 24.0) < 0.01;
-                        ?>
-                        <tr class="hover:bg-slate-800/60 transition group">
-                            <td class="py-2.5 px-3 text-center text-slate-500 font-bold"><?= $no++ ?></td>
-                            <td class="py-2.5 px-3 font-bold text-cyan-300 font-sans whitespace-nowrap">
-                                <?= date('d-M-Y', strtotime($rl['tanggal'])) ?>
-                            </td>
-                            <td class="py-2.5 px-3 font-semibold text-white font-sans whitespace-nowrap">
-                                <span class="px-1.5 py-0.5 rounded bg-slate-800 text-sky-300 text-[10.5px] border border-slate-700 mr-1">
-                                    Well #<?= $rl['no_well'] ?>
-                                </span>
-                                <span class="text-xs text-slate-300"><?= esc($rl['nama_lokasi'] ?? 'N/A') ?></span>
-                            </td>
-                            <td class="py-2.5 px-2 text-right text-slate-400">
-                                <?= (float)$rl['jarak'] > 0 ? number_format((float)$rl['jarak'], 1) . ' KM' : '-' ?>
-                            </td>
-                            <td class="py-2.5 px-2 text-right text-sky-400 font-bold">
-                                <?= (float)$rl['miru_jam'] > 0 ? number_format((float)$rl['miru_jam'], 2) : '-' ?>
-                            </td>
-                            <td class="py-2.5 px-2 text-right text-emerald-400 font-bold">
-                                <?= (float)$rl['ops_jam'] > 0 ? number_format((float)$rl['ops_jam'], 2) : '-' ?>
-                            </td>
-                            <td class="py-2.5 px-2 text-right text-amber-400 font-bold">
-                                <?= (float)$rl['total_dt'] > 0 ? number_format((float)$rl['total_dt'], 2) : '-' ?>
-                            </td>
-                            <td class="py-2.5 px-2 text-right whitespace-nowrap">
-                                <span class="font-black px-1.5 py-0.5 rounded <?= $is24 ? 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/20' : 'text-rose-400 bg-rose-500/10 border border-rose-500/20' ?>">
-                                    <?= number_format($totHrs, 2) ?>j
-                                </span>
-                            </td>
-                            <td class="py-2.5 px-3 font-sans max-w-[160px] truncate text-[11px] text-rose-300" title="<?= esc($rl['remark_unpaid']) ?>">
-                                <?= esc($rl['remark_unpaid'] ?: '-') ?>
-                            </td>
-                            <td class="py-2.5 px-3 font-sans max-w-[180px] truncate text-[11px] text-slate-400" title="<?= esc($rl['remark_npt']) ?>">
-                                <?= esc($rl['remark_npt'] ?: '-') ?>
-                            </td>
-                            <td class="py-2.5 px-3 text-center whitespace-nowrap">
-                                <div class="inline-flex items-center gap-1.5">
-                                    <!-- Muat Button -->
-                                    <button type="button" 
-                                            onclick='loadLogToForm(<?= json_encode($rl, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>)'
-                                            class="px-2.5 py-1 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/30 text-cyan-300 hover:text-white border border-cyan-500/30 text-[11px] font-bold font-sans transition flex items-center gap-1 active:scale-95" 
-                                            title="Muat data ke form di atas">
-                                        <i class="fa-solid fa-pen-to-square text-[10px]"></i>
-                                        <span>Muat</span>
+                    <?php foreach ($recentLogs as $lg): ?>
+                    <?php
+                        $totHrs    = (float)($lg['total_hrs'] ?? 0);
+                        $isFull    = abs($totHrs - 24.0) < 0.01;
+                        $isOver    = $totHrs > 24.001;
+                        $unpaidHrs = (float)($lg['unpaid_hrs'] ?? ((float)($lg['dt_rig'] ?? 0) + (float)($lg['dt_tool'] ?? 0)));
+                        $sbwcHrs   = (float)($lg['sbwc_hrs'] ?? max(0, (float)($lg['total_dt'] ?? 0) - $unpaidHrs));
+                    ?>
+                    <tr class="lh-table-row cursor-pointer history-row-item"
+                        data-rowkey="<?= $lg['daily_report_id'] ?>_<?= $lg['tanggal'] ?>"
+                        data-search="<?= strtolower(esc($lg['tanggal'] . ' ' . ($lg['nama_lokasi'] ?? '') . ' well ' . ($lg['no_well'] ?? '') . ' ' . ($lg['remark_npt'] ?? ''))) ?>"
+                        onclick='loadLogToForm(<?= json_encode($lg, JSON_HEX_APOS | JSON_HEX_QUOT) ?>, true)'>
+                        <td class="px-4 py-3 font-mono font-bold lh-text-title whitespace-nowrap">
+                            <?= date('d M Y', strtotime($lg['tanggal'])) ?>
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap">
+                            <span class="px-1.5 py-0.5 rounded lh-badge-sky font-mono text-[10px] font-bold mr-1">
+                                #<?= esc($lg['no_well']) ?>
+                            </span>
+                            <span class="font-bold lh-text-title"><?= esc($lg['nama_lokasi'] ?? '-') ?></span>
+                        </td>
+                        <td class="px-3 py-3 text-right font-mono <?= (float)($lg['jarak'] ?? 0) > 0 ? 'font-bold text-emerald-500' : 'lh-text-muted' ?>">
+                            <?= (float)($lg['jarak'] ?? 0) > 0 ? number_format((float)$lg['jarak'], 2, ',', '.') : '-' ?>
+                        </td>
+                        <td class="px-3 py-3 text-right font-mono <?= $lg['miru_jam'] > 0 ? 'font-bold text-sky-500' : 'lh-text-muted' ?>">
+                            <?= $lg['miru_jam'] > 0 ? number_format($lg['miru_jam'], 2) : '-' ?>
+                        </td>
+                        <td class="px-3 py-3 text-right font-mono <?= $lg['ops_jam'] > 0 ? 'font-bold text-emerald-500' : 'lh-text-muted' ?>">
+                            <?= $lg['ops_jam'] > 0 ? number_format($lg['ops_jam'], 2) : '-' ?>
+                        </td>
+                        <td class="px-3 py-3 text-right font-mono <?= $sbwcHrs > 0 ? 'font-bold text-amber-500' : 'lh-text-muted' ?>">
+                            <?= $sbwcHrs > 0 ? number_format($sbwcHrs, 2) : '-' ?>
+                        </td>
+                        <td class="px-3 py-3 text-right font-mono <?= $unpaidHrs > 0 ? 'font-bold text-rose-500' : 'lh-text-muted' ?>">
+                            <?= $unpaidHrs > 0 ? number_format($unpaidHrs, 2) : '-' ?>
+                        </td>
+                        <td class="px-3 py-3 text-center">
+                            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] font-bold <?= $isOver ? 'lh-badge-rose' : ($isFull ? 'lh-badge-emerald' : 'lh-badge-sky') ?>">
+                                <?= number_format($totHrs, 2) ?>j
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 lh-text-sec max-w-xs truncate" title="<?= esc($lg['remark_npt']) ?>">
+                            <?= esc($lg['remark_npt'] ?: ($lg['remark_unpaid'] ?: '-')) ?>
+                        </td>
+                        <td class="px-4 py-3 text-center whitespace-nowrap" onclick="event.stopPropagation()">
+                            <div class="inline-flex items-center gap-1.5">
+                                <button type="button"
+                                    onclick='loadLogToForm(<?= json_encode($lg, JSON_HEX_APOS | JSON_HEX_QUOT) ?>, true)'
+                                    class="px-2.5 py-1 rounded-lg lh-badge-sky text-[11px] font-bold transition cursor-pointer">
+                                    <i class="fa-solid fa-pen mr-1"></i> Edit
+                                </button>
+                                <form method="POST" action="<?= base_url('daily-report/hapus-log') ?>"
+                                    onsubmit="return confirmHapusLog('<?= date('d/m/Y', strtotime($lg['tanggal'])) ?>', 'Well #<?= esc($lg['no_well']) ?> - <?= esc($lg['nama_lokasi'] ?? '') ?>')">
+                                    <?= csrf_field() ?>
+                                    <input type="hidden" name="daily_report_id" value="<?= $lg['daily_report_id'] ?>">
+                                    <input type="hidden" name="tanggal" value="<?= $lg['tanggal'] ?>">
+                                    <button type="submit"
+                                        class="px-2.5 py-1 rounded-lg lh-badge-rose text-[11px] font-bold transition cursor-pointer">
+                                        <i class="fa-solid fa-trash-can mr-1"></i> Hapus
                                     </button>
-
-                                    <!-- Hapus Button -->
-                                    <form action="<?= base_url('daily-report/hapus-log/' . $rl['id']) ?>" method="POST" class="inline" onsubmit="return confirmHapusLog('<?= esc($rl['tanggal']) ?>', 'Well #<?= esc($rl['no_well']) ?>')">
-                                        <?= csrf_field() ?>
-                                        <button type="submit" 
-                                                class="px-2 py-1 rounded-lg bg-rose-500/15 hover:bg-rose-500/30 text-rose-300 hover:text-white border border-rose-500/30 text-[11px] font-bold font-sans transition active:scale-95" 
-                                                title="Hapus log ini">
-                                            <i class="fa-solid fa-trash-can text-[10px]"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
                     <?php endif; ?>
                 </tbody>
             </table>
-        </div>
-    </div>
-</div>
-<!-- ═══ MODAL SUMUR BARU CEPAT (AJAX) ═══ -->
-<div id="quickWellModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm hidden transition-all duration-200">
-    <div class="relative w-full max-w-md flex flex-col rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden">
-        <div class="p-5 border-b border-slate-800 bg-slate-850 flex items-center justify-between">
-            <h3 class="text-lg font-black text-white tracking-tight flex items-center gap-2">
-                <i class="fa-solid fa-bolt text-amber-400"></i>
-                Tambah Sumur Cepat
-            </h3>
-            <button type="button" onclick="closeQuickSumurModal()" class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-rose-500/20 hover:text-rose-400 text-slate-400 flex items-center justify-center transition">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-        <div class="p-5 space-y-4">
-            <div>
-                <label class="block text-xs font-bold text-slate-300 uppercase mb-1.5">No. Well <span class="text-rose-400">*</span></label>
-                <input type="number" id="qw_no_well" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-sm focus:ring-1 focus:ring-sky-500 outline-none">
-            </div>
-            <div>
-                <label class="block text-xs font-bold text-slate-300 uppercase mb-1.5">Lokasi (Pilih Master Lokasi) <span class="text-rose-400">*</span></label>
-                <select id="qw_lokasi_id" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white text-sm focus:ring-1 focus:ring-sky-500 outline-none">
-                    <option value="">-- Pilih Lokasi --</option>
-                    <?php foreach ($lokasiList as $lok): ?>
-                        <option value="<?= $lok['id'] ?>"><?= esc($lok['nama_lokasi']) ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-        </div>
-        <div class="p-4 border-t border-slate-800 bg-slate-950 flex justify-end gap-2">
-            <button type="button" onclick="closeQuickSumurModal()" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-bold hover:bg-slate-700">Batal</button>
-            <button type="button" onclick="saveQuickSumur()" id="qw_btn_save" class="px-4 py-2 rounded-xl bg-sky-600 text-white text-xs font-bold hover:bg-sky-500">Simpan & Gunakan</button>
         </div>
     </div>
 </div>
@@ -596,69 +1074,253 @@
 
 <?= $this->section('scripts') ?>
 <script>
-    function openQuickSumurModal() {
-        const modal = document.getElementById('quickWellModal');
-        if(modal) modal.classList.remove('hidden');
-    }
-    
-    function closeQuickSumurModal() {
-        const modal = document.getElementById('quickWellModal');
-        if(modal) modal.classList.add('hidden');
-    }
-    
-    function saveQuickSumur() {
-        const noWell = document.getElementById('qw_no_well').value;
-        const lokasiId = document.getElementById('qw_lokasi_id').value;
-        const btn = document.getElementById('qw_btn_save');
-        
-        if(!noWell || !lokasiId) {
-            alert('Lengkapi No. Well dan Lokasi!');
-            return;
-        }
-        
-        btn.innerHTML = 'Menyimpan...';
-        btn.disabled = true;
-        
-        const fd = new FormData();
-        fd.append('rig_id', '<?= $rigId ?>');
-        fd.append('bulan', '<?= $bulan ?>');
-        fd.append('tahun', '<?= $tahun ?>');
-        fd.append('no_well', noWell);
-        fd.append('lokasi_id', lokasiId);
-        
-        fetch('<?= base_url('daily-report/simpan-sumur-cepat') ?>', {
-            method: 'POST',
-            body: fd
-        })
-        .then(res => res.json())
-        .then(data => {
-            btn.innerHTML = 'Simpan & Gunakan';
-            btn.disabled = false;
-            
-            if(data.status === 'success') {
-                const sel = document.getElementById('selectWell');
-                const opt = document.createElement('option');
-                opt.value = data.id;
-                opt.text = `Well #${noWell} - ${data.nama_lokasi} (Moving)`;
-                sel.add(opt);
-                sel.value = data.id;
-                closeQuickSumurModal();
-            } else {
-                alert(data.message || 'Gagal menyimpan sumur baru.');
+    const periodMinDate = '<?= sprintf('%04d-%02d-01', $tahun, $bulan) ?>';
+    const periodMaxDate = '<?= sprintf('%04d-%02d-%02d', $tahun, $bulan, cal_days_in_month(CAL_GREGORIAN, $bulan, $tahun)) ?>';
+    const existingLogsData = <?= json_encode($recentLogs ?? [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;
+
+    const logsByWellDateMap = {};
+    existingLogsData.forEach(lg => {
+        const key = `${lg.daily_report_id}_${lg.tanggal}`;
+        logsByWellDateMap[key] = lg;
+    });
+
+    function getOtherWellsInfoOnDate(currentWellId, dateStr) {
+        let otherHours = 0;
+        const labels = [];
+        existingLogsData.forEach(lg => {
+            if (lg.tanggal === dateStr && String(lg.daily_report_id) !== String(currentWellId)) {
+                const h = parseFloat(lg.total_hrs) || 0;
+                otherHours += h;
+                labels.push(`Well #${lg.no_well} (${lg.nama_lokasi || ''}: ${h.toFixed(2)}j)`);
             }
-        })
-        .catch(err => {
-            console.error(err);
-            btn.innerHTML = 'Simpan & Gunakan';
-            btn.disabled = false;
-            alert('Terjadi kesalahan jaringan.');
         });
+        return {
+            hours: otherHours,
+            label: labels.join(', ')
+        };
     }
+
+    function getRemainingDayHoursExcluding(targetFieldId) {
+        const curWellId = document.getElementById('selectWell')?.value || '';
+        const curDateStr = document.getElementById('inputTanggal')?.value || '';
+        const otherInfo = (curWellId && curDateStr) ? getOtherWellsInfoOnDate(curWellId, curDateStr) : { hours: 0 };
+        const maxForThisWell = Math.max(0, 24.0 - otherInfo.hours);
+
+        let usedOtherFields = 0;
+        const allIds = [
+            'inputMiru', 'inputOps',
+            'dt_rain', 'dt_dry_road', 'dt_dry_pad', 'dt_phr_op', 'dt_trans',
+            'dt_ce_pe', 'dt_3rd_party', 'dt_daylight', 'dt_phr_well', 'dt_foam',
+            'dt_shutdown', 'dt_rig', 'dt_tool'
+        ];
+        allIds.forEach(id => {
+            if (id !== targetFieldId) {
+                const el = document.getElementById(id);
+                if (el) usedOtherFields += parseFloat(el.value) || 0;
+            }
+        });
+        return Math.max(0, +(maxForThisWell - usedOtherFields).toFixed(2));
+    }
+
+    function fillRemainingToField(fieldId) {
+        const el = document.getElementById(fieldId);
+        if (!el) return;
+        const sisa = getRemainingDayHoursExcluding(fieldId);
+        el.value = sisa;
+        calcDailyTotal();
+    }
+
+    function setFullOpsDay() {
+        document.getElementById('inputMiru').value = '0';
+        document.querySelectorAll('.dt-input').forEach(inp => inp.value = '0');
+        const tpList = document.getElementById('tpRowsList');
+        if (tpList) {
+            tpList.innerHTML = '';
+            addTpRow(0, 0);
+        }
+        const sisa = getRemainingDayHoursExcluding('inputOps');
+        document.getElementById('inputOps').value = sisa;
+        calcDailyTotal();
+    }
+
+    let isRemarkNptAuto = true;
+    let isRemarkUnpaidAuto = true;
+    let lastAutoRemarkNpt = '';
+    let lastAutoRemarkUnpaid = '';
+
+    function formatHrIndo(val) {
+        const num = Math.round((parseFloat(val) || 0) * 100) / 100;
+        return String(num).replace('.', ',');
+    }
+
+    function onManualRemarkInput(type) {
+        if (type === 'npt') {
+            const val = (document.getElementById('remarkNpt')?.value || '').trim();
+            isRemarkNptAuto = (val === '' || val === lastAutoRemarkNpt);
+        } else if (type === 'unpaid') {
+            const val = (document.getElementById('remarkUnpaid')?.value || '').trim();
+            isRemarkUnpaidAuto = (val === '' || val === lastAutoRemarkUnpaid);
+        }
+    }
+
+    function buildBesmindoAutoRemark() {
+        const nptParts = [];
+        const unpaidParts = [];
+
+        const sbwcMap = [
+            { id: 'dt_rain',     phrase: 'SWA Heavy Rain + Thunder' },
+            { id: 'dt_dry_road', phrase: 'WO Dry Road' },
+            { id: 'dt_dry_pad',  phrase: 'WO Dry Well Pad' },
+            { id: 'dt_phr_op',   phrase: 'WO PHR Operator' },
+            { id: 'dt_trans',    phrase: 'WO Trans Sharing' },
+            { id: 'dt_ce_pe',    phrase: 'WO CE/PE' }
+        ];
+
+        sbwcMap.forEach(item => {
+            const val = parseFloat(document.getElementById(item.id)?.value) || 0;
+            if (val > 0) {
+                nptParts.push(`${formatHrIndo(val)} HR ${item.phrase}.`);
+            }
+        });
+
+        // Pos 07: 3rd Party (bisa rincian per perusahaan atau umum)
+        let tpHandled = false;
+        const tpRows = document.querySelectorAll('#tpRowsList .tp-entry-row');
+        if (tpRows.length > 0) {
+            tpRows.forEach(row => {
+                const hrs = parseFloat(row.querySelector('.dt-tp-input')?.value) || 0;
+                if (hrs > 0) {
+                    tpHandled = true;
+                    const sel = row.querySelector('.tp-company-select');
+                    const compId = parseInt(sel?.value || '0', 10);
+                    let compName = '';
+                    if (compId > 0 && sel && sel.selectedIndex >= 0) {
+                        compName = (sel.options[sel.selectedIndex].text || '').replace(/^Perusahaan:\s*/i, '').trim();
+                    }
+                    if (compName) {
+                        nptParts.push(`${formatHrIndo(hrs)} HR WO 3rd Party (${compName}).`);
+                    } else {
+                        nptParts.push(`${formatHrIndo(hrs)} HR WO 3rd Party.`);
+                    }
+                }
+            });
+        }
+        if (!tpHandled) {
+            const tpVal = parseFloat(document.getElementById('dt_3rd_party')?.value) || 0;
+            if (tpVal > 0) {
+                nptParts.push(`${formatHrIndo(tpVal)} HR WO 3rd Party.`);
+            }
+        }
+
+        const sbwcMapTail = [
+            { id: 'dt_daylight', phrase: 'WO Daylight' },
+            { id: 'dt_phr_well', phrase: 'WO PHR Well & Accessories' },
+            { id: 'dt_foam',     phrase: 'WO Foam Unit' },
+            { id: 'dt_shutdown', phrase: 'SWA Shut Down' }
+        ];
+
+        sbwcMapTail.forEach(item => {
+            const val = parseFloat(document.getElementById(item.id)?.value) || 0;
+            if (val > 0) {
+                nptParts.push(`${formatHrIndo(val)} HR ${item.phrase}.`);
+            }
+        });
+
+        // Pos Unpaid (12 & 13)
+        const rigDt  = parseFloat(document.getElementById('dt_rig')?.value) || 0;
+        const toolDt = parseFloat(document.getElementById('dt_tool')?.value) || 0;
+        if (rigDt > 0) {
+            const p = `${formatHrIndo(rigDt)} HR Repair Rig.`;
+            nptParts.push(p);
+            unpaidParts.push(p);
+        }
+        if (toolDt > 0) {
+            const p = `${formatHrIndo(toolDt)} HR WO BMS Tool.`;
+            nptParts.push(p);
+            unpaidParts.push(p);
+        }
+
+        return {
+            nptText: nptParts.join(' '),
+            unpaidText: unpaidParts.join(' ')
+        };
+    }
+
+    function generateSmartRemark(forceOverwrite = false) {
+        const { nptText, unpaidText } = buildBesmindoAutoRemark();
+        const remarkNptEl = document.getElementById('remarkNpt');
+        const remarkUnpaidEl = document.getElementById('remarkUnpaid');
+
+        if (forceOverwrite) {
+            isRemarkNptAuto = true;
+            isRemarkUnpaidAuto = true;
+        }
+
+        if (remarkNptEl && (forceOverwrite || isRemarkNptAuto)) {
+            remarkNptEl.value = nptText;
+            lastAutoRemarkNpt = nptText;
+            isRemarkNptAuto = true;
+        }
+
+        if (remarkUnpaidEl && (forceOverwrite || isRemarkUnpaidAuto)) {
+            remarkUnpaidEl.value = unpaidText;
+            lastAutoRemarkUnpaid = unpaidText;
+            isRemarkUnpaidAuto = true;
+        }
+    }
+
     function navigateLog() {
         const rigId = document.getElementById('selectRig').value;
         const bulan = document.getElementById('selectBulan').value;
         const tahun = document.getElementById('selectTahun').value;
         window.location.href = `<?= base_url('daily-report/log-harian') ?>/${rigId}/${bulan}/${tahun}`;
+    }
+
+    const thirdPartyOptionsHtml = `
+        <option value="0">— Tanpa Perusahaan (3rd Party Umum) —</option>
+        <?php foreach ($thirdParties ?? [] as $tp): ?>
+        <option value="<?= $tp['id'] ?>">Perusahaan: <?= esc($tp['nama']) ?></option>
+        <?php endforeach; ?>
+    `;
+
+    function addTpRow(companyId = 0, hours = 0) {
+        const list = document.getElementById('tpRowsList');
+        const row = document.createElement('div');
+        row.className = 'tp-entry-row grid grid-cols-12 gap-2 items-center';
+        row.innerHTML = `
+            <div class="col-span-7 sm:col-span-8">
+                <select name="tp_company[]" onchange="calc3rdPartyTotal()" class="tp-company-select lh-control-box w-full px-2.5 py-1.5 text-xs font-semibold cursor-pointer">
+                    ${thirdPartyOptionsHtml}
+                </select>
+            </div>
+            <div class="col-span-4 sm:col-span-3">
+                <input type="number" step="0.25" min="0" max="24" name="tp_hours[]" value="${hours}" oninput="calc3rdPartyTotal()"
+                    placeholder="0.00 Jam"
+                    class="dt-tp-input lh-control-box w-full px-2.5 py-1.5 text-right font-mono text-xs font-bold">
+            </div>
+            <div class="col-span-1 flex justify-end">
+                <button type="button" onclick="removeTpRow(this)" title="Hapus / Reset Baris"
+                    class="lh-sisa-mini-btn w-7 h-7 flex items-center justify-center">
+                    <i class="fa-solid fa-xmark text-xs"></i>
+                </button>
+            </div>
+        `;
+        row.querySelector('.tp-company-select').value = String(companyId);
+        list.appendChild(row);
+        calc3rdPartyTotal();
+    }
+
+    function removeTpRow(btn) {
+        const list = document.getElementById('tpRowsList');
+        const rows = list.querySelectorAll('.tp-entry-row');
+        const currentRow = btn.closest('.tp-entry-row');
+        if (rows.length > 1) {
+            currentRow.remove();
+        } else {
+            currentRow.querySelector('.tp-company-select').value = '0';
+            currentRow.querySelector('.dt-tp-input').value = '0';
+        }
+        calc3rdPartyTotal();
     }
 
     function calc3rdPartyTotal() {
@@ -668,67 +1330,107 @@
         });
         document.getElementById('label3rdTotal').textContent = tpSum.toFixed(2);
         document.getElementById('dt_3rd_party').value = tpSum;
-        // Trigger the main calculation
         calcDailyTotal();
     }
 
     function calcDailyTotal() {
-        const miru = parseFloat(document.getElementById('inputMiru').value) || 0;
-        const ops  = parseFloat(document.getElementById('inputOps').value) || 0;
+        const miru = parseFloat(document.getElementById('inputMiru')?.value) || 0;
+        const ops  = parseFloat(document.getElementById('inputOps')?.value) || 0;
 
         let sbwcSum = 0;
         document.querySelectorAll('.dt-sbwc').forEach(inp => {
-            sbwcSum += parseFloat(inp.value) || 0;
+            const v = parseFloat(inp.value) || 0;
+            sbwcSum += v;
+            const card = document.getElementById('card_' + inp.id);
+            if (card) {
+                card.classList.toggle('has-value', v > 0);
+            }
         });
 
         let unpaidSum = 0;
         document.querySelectorAll('.dt-unpaid').forEach(inp => {
-            unpaidSum += parseFloat(inp.value) || 0;
+            const v = parseFloat(inp.value) || 0;
+            unpaidSum += v;
+            const card = document.getElementById('card_' + inp.id);
+            if (card) {
+                card.classList.toggle('has-value-unpaid', v > 0);
+            }
         });
 
         const totalDt = sbwcSum + unpaidSum;
         const grandTotal = miru + ops + totalDt;
 
-        // Tampilkan Subtotal
         document.getElementById('labelSbwcTotal').textContent = sbwcSum.toFixed(2);
         document.getElementById('labelUnpaidTotal').textContent = unpaidSum.toFixed(2);
 
-        // Tampilkan Rekap
         document.getElementById('recapMiru').textContent = miru.toFixed(2);
         document.getElementById('recapOps').textContent = ops.toFixed(2);
         document.getElementById('recapDt').textContent = totalDt.toFixed(2);
 
-        // Tampilkan Grand Total & Badge
         const grandEl = document.getElementById('labelGrandTotal');
         const badgeEl = document.getElementById('badgeValidation');
+        const remHint = document.getElementById('remainingHoursHint');
         const btnSubmit = document.getElementById('btnSubmitDaily');
 
-        grandEl.textContent = `${grandTotal.toFixed(2)} Jam`;
+        const curWellId = document.getElementById('selectWell')?.value || '';
+        const curDateStr = document.getElementById('inputTanggal')?.value || '';
+        const otherInfo = (curWellId && curDateStr) ? getOtherWellsInfoOnDate(curWellId, curDateStr) : { hours: 0, label: '' };
+        const otherHrs = otherInfo.hours;
+        const maxAllowedForThisWell = Math.max(0, 24.0 - otherHrs);
+        const combinedDayTotal = grandTotal + otherHrs;
+        const sisaJam = Math.max(0, 24.0 - combinedDayTotal);
 
-        if (Math.abs(grandTotal - 24.0) < 0.01) {
-            grandEl.className = 'font-mono font-black text-2xl text-emerald-400';
-            badgeEl.className = 'px-3 py-1.5 rounded-lg bg-emerald-950/70 border border-emerald-500/60 text-xs font-bold text-emerald-300 font-mono';
-            badgeEl.textContent = '✓ Pas 24.00 Jam (Valid)';
-            btnSubmit.disabled = false;
-            btnSubmit.className = 'w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-cyan-600/25 transition active:scale-95 flex items-center justify-center gap-2';
-            btnSubmit.innerHTML = '<i class="fa-solid fa-floppy-disk text-sm"></i> <span>SIMPAN DAILY REPORT</span>';
-        } else if (grandTotal < 24.0) {
-            const sisa = (24.0 - grandTotal).toFixed(2);
-            grandEl.className = 'font-mono font-black text-2xl text-sky-400';
-            badgeEl.className = 'px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs font-bold text-amber-300 font-mono';
-            badgeEl.textContent = `Sisa ${sisa}j Belum Terisi`;
-            btnSubmit.disabled = true;
-            btnSubmit.className = 'w-full sm:w-auto px-8 py-3 bg-slate-700 text-slate-400 font-extrabold text-xs rounded-xl flex items-center justify-center gap-2 cursor-not-allowed';
-            btnSubmit.innerHTML = `<i class="fa-solid fa-lock text-sm"></i> <span>SIMPAN (KURANG ${sisa}j)</span>`;
-        } else {
-            const lebih = (grandTotal - 24.0).toFixed(2);
-            grandEl.className = 'font-mono font-black text-2xl text-rose-400 animate-pulse';
-            badgeEl.className = 'px-3 py-1.5 rounded-lg bg-rose-950/80 border border-rose-500/80 text-xs font-black text-rose-300 font-mono';
-            badgeEl.textContent = `⚠️ Lebih ${lebih}j (Melebihi 24j)`;
-            btnSubmit.disabled = true;
-            btnSubmit.className = 'w-full sm:w-auto px-8 py-3 bg-slate-700 text-rose-400 font-extrabold text-xs rounded-xl flex items-center justify-center gap-2 cursor-not-allowed';
-            btnSubmit.innerHTML = `<i class="fa-solid fa-lock text-sm"></i> <span>SIMPAN (LEBIH ${lebih}j)</span>`;
+        const pct = (val) => Math.min(100, Math.max(0, (val / 24.0) * 100)).toFixed(2) + '%';
+        document.getElementById('barOtherWell').style.width = pct(otherHrs);
+        document.getElementById('barMiru').style.width = pct(miru);
+        document.getElementById('barOps').style.width = pct(ops);
+        document.getElementById('barSbwc').style.width = pct(sbwcSum);
+        document.getElementById('barUnpaid').style.width = pct(unpaidSum);
+
+        grandEl.textContent = `${grandTotal.toFixed(2)} / ${maxAllowedForThisWell.toFixed(2)} Jam`;
+        if (remHint) {
+            remHint.textContent = otherHrs > 0
+                ? `Sumur Lain: ${otherHrs.toFixed(2)}j · Sisa: ${sisaJam.toFixed(2)}j`
+                : `Sisa Hari Ini: ${sisaJam.toFixed(2)} Jam`;
         }
+
+        if (combinedDayTotal > 24.001) {
+            const lebih = (combinedDayTotal - 24.0).toFixed(2);
+            grandEl.className = 'font-mono font-black text-2xl tracking-tight text-rose-500 animate-pulse';
+            badgeEl.className = 'text-[11px] font-mono font-bold text-rose-500 mt-2.5';
+            badgeEl.textContent = otherHrs > 0
+                ? `⚠️ Lewat 24j Gabungan! (${otherInfo.label} + Sumur Ini ${grandTotal.toFixed(2)}j)`
+                : `⚠️ Melebihi batas 24 Jam (+${lebih} Jam)`;
+
+            if (btnSubmit) {
+                btnSubmit.disabled = true;
+                btnSubmit.innerHTML = `<i class="fa-solid fa-lock"></i> <span>MELEBIHI BATAS (${maxAllowedForThisWell.toFixed(2)}j)</span>`;
+            }
+        } else if (Math.abs(combinedDayTotal - 24.0) <= 0.001) {
+            grandEl.className = 'font-mono font-black text-2xl tracking-tight text-emerald-500';
+            badgeEl.className = 'text-[11px] font-mono font-bold text-emerald-500 mt-2.5';
+            badgeEl.textContent = otherHrs > 0
+                ? `✓ Pas 24.00 Jam Gabungan (${otherInfo.label})`
+                : '✓ Pas 24.00 Jam (Full Day Complete)';
+
+            if (btnSubmit) {
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> <span>SIMPAN DAILY REPORT (${grandTotal.toFixed(2)}j)</span>`;
+            }
+        } else {
+            grandEl.className = 'font-mono font-black text-2xl tracking-tight text-sky-500';
+            badgeEl.className = 'text-[11px] font-mono font-bold text-sky-500 mt-2.5';
+            badgeEl.textContent = otherHrs > 0
+                ? `✓ Transisi Multi-Sumur (${otherInfo.label})`
+                : `✓ Terisi ${grandTotal.toFixed(2)} Jam (Sisa ${sisaJam.toFixed(2)} Jam)`;
+
+            if (btnSubmit) {
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> <span>SIMPAN DAILY REPORT (${grandTotal.toFixed(2)}j)</span>`;
+            }
+        }
+
+        generateSmartRemark(false);
     }
 
     function resetFormToDefault() {
@@ -736,22 +1438,297 @@
         document.getElementById('inputMiru').value = '0';
         document.getElementById('inputOps').value = '0';
         document.getElementById('inputJarak').value = '0';
-        document.querySelectorAll('.dt-input').forEach(inp => {
-            inp.value = '0';
-        });
-        const badge = document.getElementById('formModeBadge');
-        badge.className = 'px-2 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold uppercase tracking-wider';
-        badge.textContent = 'Mode: Input Baru';
+        document.querySelectorAll('.dt-input').forEach(inp => inp.value = '0');
+
+        const tpList = document.getElementById('tpRowsList');
+        tpList.innerHTML = '';
+        addTpRow(0, 0);
+
+        isRemarkNptAuto = true;
+        isRemarkUnpaidAuto = true;
+
+        onWellSelectChange(true);
         calcDailyTotal();
     }
 
-    function loadLogToForm(data) {
-        const badge = document.getElementById('formModeBadge');
-        badge.className = 'px-2 py-0.5 rounded bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[10px] font-bold uppercase tracking-wider';
-        badge.textContent = `Mode: Edit Tanggal ${data.tanggal}`;
+    function clearOnlyHourFields() {
+        document.getElementById('inputMiru').value = '0';
+        document.getElementById('inputOps').value = '0';
+        document.querySelectorAll('.dt-input').forEach(inp => inp.value = '0');
+        const tpList = document.getElementById('tpRowsList');
+        tpList.innerHTML = '';
+        addTpRow(0, 0);
+        document.getElementById('remarkNpt').value = '';
+        document.getElementById('remarkUnpaid').value = '';
+        isRemarkNptAuto = true;
+        isRemarkUnpaidAuto = true;
+        lastAutoRemarkNpt = '';
+        lastAutoRemarkUnpaid = '';
 
-        document.getElementById('inputTanggal').value = data.tanggal;
+        const badge = document.getElementById('formModeBadge');
+        badge.className = 'px-2.5 py-1 rounded-md lh-badge-emerald text-[10px] font-extrabold uppercase tracking-wider';
+        badge.textContent = `Input Baru (${document.getElementById('inputTanggal').value})`;
+
+        highlightActiveHistoryRow('');
+        calcDailyTotal();
+    }
+
+    function getDatesBetween(startDateStr, endDateStr) {
+        const dates = [];
+        if (!startDateStr) return dates;
+        const start = new Date(startDateStr + 'T00:00:00');
+        const end = new Date((endDateStr || startDateStr) + 'T00:00:00');
+        let curr = new Date(start);
+        let guard = 0;
+        while (curr <= end && guard < 65) {
+            const yyyy = curr.getFullYear();
+            const mm = String(curr.getMonth() + 1).padStart(2, '0');
+            const dd = String(curr.getDate()).padStart(2, '0');
+            dates.push(`${yyyy}-${mm}-${dd}`);
+            curr.setDate(curr.getDate() + 1);
+            guard++;
+        }
+        return dates;
+    }
+
+    function formatShortIndoDate(dateStr) {
+        if (!dateStr) return '-';
+        const d = new Date(dateStr + 'T00:00:00');
+        return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
+    }
+
+    function selectWellFromCard(wellId) {
+        const sel = document.getElementById('selectWell');
+        if (!sel) return;
+        sel.value = String(wellId);
+        onWellSelectChange(true);
+    }
+
+    function jumpToNextUnfilledDate() {
+        const sel = document.getElementById('selectWell');
+        if (!sel || !sel.value) return;
+        const opt = sel.options[sel.selectedIndex];
+        const wStart = opt.getAttribute('data-start') || periodMinDate;
+        const wEnd   = opt.getAttribute('data-end') || wStart || periodMaxDate;
+        const scheduleDates = getDatesBetween(wStart, wEnd);
+
+        for (const dStr of scheduleDates) {
+            if (!logsByWellDateMap[`${sel.value}_${dStr}`]) {
+                selectWellDatePill(dStr);
+                return;
+            }
+        }
+        alert('Semua tanggal pada jadwal sumur ini sudah terisi log harian!');
+    }
+
+    function onWellSelectChange(autoPickUnfilledDate = true) {
+        const sel = document.getElementById('selectWell');
+        const tglInput = document.getElementById('inputTanggal');
+        const jarakInput = document.getElementById('inputJarak');
+        const noticeEl = document.getElementById('wellScheduleNotice');
+        const lockLabel = document.getElementById('dateRangeLockLabel');
+        const pillsWrapper = document.getElementById('wellDatePillsWrapper');
+
+        document.querySelectorAll('.well-summary-card').forEach(c => {
+            c.classList.remove('ring-2', 'ring-sky-500');
+        });
+        if (sel && sel.value) {
+            const activeCard = document.getElementById('wellCard_' + sel.value);
+            if (activeCard) activeCard.classList.add('ring-2', 'ring-sky-500');
+        }
+
+        if (!sel || !sel.value) {
+            tglInput.min = periodMinDate;
+            tglInput.max = periodMaxDate;
+            if (noticeEl) noticeEl.textContent = 'Pilih sumur untuk mengunci rentang tanggal';
+            if (lockLabel) lockLabel.textContent = '';
+            if (pillsWrapper) pillsWrapper.classList.add('hidden');
+            return;
+        }
+
+        const opt = sel.options[sel.selectedIndex];
+        const wStart = opt.getAttribute('data-start') || periodMinDate;
+        const wEnd   = opt.getAttribute('data-end') || wStart || periodMaxDate;
+        const wJarak = parseFloat(opt.getAttribute('data-jarak')) || 0;
+        const wNo    = opt.getAttribute('data-nowell') || '';
+        const wLok   = opt.getAttribute('data-lokasi') || '';
+
+        tglInput.min = wStart;
+        tglInput.max = wEnd;
+
+        if (noticeEl) {
+            noticeEl.innerHTML = `<i class="fa-solid fa-lock text-[10px] mr-1 text-amber-500"></i> Rentang Jadwal Well #${wNo} (${wLok}): <strong class="lh-text-title">${formatShortIndoDate(wStart)} s/d ${formatShortIndoDate(wEnd)}</strong>`;
+        }
+        if (lockLabel) {
+            lockLabel.textContent = `${wStart.slice(8,10)}/${wStart.slice(5,7)} - ${wEnd.slice(8,10)}/${wEnd.slice(5,7)}`;
+        }
+
+        const scheduleDates = getDatesBetween(wStart, wEnd);
+
+        if (autoPickUnfilledDate && scheduleDates.length > 0) {
+            let targetDate = null;
+            for (const dStr of scheduleDates) {
+                const wellKey = `${sel.value}_${dStr}`;
+                if (!logsByWellDateMap[wellKey]) {
+                    targetDate = dStr;
+                    break;
+                }
+            }
+            if (!targetDate) {
+                targetDate = (tglInput.value < wStart || tglInput.value > wEnd) ? scheduleDates[0] : tglInput.value;
+            }
+
+            tglInput.value = targetDate;
+
+            const wellKey = `${sel.value}_${targetDate}`;
+            if (logsByWellDateMap[wellKey]) {
+                loadLogToForm(logsByWellDateMap[wellKey], false);
+            } else {
+                clearOnlyHourFields();
+                if (targetDate === wStart && wJarak > 0) {
+                    jarakInput.value = wJarak;
+                }
+            }
+        } else {
+            if (tglInput.value < wStart) tglInput.value = wStart;
+            if (tglInput.value > wEnd) tglInput.value = wEnd;
+        }
+
+        const wStatus = (opt.getAttribute('data-status') || 'JOB PROGRESS').toUpperCase();
+        syncWellStatusSelect(wStatus, tglInput.value, wEnd);
+
+        renderWellDatePills(sel.value, scheduleDates, tglInput.value);
+        calcDailyTotal();
+    }
+
+    function syncWellStatusSelect(wStatus, chosenDate, wEnd) {
+        const statusSel = document.getElementById('selectStatusJob');
+        if (!statusSel) return;
+        if (wStatus === 'JOB SUSPEND') {
+            statusSel.value = 'JOB SUSPEND';
+        } else if (wEnd && chosenDate >= wEnd) {
+            statusSel.value = 'JOB COMPLETED';
+        } else if (wStatus === 'JOB COMPLETED') {
+            statusSel.value = 'JOB COMPLETED';
+        } else {
+            statusSel.value = 'JOB PROGRESS';
+        }
+    }
+
+    function onTanggalInputChange() {
+        const sel = document.getElementById('selectWell');
+        const tglInput = document.getElementById('inputTanggal');
+        if (!sel || !sel.value) return;
+
+        const opt = sel.options[sel.selectedIndex];
+        const wStart = opt.getAttribute('data-start') || periodMinDate;
+        const wEnd   = opt.getAttribute('data-end') || wStart || periodMaxDate;
+        const wNo    = opt.getAttribute('data-nowell') || '';
+
+        if (tglInput.value < wStart || tglInput.value > wEnd) {
+            alert(`Tanggal harus berada di dalam jadwal Sumur #${wNo}: ${formatShortIndoDate(wStart)} s/d ${formatShortIndoDate(wEnd)}!`);
+            tglInput.value = tglInput.value < wStart ? wStart : wEnd;
+        }
+
+        const chosenDate = tglInput.value;
+        const scheduleDates = getDatesBetween(wStart, wEnd);
+        const wellKey = `${sel.value}_${chosenDate}`;
+
+        if (logsByWellDateMap[wellKey]) {
+            loadLogToForm(logsByWellDateMap[wellKey], false);
+        } else {
+            clearOnlyHourFields();
+        }
+
+        const wStatus = (opt.getAttribute('data-status') || 'JOB PROGRESS').toUpperCase();
+        syncWellStatusSelect(wStatus, chosenDate, wEnd);
+
+        renderWellDatePills(sel.value, scheduleDates, chosenDate);
+        calcDailyTotal();
+    }
+
+    function selectWellDatePill(dateStr) {
+        const tglInput = document.getElementById('inputTanggal');
+        tglInput.value = dateStr;
+        onTanggalInputChange();
+    }
+
+    function renderWellDatePills(wellId, scheduleDates, activeDateStr) {
+        const wrapper   = document.getElementById('wellDatePillsWrapper');
+        const container = document.getElementById('wellDatePillsContainer');
+        const summaryEl = document.getElementById('wellDateRangeSummary');
+        if (!wrapper || !container) return;
+
+        if (!scheduleDates || scheduleDates.length === 0) {
+            wrapper.classList.add('hidden');
+            return;
+        }
+
+        wrapper.classList.remove('hidden');
+        container.innerHTML = '';
+
+        let filledCount = 0;
+        scheduleDates.forEach(dStr => {
+            const wellKey = `${wellId}_${dStr}`;
+            const existingLog = logsByWellDateMap[wellKey];
+            const otherInfo = getOtherWellsInfoOnDate(wellId, dStr);
+            const isFilled = Boolean(existingLog);
+            if (isFilled) filledCount++;
+
+            const isActive = (dStr === activeDateStr);
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.onclick = () => selectWellDatePill(dStr);
+
+            const dayLabel = formatShortIndoDate(dStr);
+            if (isFilled) {
+                const hrs = parseFloat(existingLog.total_hrs || 0).toFixed(2);
+                btn.className = `px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                    isActive
+                        ? 'bg-emerald-600 text-white ring-2 ring-emerald-400/50 shadow-sm'
+                        : 'lh-badge-emerald'
+                }`;
+                btn.innerHTML = `<i class="fa-solid fa-circle-check text-[10px]"></i> <span>${dayLabel}</span> <span class="text-[10px] opacity-90">(${hrs}j)</span>`;
+            } else {
+                const sisaJam = Math.max(0, 24.0 - otherInfo.hours).toFixed(0);
+                const subText = otherInfo.hours > 0 ? `Sisa ${sisaJam}j` : 'Kosong';
+                btn.className = `px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                    isActive
+                        ? 'bg-sky-600 text-white ring-2 ring-sky-400/50 shadow-sm'
+                        : 'lh-pill-empty'
+                }`;
+                btn.innerHTML = `<i class="fa-regular fa-calendar text-[10px] text-amber-500"></i> <span>${dayLabel}</span> <span class="text-[10px] text-amber-500">(${subText})</span>`;
+            }
+            container.appendChild(btn);
+        });
+
+        if (summaryEl) {
+            summaryEl.innerHTML = `Terisi: <strong class="text-emerald-500">${filledCount}/${scheduleDates.length}</strong> hari`;
+        }
+    }
+
+    function highlightActiveHistoryRow(rowKey) {
+        document.querySelectorAll('.history-row-item').forEach(tr => {
+            tr.classList.toggle('is-active-editing', tr.getAttribute('data-rowkey') === rowKey);
+        });
+    }
+
+    function filterHistoryTable() {
+        const q = (document.getElementById('searchHistoryInput')?.value || '').toLowerCase().trim();
+        document.querySelectorAll('.history-row-item').forEach(tr => {
+            const hay = tr.getAttribute('data-search') || '';
+            tr.style.display = (!q || hay.includes(q)) ? '' : 'none';
+        });
+    }
+
+    function loadLogToForm(data, shouldScroll = true) {
+        const badge = document.getElementById('formModeBadge');
+        badge.className = 'px-2.5 py-1 rounded-md lh-badge-amber text-[10px] font-extrabold uppercase tracking-wider';
+        badge.textContent = `Edit: ${data.tanggal}`;
+
         document.getElementById('selectWell').value = data.daily_report_id;
+        onWellSelectChange(false);
+        document.getElementById('inputTanggal').value = data.tanggal;
         document.getElementById('inputJarak').value = parseFloat(data.jarak) || 0;
         document.getElementById('inputMiru').value = parseFloat(data.miru_jam) || 0;
         document.getElementById('inputOps').value = parseFloat(data.ops_jam) || 0;
@@ -769,46 +1746,55 @@
             }
         });
 
-        // Clear all tp_jam fields first
-        document.querySelectorAll('.dt-tp-input').forEach(inp => inp.value = 0);
-        
-        // Populate tp_jam fields
-        let hasTpData = false;
-        if (data.tp_breakdown) {
+        const tpList = document.getElementById('tpRowsList');
+        tpList.innerHTML = '';
+        let addedRows = 0;
+
+        if (data.tp_breakdown && Object.keys(data.tp_breakdown).length > 0) {
             for (const [tpId, jam] of Object.entries(data.tp_breakdown)) {
-                const el = document.querySelector(`input[name="tp_jam[${tpId}]"]`);
-                if (el) {
-                    const jamVal = parseFloat(jam) || 0;
-                    el.value = jamVal;
-                    if (jamVal > 0) hasTpData = true;
+                const jamVal = parseFloat(jam) || 0;
+                if (jamVal > 0) {
+                    addTpRow(tpId, jamVal);
+                    addedRows++;
                 }
             }
+        } else if ((parseFloat(data.dt_3rd_party) || 0) > 0) {
+            addTpRow(0, parseFloat(data.dt_3rd_party));
+            addedRows++;
         }
 
-        // Auto-expand/collapse
-        const tpContainer = document.getElementById('tpBreakdownContainer');
-        const tpIcon = document.getElementById('tpIcon');
-        if (hasTpData) {
-            tpContainer.classList.remove('hidden');
-            tpIcon.classList.add('rotate-180');
-        } else {
-            tpContainer.classList.add('hidden');
-            tpIcon.classList.remove('rotate-180');
+        if (addedRows === 0) {
+            addTpRow(0, 0);
         }
-        
-        calc3rdPartyTotal();
 
-        document.getElementById('remarkNpt').value = data.remark_npt || '';
-        document.getElementById('remarkUnpaid').value = data.remark_unpaid || '';
+        const loadedNpt = (data.remark_npt || '').trim();
+        const loadedUnp = (data.remark_unpaid || '').trim();
+        document.getElementById('remarkNpt').value = loadedNpt;
+        document.getElementById('remarkUnpaid').value = loadedUnp;
 
+        const { nptText, unpaidText } = buildBesmindoAutoRemark();
+        lastAutoRemarkNpt = nptText;
+        lastAutoRemarkUnpaid = unpaidText;
+
+        // Jika masih kosong, atau sama dengan auto-remark, atau masih memakai format pendek lama tanpa "HR ", aktifkan mode otomatis
+        isRemarkNptAuto = (loadedNpt === '' || loadedNpt === nptText || !/\bHR\b/i.test(loadedNpt));
+        isRemarkUnpaidAuto = (loadedUnp === '' || loadedUnp === unpaidText || !/\bHR\b/i.test(loadedUnp));
+
+        const sel = document.getElementById('selectWell');
+        if (sel && sel.value) {
+            const opt = sel.options[sel.selectedIndex];
+            const wStart = opt.getAttribute('data-start') || periodMinDate;
+            const wEnd   = opt.getAttribute('data-end') || wStart || periodMaxDate;
+            renderWellDatePills(sel.value, getDatesBetween(wStart, wEnd), data.tanggal);
+        }
+
+        highlightActiveHistoryRow(`${data.daily_report_id}_${data.tanggal}`);
         calcDailyTotal();
 
-        const formSec = document.getElementById('formSection');
-        formSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        formSec.classList.add('ring-2', 'ring-cyan-400');
-        setTimeout(() => {
-            formSec.classList.remove('ring-2', 'ring-cyan-400');
-        }, 1200);
+        if (shouldScroll) {
+            const formSec = document.getElementById('formSection');
+            formSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
     }
 
     function confirmHapusLog(tanggal, wellLabel) {
@@ -816,6 +1802,29 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const qWellId = urlParams.get('well_id');
+        const qTanggal = urlParams.get('tanggal');
+        const sel = document.getElementById('selectWell');
+
+        if (sel && qWellId) {
+            const matchingOpt = Array.from(sel.options).find(opt => opt.value === String(qWellId));
+            if (matchingOpt) {
+                sel.value = String(qWellId);
+            }
+        }
+
+        onWellSelectChange(true);
+
+        if (sel && qTanggal && sel.selectedIndex >= 0) {
+            const opt = sel.options[sel.selectedIndex];
+            const wStart = opt.getAttribute('data-start') || periodMinDate;
+            const wEnd   = opt.getAttribute('data-end') || wStart || periodMaxDate;
+            if (qTanggal >= wStart && qTanggal <= wEnd) {
+                selectWellDatePill(qTanggal);
+            }
+        }
+
         calcDailyTotal();
     });
 </script>

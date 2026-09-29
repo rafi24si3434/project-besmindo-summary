@@ -16,13 +16,7 @@ class ThirdParty extends BaseController
 
     public function index()
     {
-        $data = [
-            'title'         => 'Master Vendor 3rd Party',
-            'page_title'    => 'Daftar Mitra Vendor (Third Party)',
-            'page_subtitle' => 'Pihak ketiga pendukung operasi sumur (BHI, HLS, WI, HALCO, dll)',
-            'thirdParties'  => $this->thirdPartyModel->orderBy('nama', 'ASC')->findAll(),
-        ];
-        return view('master/third_party/index', $data);
+        return redirect()->to(base_url('master?tab=third_party'));
     }
 
     public function tambah()
@@ -47,14 +41,14 @@ class ThirdParty extends BaseController
             'aktif' => $this->request->getPost('aktif') ? 1 : 0,
         ]);
 
-        return redirect()->to(base_url('master/third-party'))->with('success', 'Vendor berhasil ditambahkan.');
+        return redirect()->to(base_url('master?tab=third_party'))->with('success', 'Vendor berhasil ditambahkan.');
     }
 
     public function edit($id)
     {
         $tp = $this->thirdPartyModel->find($id);
         if (!$tp) {
-            return redirect()->to(base_url('master/third-party'))->with('error', 'Vendor tidak ditemukan.');
+            return redirect()->to(base_url('master?tab=third_party'))->with('error', 'Vendor tidak ditemukan.');
         }
 
         $data = [
@@ -78,12 +72,12 @@ class ThirdParty extends BaseController
             'aktif' => $this->request->getPost('aktif') ? 1 : 0,
         ]);
 
-        return redirect()->to(base_url('master/third-party'))->with('success', 'Data vendor berhasil diupdate.');
+        return redirect()->to(base_url('master?tab=third_party'))->with('success', 'Data vendor berhasil diupdate.');
     }
 
     public function hapus($id)
     {
         $this->thirdPartyModel->delete($id);
-        return redirect()->to(base_url('master/third-party'))->with('success', 'Vendor berhasil dihapus.');
+        return redirect()->to(base_url('master?tab=third_party'))->with('success', 'Vendor berhasil dihapus.');
     }
 }

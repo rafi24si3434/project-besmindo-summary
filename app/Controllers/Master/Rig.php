@@ -16,13 +16,7 @@ class Rig extends BaseController
 
     public function index()
     {
-        $data = [
-            'title'         => 'Master Armada Rig',
-            'page_title'    => 'Daftar Armada Rig & Tarif Harian (ODR)',
-            'page_subtitle' => 'Pengaturan kode rig, nama unit operasi, status keaktifan, dan target rate harian',
-            'rigs'          => $this->rigModel->orderBy('id', 'ASC')->findAll(),
-        ];
-        return view('master/rig/index', $data);
+        return redirect()->to(base_url('master?tab=rig'));
     }
 
     public function tambah()
@@ -55,14 +49,14 @@ class Rig extends BaseController
             'created_at' => date('Y-m-d H:i:s'),
         ]);
 
-        return redirect()->to(base_url('master/rig'))->with('success', 'Armada rig berhasil ditambahkan.');
+        return redirect()->to(base_url('master?tab=rig'))->with('success', 'Armada rig berhasil ditambahkan.');
     }
 
     public function edit($id)
     {
         $rig = $this->rigModel->find($id);
         if (!$rig) {
-            return redirect()->to(base_url('master/rig'))->with('error', 'Rig tidak ditemukan.');
+            return redirect()->to(base_url('master?tab=rig'))->with('error', 'Rig tidak ditemukan.');
         }
 
         $data = [
@@ -93,12 +87,12 @@ class Rig extends BaseController
             'aktif'    => $this->request->getPost('aktif') ? 1 : 0,
         ]);
 
-        return redirect()->to(base_url('master/rig'))->with('success', 'Data armada rig berhasil diperbarui.');
+        return redirect()->to(base_url('master?tab=rig'))->with('success', 'Data armada rig berhasil diperbarui.');
     }
 
     public function hapus($id)
     {
         $this->rigModel->delete($id);
-        return redirect()->to(base_url('master/rig'))->with('success', 'Rig berhasil dihapus.');
+        return redirect()->to(base_url('master?tab=rig'))->with('success', 'Rig berhasil dihapus.');
     }
 }

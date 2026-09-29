@@ -255,45 +255,26 @@ class NptModel extends Model
         // Pos 3rd Party (ID 10):
         $tpJamArray = $logRow['tp_jam'] ?? [];
         $jam3rdPartyTotal = (float)($logRow['dt_3rd_party'] ?? 0);
-        
-        if (!empty($tpJamArray)) {
-            // Hapus yang null (kalau ada)
-            $this->db->table('npt_harian')
-                ->where('rig_id', $rig_id)
-                ->where('tanggal', $tanggal)
-                ->where('kategori_id', 10)
-                ->where('third_party_id IS NULL')
-                ->delete();
 
-            // Insert per third party breakdown
+        // Bersihkan entri 3rd party tanggal ini terlebih dahulu agar sinkron dengan pilihan terbaru
+        $this->db->table('npt_harian')
+            ->where('rig_id', $rig_id)
+            ->where('tanggal', $tanggal)
+            ->where('kategori_id', 10)
+            ->delete();
+
+        if (!empty($tpJamArray)) {
             foreach ($tpJamArray as $tpId => $jam) {
                 $jam = (float)$jam;
                 if ($jam > 0) {
-                    $this->upsertNpt($rig_id, $tanggal, 10, (int)$tpId, $jam, $remarkGeneral);
-                } else {
-                    // Hapus jika di-nol-kan
-                    $this->hapusRow($rig_id, $tanggal, 10, (int)$tpId);
+                    // tpId = 0 berarti Tanpa Perusahaan (third_party_id = NULL)
+                    $thirdPartyId = ((int)$tpId === 0) ? null : (int)$tpId;
+                    $this->upsertNpt($rig_id, $tanggal, 10, $thirdPartyId, $jam, $remarkGeneral);
                 }
             }
-        } else if ($jam3rdPartyTotal > 0) {
-            // Fallback (misal diisi dari sumber lain tapi tp_jam kosong)
-            $existing3rd = $this->db->table('npt_harian')
-                ->where('rig_id', $rig_id)
-                ->where('tanggal', $tanggal)
-                ->where('kategori_id', 10)
-                ->where('third_party_id IS NOT NULL')
-                ->get()->getResultArray();
-
-            if (empty($existing3rd)) {
-                $this->upsertNpt($rig_id, $tanggal, 10, null, $jam3rdPartyTotal, $remarkGeneral);
-            }
-        } else {
-            // Jika dt_3rd_party = 0 dan tp_jam kosong, hapus semua
-            $this->db->table('npt_harian')
-                ->where('rig_id', $rig_id)
-                ->where('tanggal', $tanggal)
-                ->where('kategori_id', 10)
-                ->delete();
+        } elseif ($jam3rdPartyTotal > 0) {
+            // Disimpan sebagai Tanpa Perusahaan (NULL)
+            $this->upsertNpt($rig_id, $tanggal, 10, null, $jam3rdPartyTotal, $remarkGeneral);
         }
     }
 

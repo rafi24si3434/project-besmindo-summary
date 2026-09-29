@@ -16,13 +16,7 @@ class KategoriDowntime extends BaseController
 
     public function index()
     {
-        $data = [
-            'title'         => 'Master Kategori Downtime',
-            'page_title'    => 'Kategori Downtime (UNPAID & SBWC)',
-            'page_subtitle' => 'Daftar klasifikasi downtime operasi rig sesuai standar kontrak',
-            'kategori'      => $this->kategoriModel->getAllOrdered(),
-        ];
-        return view('master/kategori/index', $data);
+        return redirect()->to(base_url('master?tab=kategori'));
     }
 
     public function tambah()
@@ -54,14 +48,14 @@ class KategoriDowntime extends BaseController
             'aktif'  => $this->request->getPost('aktif') ? 1 : 0,
         ]);
 
-        return redirect()->to(base_url('master/kategori'))->with('success', 'Kategori downtime berhasil ditambahkan.');
+        return redirect()->to(base_url('master?tab=kategori'))->with('success', 'Kategori downtime berhasil ditambahkan.');
     }
 
     public function edit($id)
     {
         $kategori = $this->kategoriModel->find($id);
         if (!$kategori) {
-            return redirect()->to(base_url('master/kategori'))->with('error', 'Kategori tidak ditemukan.');
+            return redirect()->to(base_url('master?tab=kategori'))->with('error', 'Kategori tidak ditemukan.');
         }
 
         $data = [
@@ -92,12 +86,12 @@ class KategoriDowntime extends BaseController
             'aktif'  => $this->request->getPost('aktif') ? 1 : 0,
         ]);
 
-        return redirect()->to(base_url('master/kategori'))->with('success', 'Kategori downtime berhasil diupdate.');
+        return redirect()->to(base_url('master?tab=kategori'))->with('success', 'Kategori downtime berhasil diupdate.');
     }
 
     public function hapus($id)
     {
         $this->kategoriModel->delete($id);
-        return redirect()->to(base_url('master/kategori'))->with('success', 'Kategori berhasil dihapus.');
+        return redirect()->to(base_url('master?tab=kategori'))->with('success', 'Kategori berhasil dihapus.');
     }
 }

@@ -40,26 +40,26 @@
                     ?>
                     <label class="block text-xs font-bold text-slate-300 uppercase mb-1.5 flex items-center justify-between">
                         <span>Location (Nama Sumur) <span class="text-rose-400">*</span></span>
-                        <span class="text-[10px] text-amber-400 font-normal">Ketik untuk mencari cepat</span>
+                        <span id="lokasiStatusHint" class="text-[10px] text-amber-400 font-normal">Ketik pilih atau buat lokasi baru otomatis</span>
                     </label>
 
-                    <!-- Hidden Input for Form Submission -->
-                    <input type="hidden" name="lokasi_id" id="lokasi_id" value="<?= esc($selectedLokId) ?>" required>
+                    <!-- Hidden Input for Form Submission (Optional if user types a new name) -->
+                    <input type="hidden" name="lokasi_id" id="lokasi_id" value="<?= esc($selectedLokId) ?>">
 
-                    <!-- Searchable Combobox Container -->
+                    <!-- Searchable & Auto-Create Combobox Container -->
                     <div class="relative" id="lokasiComboboxWrapper">
                         <div class="flex items-center bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 focus-within:border-amber-400 focus-within:ring-2 focus-within:ring-amber-400/20 transition shadow-inner">
                             <i class="fa-solid fa-location-dot text-amber-400 text-xs mr-2 flex-shrink-0"></i>
-                            <input type="text" id="lokasiSearchInput" 
-                                   placeholder="Ketik untuk mencari lokasi (cth: 3J, Duri, Minas...)" 
-                                   value="<?= esc($selectedLokNama) ?>"
+                            <input type="text" name="nama_lokasi_input" id="lokasiSearchInput" required
+                                   placeholder="Ketik nama sumur (cth: KB 387, PH 155, 3J...)" 
+                                   value="<?= esc(old('nama_lokasi_input', $selectedLokNama)) ?>"
                                    data-selected-name="<?= esc($selectedLokNama) ?>"
                                    autocomplete="off"
-                                   class="bg-transparent border-0 text-xs font-bold text-white focus:outline-none w-full placeholder-slate-500">
+                                   class="bg-transparent border-0 text-xs font-bold text-white focus:outline-none w-full placeholder-slate-500 uppercase">
                             
                             <!-- Clear Selection Button -->
                             <button type="button" id="btnClearLokasi" onclick="clearLokasiSelection()" 
-                                    class="text-slate-400 hover:text-white px-1.5 py-0.5 rounded text-xs transition <?= empty($selectedLokId) ? 'hidden' : '' ?>" title="Hapus / Ganti Lokasi">
+                                    class="text-slate-400 hover:text-white px-1.5 py-0.5 rounded text-xs transition <?= empty($selectedLokId) && empty($selectedLokNama) ? 'hidden' : '' ?>" title="Hapus / Ganti Lokasi">
                                 <i class="fa-solid fa-xmark"></i>
                             </button>
 
@@ -70,10 +70,19 @@
                             </button>
                         </div>
 
-                        <!-- Dropdown List of Locations with Live Filter -->
-                        <div id="lokasiDropdownMenu" class="hidden absolute left-0 right-0 top-full mt-1.5 bg-slate-900 border-2 border-slate-700 rounded-xl shadow-2xl z-50 overflow-hidden max-h-60 flex flex-col">
+                        <!-- Dropdown List of Locations with Live Filter & Instant Auto-Create -->
+                        <div id="lokasiDropdownMenu" class="hidden absolute left-0 right-0 top-full mt-1.5 bg-slate-900 border-2 border-slate-700 rounded-xl shadow-2xl z-50 overflow-hidden max-h-64 flex flex-col">
+                            <!-- Instant Auto-Create Banner when typed name is new -->
+                            <div id="lokasiCreateNewItem" onclick="useNewLokasiName()" class="hidden px-3.5 py-2.5 bg-emerald-950/80 hover:bg-emerald-900 border-b border-emerald-500/40 cursor-pointer transition flex items-center justify-between text-xs text-emerald-300 font-bold">
+                                <span class="flex items-center gap-2">
+                                    <i class="fa-solid fa-plus-circle text-emerald-400"></i>
+                                    <span>Buat &amp; Gunakan: "<strong id="newLokasiPreviewText" class="text-white uppercase"></strong>"</span>
+                                </span>
+                                <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-[10px] font-mono text-emerald-300 border border-emerald-500/40">Otomatis Simpan Master</span>
+                            </div>
+
                             <div class="px-3.5 py-2 bg-slate-850 border-b border-slate-750 flex items-center justify-between text-[11px] text-slate-400 font-bold">
-                                <span>PILIH NAMA LOKASI:</span>
+                                <span>DAFTAR LOKASI TERDAFTAR:</span>
                                 <span id="lokasiMatchCount" class="text-amber-400 font-mono"><?= count($lokasiList) ?> lokasi</span>
                             </div>
                             <div class="overflow-y-auto custom-scrollbar divide-y divide-slate-800/80" id="lokasiOptionsList">
@@ -95,9 +104,9 @@
                                     <?php endif; ?>
                                 </div>
                                 <?php endforeach; ?>
-                                <div id="lokasiEmptyState" class="hidden px-4 py-5 text-center text-xs text-slate-400">
-                                    <i class="fa-solid fa-circle-question text-base text-slate-500 mb-1 block"></i>
-                                    Tidak ada lokasi yang cocok dengan kata kunci tersebut.
+                                <div id="lokasiEmptyState" class="hidden px-4 py-4 text-center text-xs text-emerald-300 bg-emerald-950/20">
+                                    <i class="fa-solid fa-wand-magic-sparkles text-sm text-emerald-400 mb-1 block"></i>
+                                    Lokasi belum ada di Master Data — klik tombol hijau di atas atau langsung klik <strong>Simpan</strong>, sistem akan otomatis menyimpannya!
                                 </div>
                             </div>
                         </div>
@@ -106,116 +115,88 @@
 
                 <div>
                     <label class="block text-xs font-bold text-slate-300 uppercase mb-1.5">Distance (Rp)</label>
-                    <input type="number" name="jarak" value="<?= old('jarak', $report['jarak'] ?? '0') ?>" min="0"
+                    <input type="text" inputmode="decimal" name="jarak" value="<?= str_replace('.', ',', (string)old('jarak', $report['jarak'] ?? '0')) ?>" placeholder="Contoh: 2,5"
                         class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white font-num text-xs focus:ring-2 focus:ring-blue-500">
                 </div>
 
+                <?php
+                    $bBulan = (int)($report['bulan'] ?? $bulan);
+                    $bTahun = (int)($report['tahun'] ?? $tahun);
+                    $maxDaysPeriod = cal_days_in_month(CAL_GREGORIAN, $bBulan, $bTahun);
+                    $minDatePeriod = sprintf('%04d-%02d-01', $bTahun, $bBulan);
+                    $maxDatePeriod = sprintf('%04d-%02d-%02d', $bTahun, $bBulan, $maxDaysPeriod);
+                    $valMulai   = old('tanggal_mulai', $report['tanggal_mulai'] ?? $minDatePeriod);
+                    $valSelesai = old('tanggal_selesai', $report['tanggal_selesai'] ?? $valMulai);
+                ?>
                 <div class="sm:col-span-2">
-                    <label class="block text-xs font-bold text-slate-300 uppercase mb-1.5">Tanggal Mulai</label>
-                    <input type="date" name="tanggal_mulai" value="<?= old('tanggal_mulai', $report['tanggal_mulai'] ?? '') ?>"
-                        class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white text-xs focus:ring-2 focus:ring-blue-500">
-                </div>
-
-                <div class="sm:col-span-2">
-                    <label class="block text-xs font-bold text-slate-300 uppercase mb-1.5">Tanggal Selesai</label>
-                    <input type="date" name="tanggal_selesai" value="<?= old('tanggal_selesai', $report['tanggal_selesai'] ?? '') ?>"
-                        class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white text-xs focus:ring-2 focus:ring-blue-500">
-                </div>
-            </div>
-
-            <!-- Bagian 2: Jam Operasi Utama (MIRU & OPS) -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div class="p-3.5 rounded-xl bg-lime-950/20 border border-lime-500/30">
-                    <label class="block text-xs font-bold text-lime-400 uppercase mb-1.5">MIRU (Jam)</label>
-                    <input type="number" step="0.25" min="0" name="miru_jam" id="miru_jam" value="<?= old('miru_jam', $report['miru_jam'] ?? '0') ?>" oninput="calcTotalJam()" required
-                        class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-lime-400 font-num font-bold text-sm focus:ring-2 focus:ring-lime-500">
-                    <p class="text-[10.5px] text-slate-400 mt-1">Durasi Move In / Rig Up</p>
-                </div>
-
-                <div class="p-3.5 rounded-xl bg-lime-950/20 border border-lime-500/30">
-                    <label class="block text-xs font-bold text-lime-400 uppercase mb-1.5">OPS (Jam)</label>
-                    <input type="number" step="0.25" min="0" name="ops_jam" id="ops_jam" value="<?= old('ops_jam', $report['ops_jam'] ?? '0') ?>" oninput="calcTotalJam()" required
-                        class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-lime-400 font-num font-bold text-sm focus:ring-2 focus:ring-lime-500">
-                    <p class="text-[10.5px] text-slate-400 mt-1">Durasi Operasi Pengeboran / Workover</p>
-                </div>
-            </div>
-
-            <!-- Bagian 3: Pos Rincian Downtime (SBWC & UNPAID persis seperti Excel) -->
-            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-750 space-y-4">
-                <div class="border-b border-slate-750 pb-2 flex items-center justify-between">
-                    <span class="text-xs font-bold text-yellow-400 uppercase flex items-center gap-1.5">
-                        <i class="fa-solid fa-clock"></i>
-                        <span>Rincian Jam Downtime Per Pos (SBWC & UNPAID)</span>
-                    </span>
-                    <span class="text-[11px] text-slate-400">Total DT: <strong id="previewTotalDt" class="text-orange-300 font-num">0.00</strong> Jam</span>
-                </div>
-
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <?php foreach ($kategoriList as $k): 
-                        $kId = $k['id'];
-                        $val = $dtMap[$kId] ?? 0;
-                    ?>
-                    <div>
-                        <label class="block text-[11px] font-semibold text-slate-300 truncate mb-1" title="<?= esc($k['nama']) ?>">
-                            <?= esc($k['nama']) ?>
-                            <span class="text-[9px] <?= $k['tipe'] == 'UNPAID' ? 'text-rose-400' : 'text-yellow-400' ?> font-mono">(<?= $k['tipe'] ?>)</span>
-                        </label>
-                        <input type="number" step="0.25" min="0" name="dt[<?= $kId ?>]" value="<?= $val > 0 ? $val : '' ?>" placeholder="0"
-                            oninput="calcTotalJam()"
-                            class="dt-input w-full px-2.5 py-1.5 bg-slate-950 border border-slate-700 rounded-lg text-white font-num text-xs focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <?php endforeach; ?>
-                </div>
-            </div>
-
-            <!-- Ringkasan Total Jam Sumur -->
-            <div class="p-4 rounded-xl bg-slate-950 border border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-3">
-                <div class="flex items-center gap-2">
-                    <span class="text-xs font-bold text-slate-300 uppercase">Formula:</span>
-                    <span class="text-xs text-slate-400">Total Jam = MIRU + OPS + Total DT</span>
-                </div>
-                <div class="flex items-center gap-4">
-                    <div class="text-right">
-                        <span class="text-[11px] text-slate-400 block">TOTAL HOURS:</span>
-                        <span id="previewTotalJam" class="font-num font-black text-xl text-emerald-400">0.00 Jam</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Status Job & Remark -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                    <label class="block text-xs font-bold text-slate-300 uppercase mb-1.5">Status Job</label>
-                    <select name="status_job" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white font-semibold text-xs focus:ring-2 focus:ring-blue-500">
-                        <option value="JOB COMPLETED" <?= (old('status_job', $report['status_job'] ?? '') == 'JOB COMPLETED') ? 'selected' : '' ?>>JOB COMPLETED</option>
-                        <option value="JOB PROGRESS" <?= (old('status_job', $report['status_job'] ?? '') == 'JOB PROGRESS') ? 'selected' : '' ?>>JOB PROGRESS</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-slate-300 uppercase mb-1.5">Remark Umum / SBWC</label>
-                    <input type="text" name="remark" value="<?= old('remark', $report['remark'] ?? '') ?>" placeholder="Catatan kendala operasi umum/SBWC"
-                        class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white text-xs focus:ring-2 focus:ring-blue-500">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-rose-400 uppercase mb-1.5 flex items-center gap-1.5">
-                        <i class="fa-solid fa-triangle-exclamation text-rose-400"></i>
-                        <span>Remark UNPAID (Sinkron ke NPT)</span>
+                    <label class="block text-xs font-bold text-slate-300 uppercase mb-1.5">
+                        Tanggal Mulai <span class="text-rose-400">*</span>
                     </label>
-                    <input type="text" name="remark_unpaid" value="<?= old('remark_unpaid', $report['remark_unpaid'] ?? '') ?>" placeholder="Cth: Unpaid 1 HR Pump Rusak, Part patah"
-                        class="w-full px-3 py-2 bg-slate-950 border border-rose-500/50 rounded-lg text-rose-200 text-xs focus:ring-2 focus:ring-rose-500 placeholder:text-slate-600">
+                    <input type="date" name="tanggal_mulai" id="inputTglMulai" required
+                        value="<?= esc($valMulai) ?>"
+                        oninput="syncWellDateRange()"
+                        class="w-full px-3 py-2.5 bg-slate-950 border border-slate-700 rounded-lg text-white font-bold text-xs focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <div class="sm:col-span-2">
+                    <label class="block text-xs font-bold text-slate-300 uppercase mb-1.5">
+                        Tanggal Selesai <span class="text-rose-400">*</span>
+                    </label>
+                    <input type="date" name="tanggal_selesai" id="inputTglSelesai" required
+                        value="<?= esc($valSelesai) ?>"
+                        min="<?= esc($valMulai) ?>"
+                        oninput="syncWellDateRange()"
+                        class="w-full px-3 py-2.5 bg-slate-950 border border-slate-700 rounded-lg text-white font-bold text-xs focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <!-- Live Info Rentang Tanggal Sumur -->
+                <div class="sm:col-span-4 pt-1">
+                    <div class="px-3.5 py-2.5 rounded-xl bg-blue-950/40 border border-blue-500/30 flex flex-wrap items-center justify-between gap-2">
+                        <div class="flex items-center gap-2 text-xs text-blue-200">
+                            <i class="fa-solid fa-calendar-check text-blue-400"></i>
+                            <span>Jadwal Input Harian Sumur Ini: <strong id="labelRentangTanggal" class="text-amber-300 font-mono">-</strong></span>
+                        </div>
+                        <span id="badgeDurasiHari" class="px-2.5 py-0.5 rounded-md bg-blue-500/20 border border-blue-400/30 text-[11px] font-bold text-blue-300 font-mono">
+                            1 Hari
+                        </span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-1.5">
+                        <i class="fa-solid fa-circle-info text-sky-400 mr-1"></i>
+                        Saat mengisi <strong>Log Harian (MIRU, OPS, SBWC &amp; UNPAID)</strong>, operator hanya dapat menginput pada rentang tanggal yang tertera di atas.
+                    </p>
+                </div>
+
+                <?php $curStatus = strtoupper(trim((string)($report['status_job'] ?? 'JOB PROGRESS'))); ?>
+                <div class="sm:col-span-4 pt-2 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3">
+                    <span class="text-xs font-bold text-slate-300 uppercase">Status Pekerjaan Sumur:</span>
+                    <div class="flex items-center gap-2">
+                        <select name="status_job" class="px-3 py-1.5 bg-slate-950 border border-slate-700 rounded-lg text-white font-bold text-xs focus:ring-2 focus:ring-blue-500">
+                            <option value="JOB PROGRESS" <?= ($curStatus !== 'JOB COMPLETED' && $curStatus !== 'JOB SUSPEND') ? 'selected' : '' ?>>ON PROGRESS (Sedang Dikerjakan)</option>
+                            <option value="JOB COMPLETED" <?= ($curStatus === 'JOB COMPLETED') ? 'selected' : '' ?>>JOB COMPLETED (Selesai)</option>
+                            <option value="JOB SUSPEND" <?= ($curStatus === 'JOB SUSPEND') ? 'selected' : '' ?>>JOB SUSPEND (Ditunda / Suspend)</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
-            <div class="pt-4 flex items-center justify-end gap-3 border-t border-slate-700">
-                <a href="<?= base_url('daily-report/' . ($report['rig_id'] ?? $rigId) . '/' . ($report['bulan'] ?? $bulan) . '/' . ($report['tahun'] ?? $tahun)) ?>" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white font-semibold text-xs rounded-lg transition">
+            <input type="hidden" name="redirect_action" id="redirect_action" value="log_harian">
+
+            <div class="pt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-700">
+                <a href="<?= base_url('daily-report/' . ($report['rig_id'] ?? $rigId) . '/' . ($report['bulan'] ?? $bulan) . '/' . ($report['tahun'] ?? $tahun)) ?>" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white font-semibold text-xs rounded-xl transition">
                     Batal
                 </a>
-                <button type="submit" class="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-lg shadow-lg shadow-blue-600/30 transition flex items-center gap-2">
-                    <i class="fa-solid fa-floppy-disk"></i>
-                    <span>SIMPAN PEKERJAAN SUMUR</span>
-                </button>
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <button type="submit" onclick="document.getElementById('redirect_action').value='grid'" class="px-4 py-2.5 bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs rounded-xl transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-table-list"></i>
+                        <span><?= isset($report) ? 'Simpan Perubahan' : 'Simpan ke Daftar Sumur' ?></span>
+                    </button>
+                    <?php if (!isset($report)): ?>
+                    <button type="submit" onclick="document.getElementById('redirect_action').value='log_harian'" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-blue-600/30 transition flex items-center gap-2">
+                        <i class="fa-solid fa-bolt"></i>
+                        <span>SIMPAN &amp; ISI LOG HARIAN</span>
+                    </button>
+                    <?php endif; ?>
+                </div>
             </div>
         </form>
     </div>
@@ -224,22 +205,31 @@
 
 <?= $this->section('scripts') ?>
 <script>
-    function calcTotalJam() {
-        const miru = parseFloat(document.getElementById('miru_jam').value) || 0;
-        const ops = parseFloat(document.getElementById('ops_jam').value) || 0;
-        
-        let sumDt = 0;
-        document.querySelectorAll('.dt-input').forEach(inp => {
-            const val = parseFloat(inp.value);
-            if (!isNaN(val)) sumDt += val;
-        });
+    function syncWellDateRange() {
+        const startEl = document.getElementById('inputTglMulai');
+        const endEl   = document.getElementById('inputTglSelesai');
+        const labelEl = document.getElementById('labelRentangTanggal');
+        const badgeEl = document.getElementById('badgeDurasiHari');
 
-        document.getElementById('previewTotalDt').innerText = sumDt.toFixed(2);
-        
-        const total = miru + ops + sumDt;
-        document.getElementById('previewTotalJam').innerText = total.toFixed(2) + ' Jam';
+        if (!startEl || !endEl) return;
+
+        if (startEl.value) {
+            endEl.min = startEl.value;
+            if (!endEl.value || endEl.value < startEl.value) {
+                endEl.value = startEl.value;
+            }
+        }
+
+        if (startEl.value && endEl.value) {
+            const d1 = new Date(startEl.value + 'T00:00:00');
+            const d2 = new Date(endEl.value + 'T00:00:00');
+            const diffDays = Math.max(1, Math.round((d2 - d1) / (1000 * 60 * 60 * 24)) + 1);
+            const fmt = (d) => d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+            labelEl.textContent = `${fmt(d1)} s/d ${fmt(d2)}`;
+            badgeEl.textContent = `${diffDays} Hari Operasi`;
+        }
     }
-    calcTotalJam();
+    syncWellDateRange();
 
     // ═══ Searchable Location Combobox Logic ═══
     function toggleLokasiDropdown() {
@@ -268,15 +258,27 @@
 
     function filterLokasiList() {
         const input = document.getElementById('lokasiSearchInput');
-        const q = input.value.toLowerCase().trim();
+        const rawVal = input.value.trim();
+        const q = rawVal.toLowerCase();
         const items = document.querySelectorAll('#lokasiOptionsList .lokasi-option-item');
         const emptyState = document.getElementById('lokasiEmptyState');
         const countEl = document.getElementById('lokasiMatchCount');
+        const createNewEl = document.getElementById('lokasiCreateNewItem');
+        const previewEl = document.getElementById('newLokasiPreviewText');
+        const hintEl = document.getElementById('lokasiStatusHint');
 
         let matches = 0;
+        let exactMatchId = null;
+        let exactMatchName = null;
+
         items.forEach(item => {
-            const name = (item.getAttribute('data-nama') || '').toLowerCase();
-            if (q === '' || name.includes(q)) {
+            const name = (item.getAttribute('data-nama') || '');
+            const nameLower = name.toLowerCase().trim();
+            if (q !== '' && nameLower === q) {
+                exactMatchId = item.getAttribute('data-id');
+                exactMatchName = name;
+            }
+            if (q === '' || nameLower.includes(q)) {
                 item.style.display = '';
                 matches++;
             } else {
@@ -284,10 +286,49 @@
             }
         });
 
+        if (exactMatchId) {
+            document.getElementById('lokasi_id').value = exactMatchId;
+            if (createNewEl) createNewEl.classList.add('hidden');
+            if (hintEl) {
+                hintEl.textContent = '✓ Lokasi Terdaftar';
+                hintEl.className = 'text-[10px] text-emerald-400 font-bold';
+            }
+        } else if (q !== '') {
+            document.getElementById('lokasi_id').value = '';
+            if (previewEl) previewEl.textContent = rawVal.toUpperCase();
+            if (createNewEl) createNewEl.classList.remove('hidden');
+            if (hintEl) {
+                hintEl.textContent = `✨ Lokasi Baru "${rawVal.toUpperCase()}" (Otomatis Simpan)`;
+                hintEl.className = 'text-[10px] text-emerald-400 font-bold';
+            }
+        } else {
+            document.getElementById('lokasi_id').value = '';
+            if (createNewEl) createNewEl.classList.add('hidden');
+            if (hintEl) {
+                hintEl.textContent = 'Ketik pilih atau buat lokasi baru otomatis';
+                hintEl.className = 'text-[10px] text-amber-400 font-normal';
+            }
+        }
+
         if (countEl) countEl.innerText = matches + ' lokasi';
         if (emptyState) {
             emptyState.style.display = matches === 0 ? 'block' : 'none';
         }
+    }
+
+    function useNewLokasiName() {
+        const input = document.getElementById('lokasiSearchInput');
+        const rawVal = input.value.trim().toUpperCase();
+        if (!rawVal) return;
+        input.value = rawVal;
+        document.getElementById('lokasi_id').value = '';
+        document.getElementById('btnClearLokasi').classList.remove('hidden');
+        const hintEl = document.getElementById('lokasiStatusHint');
+        if (hintEl) {
+            hintEl.textContent = `✓ Lokasi Baru "${rawVal}" Siap Disimpan Otomatis`;
+            hintEl.className = 'text-[10px] text-emerald-400 font-bold';
+        }
+        closeLokasiDropdown();
     }
 
     function selectLokasi(id, nama) {
@@ -296,6 +337,11 @@
         input.value = nama;
         input.setAttribute('data-selected-name', nama);
         document.getElementById('btnClearLokasi').classList.remove('hidden');
+        const hintEl = document.getElementById('lokasiStatusHint');
+        if (hintEl) {
+            hintEl.textContent = '✓ Lokasi Terpilih';
+            hintEl.className = 'text-[10px] text-emerald-400 font-bold';
+        }
         closeLokasiDropdown();
 
         // Highlight selected item
@@ -326,23 +372,17 @@
         });
         lokasiInput.addEventListener('input', () => {
             openLokasiDropdown();
-            // Invalidate hidden id if text is modified
-            const selectedName = lokasiInput.getAttribute('data-selected-name');
-            if (lokasiInput.value !== selectedName) {
-                document.getElementById('lokasi_id').value = '';
-                document.getElementById('btnClearLokasi').classList.add('hidden');
-            }
+            document.getElementById('btnClearLokasi').classList.toggle('hidden', lokasiInput.value.trim() === '');
             filterLokasiList();
         });
         lokasiInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault();
-                // Select first visible match
                 const firstVisible = document.querySelector('#lokasiOptionsList .lokasi-option-item:not([style*="display: none"])');
-                if (firstVisible) {
-                    const id = firstVisible.getAttribute('data-id');
-                    const nama = firstVisible.getAttribute('data-nama');
-                    selectLokasi(id, nama);
+                if (firstVisible && firstVisible.getAttribute('data-nama').toLowerCase() === lokasiInput.value.trim().toLowerCase()) {
+                    selectLokasi(firstVisible.getAttribute('data-id'), firstVisible.getAttribute('data-nama'));
+                } else {
+                    useNewLokasiName();
                 }
             } else if (e.key === 'Escape') {
                 closeLokasiDropdown();

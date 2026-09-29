@@ -221,7 +221,23 @@ class Export extends BaseController
             $sheet->setCellValue("N{$row}", (float)($s['revenue_target'] ?? 0));
             $sheet->setCellValue("O{$row}", (float)($s['revenue_actual'] ?? 0));
             $sheet->setCellValue("P{$row}", (float)($s['total_jam'] ?? 0));
-            $sheet->setCellValue("Q{$row}", $s['remark'] ?? '-');
+            $rawRem = trim((string)($s['remark'] ?? ''));
+            $remDisplay = '-';
+            if ($rawRem !== '') {
+                $decRem = json_decode($rawRem, true);
+                if (is_array($decRem) && isset($decRem['notes'])) {
+                    $nList = [];
+                    foreach (($decRem['notes'] ?? []) as $ni) {
+                        $lbl = trim(($ni['lokasi'] ?? '') . ' ' . ($ni['tanggal'] ?? ''));
+                        $txt = trim(($ni['isi'] ?? '') . ' ' . ($ni['waktu'] ?? ''));
+                        if ($txt !== '') $nList[] = ($lbl !== '' ? "[{$lbl}] " : '') . $txt;
+                    }
+                    $remDisplay = !empty($nList) ? implode(' | ', $nList) : '-';
+                } else {
+                    $remDisplay = $rawRem;
+                }
+            }
+            $sheet->setCellValue("Q{$row}", $remDisplay);
 
             // Alignment & Fonts
             $sheet->getStyle("B{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
@@ -755,10 +771,597 @@ class Export extends BaseController
     }
 
     /**
+     * Helper: Membangun Lembar Kerja Excel Persis Template Asli:
+     * "SUMMARY REPORT PER WELL {RIG} {BULAN} {TAHUN}"
+     * Lengkap dengan Baris Tarif Kontrak Rp (ODR, MIRU, OPS, SBWC), Rincian Tanggal per Sumur,
+     * Merge Vertikal (No, Location, Distance, Job), dan Baris Subtotal Biru Muda (#D9E1F2) per Sumur.
+     */
+    private function populateSummaryReportPerWellSheet($sheet, array $rig, int $bulan, int $tahun): void
+    {
+        $rigId     = (int)$rig['id'];
+        $rigKode   = strtoupper(trim($rig['kode'] ?? 'RIG'));
+        $bulanName = self::BULAN_NAMES[$bulan] ?? "BULAN {$bulan}";
+        $odr       = (float)($rig['odr'] ?? 0);
+
+        $rateOps  = $odr > 0 ? round($odr / 24) : 0;
+        $rateMiru = $odr > 0 ? round(($odr / 24) * 0.75) : 0;
+        $rateSbwc = $odr > 0 ? round(($odr / 24) * 0.65) : 0;
+
+        $reports = $this->dailyReportModel->getByRigBulanTahun($rigId, $bulan, $tahun);
+        $db      = \Config\Database::connect();
+
+        // Ambil semua daily_report_log dikelompokkan per daily_report_id
+        $rawLogs = $db->table('daily_report_log drl')
+            ->select('drl.*')
+            ->join('daily_report dr', 'dr.id = drl.daily_report_id')
+            ->where('dr.rig_id', $rigId)
+            ->where('dr.bulan', $bulan)
+            ->where('dr.tahun', $tahun)
+            ->orderBy('drl.tanggal', 'ASC')
+            ->orderBy('drl.id', 'ASC')
+            ->get()->getResultArray();
+
+        $logsByWell = [];
+        foreach ($rawLogs as $lg) {
+            $logsByWell[(int)$lg['daily_report_id']][] = $lg;
+        }
+
+        // Ambil fallback daily_report_dt bila ada sumur tanpa daily_report_log
+        $rawDts = $db->table('daily_report_dt drd')
+            ->select('drd.*')
+            ->join('daily_report dr', 'dr.id = drd.daily_report_id')
+            ->where('dr.rig_id', $rigId)
+            ->where('dr.bulan', $bulan)
+            ->where('dr.tahun', $tahun)
+            ->get()->getResultArray();
+
+        $dtByWell = [];
+        foreach ($rawDts as $dRow) {
+            $wId = (int)$dRow['daily_report_id'];
+            $kId = (int)$dRow['kategori_id'];
+            $dtByWell[$wId][$kId] = ($dtByWell[$wId][$kId] ?? 0.0) + (float)$dRow['jam'];
+        }
+
+        $sheet->setShowGridLines(true);
+
+        // ── BARIS 1: JUDUL UTAMA ──
+        $sheet->mergeCells('B1:V1');
+        $sheet->setCellValue('B1', "SUMMARY REPORT PER WELL {$rigKode} {$bulanName} {$tahun}");
+        $sheet->getStyle('B1')->applyFromArray([
+            'font' => ['name' => 'Calibri', 'size' => 14, 'bold' => true, 'color' => ['rgb' => '000000']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+        ]);
+        $sheet->getRowDimension(1)->setRowHeight(25);
+
+        // ── BARIS 2 & 3: HEADER TABEL PERSIS TEMPLATE EXCEL ──
+        $sheet->setCellValue('A2', 'No');
+        $sheet->setCellValue('B2', 'Location');
+        $sheet->setCellValue('C2', 'Date');
+        $sheet->setCellValue('D2', 'DISTANCE');
+        $sheet->setCellValue('E2', 'MIRU');
+        $sheet->setCellValue('F2', 'OPS');
+        $sheet->setCellValue('G2', 'SBWC');
+        $sheet->setCellValue('Q2', 'UNPAID');
+        $sheet->setCellValue('S2', "SHUT\nDOWN");
+        $sheet->setCellValue('T2', "TOTAL\nDT");
+        $sheet->setCellValue('U2', "TOTAL\nHRS");
+        $sheet->setCellValue('V2', 'REMARK NPT');
+        $sheet->setCellValue('W2', 'JOB');
+
+        // Sub-header SBWC & UNPAID di Baris 3
+        $sheet->setCellValue('G3', "Rain\n(U.C)");
+        $sheet->setCellValue('H3', 'DRY ROAD');
+        $sheet->setCellValue('I3', "DRY\nWELL\nPAD");
+        $sheet->setCellValue('J3', "PHR\nOperator");
+        $sheet->setCellValue('K3', "Trans\nSharing");
+        $sheet->setCellValue('L3', 'CE/PE');
+        $sheet->setCellValue('M3', '3 Party');
+        $sheet->setCellValue('N3', "WO\nDAYLIGHT");
+        $sheet->setCellValue('O3', "PHR Well &\nAccessories");
+        $sheet->setCellValue('P3', "W.O\nFOAM\nUNIT");
+        $sheet->setCellValue('Q3', 'RIG');
+        $sheet->setCellValue('R3', "BMS\nTOOL");
+
+        // Merge Header
+        $sheet->mergeCells('A2:A3');
+        $sheet->mergeCells('B2:B3');
+        $sheet->mergeCells('C2:C3');
+        $sheet->mergeCells('D2:D3');
+        $sheet->mergeCells('E2:E3');
+        $sheet->mergeCells('F2:F3');
+        $sheet->mergeCells('G2:P2');
+        $sheet->mergeCells('Q2:R2');
+        $sheet->mergeCells('S2:S3');
+        $sheet->mergeCells('T2:T3');
+        $sheet->mergeCells('U2:U3');
+        $sheet->mergeCells('V2:V3');
+        $sheet->mergeCells('W2:W3');
+
+        $sheet->getStyle('A2:W3')->applyFromArray([
+            'font' => ['name' => 'Calibri', 'size' => 9, 'bold' => true, 'color' => ['rgb' => '000000']],
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
+                'vertical'   => Alignment::VERTICAL_CENTER,
+                'wrapText'   => true,
+            ],
+            'borders' => [
+                'allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '000000']],
+            ],
+        ]);
+
+        // Warna Header Persis Gambar Template
+        $fillCell = static function($sheet, string $range, string $rgb) {
+            $sheet->getStyle($range)->getFill()
+                ->setFillType(Fill::FILL_SOLID)
+                ->getStartColor()->setRGB($rgb);
+        };
+        $fillCell($sheet, 'A2:D3', '92CDDC'); // Sky Blue (No, Location, Date, Distance)
+        $fillCell($sheet, 'E2:F3', '92D050'); // Bright Green (MIRU, OPS)
+        $fillCell($sheet, 'G2:P3', 'FFFF00'); // Yellow (SBWC)
+        $fillCell($sheet, 'Q2:R3', 'FFC000'); // Gold/Orange (UNPAID)
+        $fillCell($sheet, 'S2:S3', 'FF0000'); // Red (SHUT DOWN)
+        $fillCell($sheet, 'T2:T3', 'F4B084'); // Peach (TOTAL DT)
+        $fillCell($sheet, 'U2:U3', 'A9D08E'); // Soft Green (TOTAL HRS)
+        $fillCell($sheet, 'V2:V3', '92CDDC'); // Sky Blue (REMARK NPT)
+        $fillCell($sheet, 'W2:W3', 'E6B8B7'); // Rose Pink (JOB)
+
+        $sheet->getRowDimension(2)->setRowHeight(18);
+        $sheet->getRowDimension(3)->setRowHeight(32);
+
+        // ── BARIS 4: BARIS TARIF KONTRAK (RP MERAH) ──
+        $sheet->setCellValue('C4', $odr);
+        $sheet->setCellValue('E4', $rateMiru);
+        $sheet->setCellValue('F4', $rateOps);
+        $sheet->mergeCells('G4:P4');
+        $sheet->setCellValue('G4', $rateSbwc);
+        $sheet->mergeCells('Q4:R4');
+        $sheet->setCellValue('Q4', 'Rp      -');
+        $sheet->setCellValue('S4', 'Rp   -');
+
+        $sheet->getStyle('A4:W4')->applyFromArray([
+            'font' => ['name' => 'Calibri', 'size' => 9, 'bold' => true, 'color' => ['rgb' => 'FF0000']],
+            'borders' => [
+                'allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '000000']],
+            ],
+        ]);
+        $sheet->getStyle('C4')->getNumberFormat()->setFormatCode('"Rp" #,##0');
+        $sheet->getStyle('E4:G4')->getNumberFormat()->setFormatCode('"Rp" #,##0');
+        $sheet->getStyle('G4')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+        $sheet->getStyle('Q4:S4')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getRowDimension(4)->setRowHeight(18);
+
+        // ── BARIS 5..N: DATA PER SUMUR (DENGAN SUBTOTAL PER SUMUR) ──
+        $row = 5;
+        $subtotalRows = [];
+
+        foreach ($reports as $rep) {
+            $repId    = (int)$rep['id'];
+            $wellLogs = $logsByWell[$repId] ?? [];
+            $dt       = $dtByWell[$repId] ?? [];
+
+            if (empty($wellLogs)) {
+                $fallbackDt  = (float)($rep['total_dt'] ?? 0);
+                $fallbackHrs = (float)($rep['total_jam'] ?? ((float)$rep['miru_jam'] + (float)$rep['ops_jam'] + $fallbackDt));
+                $wellLogs = [[
+                    'tanggal'       => $rep['tanggal_mulai'] ?: sprintf('%04d-%02d-01', $tahun, $bulan),
+                    'miru_jam'      => (float)($rep['miru_jam'] ?? 0),
+                    'ops_jam'       => (float)($rep['ops_jam'] ?? 0),
+                    'dt_rain'       => (float)($dt[3] ?? 0),
+                    'dt_dry_road'   => (float)($dt[4] ?? 0),
+                    'dt_dry_pad'    => (float)($dt[5] ?? 0),
+                    'dt_phr_op'     => (float)($dt[13] ?? 0),
+                    'dt_trans'      => (float)($dt[11] ?? 0),
+                    'dt_ce_pe'      => (float)($dt[14] ?? 0),
+                    'dt_3rd_party'  => (float)($dt[10] ?? 0),
+                    'dt_daylight'   => (float)($dt[6] ?? 0),
+                    'dt_phr_well'   => (float)($dt[8] ?? 0),
+                    'dt_foam'       => (float)($dt[12] ?? 0),
+                    'dt_rig'        => (float)($dt[1] ?? 0),
+                    'dt_tool'       => (float)($dt[2] ?? 0),
+                    'dt_shutdown'   => (float)($dt[15] ?? 0),
+                    'total_dt'      => $fallbackDt,
+                    'total_hrs'     => $fallbackHrs,
+                    'remark_npt'    => $rep['remark'] ?? '',
+                    'remark_unpaid' => '',
+                ]];
+            }
+
+            $wStartRow = $row;
+            foreach ($wellLogs as $dRow) {
+                $dateFormatted = !empty($dRow['tanggal']) ? date('d-M-y', strtotime($dRow['tanggal'])) : '-';
+                $sheet->setCellValue("C{$row}", $dateFormatted);
+                $sheet->getStyle("C{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+                $colValues = [
+                    'E' => (float)($dRow['miru_jam'] ?? 0),
+                    'F' => (float)($dRow['ops_jam'] ?? 0),
+                    'G' => (float)($dRow['dt_rain'] ?? 0),
+                    'H' => (float)($dRow['dt_dry_road'] ?? 0),
+                    'I' => (float)($dRow['dt_dry_pad'] ?? 0),
+                    'J' => (float)($dRow['dt_phr_op'] ?? 0),
+                    'K' => (float)($dRow['dt_trans'] ?? 0),
+                    'L' => (float)($dRow['dt_ce_pe'] ?? 0),
+                    'M' => (float)($dRow['dt_3rd_party'] ?? 0),
+                    'N' => (float)($dRow['dt_daylight'] ?? 0),
+                    'O' => (float)($dRow['dt_phr_well'] ?? 0),
+                    'P' => (float)($dRow['dt_foam'] ?? 0),
+                    'Q' => (float)($dRow['dt_rig'] ?? 0),
+                    'R' => (float)($dRow['dt_tool'] ?? 0),
+                    'S' => (float)($dRow['dt_shutdown'] ?? 0),
+                ];
+
+                foreach ($colValues as $colL => $val) {
+                    if ($val > 0) {
+                        $sheet->setCellValue("{$colL}{$row}", $val);
+                        $sheet->getStyle("{$colL}{$row}")->getNumberFormat()->setFormatCode('#,##0.00');
+                    }
+                }
+
+                // Warna Merah untuk Unpaid Rig / Tool > 0
+                if ($colValues['Q'] > 0) {
+                    $sheet->getStyle("Q{$row}")->getFont()->setBold(true)->getColor()->setRGB('FF0000');
+                }
+                if ($colValues['R'] > 0) {
+                    $sheet->getStyle("R{$row}")->getFont()->setBold(true)->getColor()->setRGB('FF0000');
+                }
+
+                // TOTAL DT (Col T) & TOTAL HRS (Col U)
+                $sheet->setCellValue("T{$row}", "=SUM(G{$row}:S{$row})");
+                $sheet->setCellValue("U{$row}", "=E{$row}+F{$row}+T{$row}");
+                $sheet->getStyle("T{$row}:U{$row}")->getNumberFormat()->setFormatCode('#,##0.00');
+                $fillCell($sheet, "T{$row}", 'F4B084');
+
+                // REMARK NPT (Col V)
+                $remParts = [];
+                if (!empty($dRow['remark_npt']))    $remParts[] = trim($dRow['remark_npt']);
+                if (!empty($dRow['remark_unpaid'])) $remParts[] = trim($dRow['remark_unpaid']);
+                $remText = implode(' | ', array_unique($remParts));
+                if ($remText !== '') {
+                    $sheet->setCellValue("V{$row}", $remText);
+                    if ($colValues['Q'] > 0 || $colValues['R'] > 0 || !empty($dRow['remark_unpaid'])) {
+                        $sheet->getStyle("V{$row}")->getFont()->setBold(true)->getColor()->setRGB('FF0000');
+                    }
+                }
+
+                $sheet->getRowDimension($row)->setRowHeight(17);
+                $row++;
+            }
+            $wEndRow = $row - 1;
+
+            // Merge No (A), Location (B), DISTANCE (D), JOB (W) untuk Sumur Ini
+            $sheet->mergeCells("A{$wStartRow}:A{$wEndRow}");
+            $sheet->mergeCells("B{$wStartRow}:B{$wEndRow}");
+            $sheet->mergeCells("D{$wStartRow}:D{$wEndRow}");
+            $sheet->mergeCells("W{$wStartRow}:W{$wEndRow}");
+
+            $sheet->setCellValue("A{$wStartRow}", (int)$rep['no_well']);
+            $sheet->setCellValue("B{$wStartRow}", strtoupper(trim($rep['nama_lokasi'] ?? ('WELL #' . $rep['no_well']))));
+
+            $jarakVal = (float)($rep['jarak'] ?? 0);
+            if ($jarakVal > 0) {
+                $jarakFormatted = rtrim(rtrim(number_format($jarakVal, 2, ',', '.'), '0'), ',') . ' KM';
+                $sheet->setCellValue("D{$wStartRow}", $jarakFormatted);
+            }
+            $fillCell($sheet, "D{$wStartRow}:D{$wEndRow}", 'DDD9C4');
+
+            $jobStatus = strtoupper(trim($rep['status_job'] ?: 'JOB PROGRESS'));
+            $sheet->setCellValue("W{$wStartRow}", str_replace(' ', "\n", $jobStatus));
+            $fillCell($sheet, "W{$wStartRow}:W{$wEndRow}", 'E6B8B7');
+
+            $sheet->getStyle("A{$wStartRow}:B{$wEndRow}")->applyFromArray([
+                'font' => ['bold' => true],
+                'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+            ]);
+            $sheet->getStyle("D{$wStartRow}:D{$wEndRow}")->applyFromArray([
+                'font' => ['bold' => true],
+                'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+            ]);
+            $sheet->getStyle("W{$wStartRow}:W{$wEndRow}")->applyFromArray([
+                'font' => ['bold' => true, 'size' => 9],
+                'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
+            ]);
+
+            // ── BARIS SUBTOTAL PER SUMUR (BIRU MUDA #D9E1F2) ──
+            $subRow = $row;
+            $subtotalRows[] = $subRow;
+            $sumCols = ['E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U'];
+            foreach ($sumCols as $sCol) {
+                $sheet->setCellValue("{$sCol}{$subRow}", "=SUM({$sCol}{$wStartRow}:{$sCol}{$wEndRow})");
+                $sheet->getStyle("{$sCol}{$subRow}")->getNumberFormat()->setFormatCode('#,##0.00');
+            }
+            $fillCell($sheet, "A{$subRow}:W{$subRow}", 'D9E1F2');
+            $fillCell($sheet, "T{$subRow}", 'F4B084');
+            $sheet->getStyle("A{$subRow}:W{$subRow}")->getFont()->setBold(true);
+            $sheet->getRowDimension($subRow)->setRowHeight(18);
+            $row++;
+        }
+
+        $lastWellRow = max(4, $row - 1);
+        $sheet->getStyle("A2:W{$lastWellRow}")->applyFromArray([
+            'font' => ['name' => 'Calibri'],
+            'borders' => [
+                'allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '000000']],
+            ],
+        ]);
+
+        // ── BARIS FOOTER & KPI SUMMARY BLOCK (PERSIS FOTO 1) + REPORT NOTES (PERSIS FOTO 2) ──
+        if (!empty($subtotalRows)) {
+            $thinBorder = [
+                'borders' => [
+                    'allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '000000']],
+                ],
+            ];
+
+            // Ambil metadata Schedule MTC & Notes dari monthly_summary.remark
+            $summaryRowDb = $this->db->table('monthly_summary')
+                ->where('rig_id', $rigId)
+                ->where('bulan', $bulan)
+                ->where('tahun', $tahun)
+                ->get()->getRowArray();
+
+            $scheduleMtc = 0.0;
+            $reportNotes = [];
+            if ($summaryRowDb && !empty($summaryRowDb['remark'])) {
+                $decoded = json_decode((string)$summaryRowDb['remark'], true);
+                if (is_array($decoded) && (isset($decoded['notes']) || isset($decoded['schedule_mtc']))) {
+                    $scheduleMtc = (float)($decoded['schedule_mtc'] ?? 0.0);
+                    $reportNotes = is_array($decoded['notes'] ?? null) ? array_values($decoded['notes']) : [];
+                } else {
+                    $plain = trim((string)$summaryRowDb['remark']);
+                    if ($plain !== '') {
+                        $reportNotes[] = [
+                            'lokasi'  => 'CATATAN LAPORAN',
+                            'tanggal' => sprintf('%02d/%04d', $bulan, $tahun),
+                            'isi'     => $plain,
+                            'waktu'   => '',
+                        ];
+                    }
+                }
+            }
+
+            $miruWellCnt = 0;
+            $compWellCnt = 0;
+            foreach ($reports as $rItem) {
+                if ((float)($rItem['miru_jam'] ?? 0) > 0) $miruWellCnt++;
+                if (strtoupper(trim((string)($rItem['status_job'] ?? ''))) === 'JOB COMPLETED') $compWellCnt++;
+            }
+            $miruDivisor = max(1, $miruWellCnt);
+            $compDivisor = max(1, $compWellCnt);
+
+            // 1. BARIS TOTAL & SUBTOTAL KELOMPOK DT
+            $grandRow = $row;
+            $groupRow = $grandRow + 1;
+            $roundRow = $grandRow + 2;
+
+            $sheet->mergeCells("A{$grandRow}:C{$grandRow}");
+            $sheet->setCellValue("A{$grandRow}", 'TOTAL');
+            $sheet->getStyle("A{$grandRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+            $sumCols = ['E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U'];
+            foreach ($sumCols as $sCol) {
+                $parts = array_map(static fn($r) => "{$sCol}{$r}", $subtotalRows);
+                $sheet->setCellValue("{$sCol}{$grandRow}", '=' . implode('+', $parts));
+                $sheet->getStyle("{$sCol}{$grandRow}")->getNumberFormat()->setFormatCode('#,##0.00');
+            }
+
+            $fillCell($sheet, "A{$grandRow}:D{$grandRow}", '92CDDC');
+            $fillCell($sheet, "E{$grandRow}:S{$grandRow}", '92D050');
+            $fillCell($sheet, "T{$grandRow}:T{$groupRow}", 'FFC000');
+            $fillCell($sheet, "U{$grandRow}:U{$groupRow}", 'A9D08E');
+
+            $sheet->mergeCells("T{$grandRow}:T{$groupRow}");
+            $sheet->mergeCells("U{$grandRow}:U{$groupRow}");
+            $sheet->getStyle("T{$grandRow}:U{$groupRow}")->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+            $sheet->getStyle("A{$grandRow}:U{$grandRow}")->getFont()->setBold(true);
+            $sheet->getStyle("A{$grandRow}:U{$grandRow}")->applyFromArray($thinBorder);
+
+            // 2. BARIS KELOMPOK DT (Rain+Road | Other SBWC | Unpaid | Shutdown)
+            $sheet->mergeCells("G{$groupRow}:H{$groupRow}");
+            $sheet->setCellValue("G{$groupRow}", "=G{$grandRow}+H{$grandRow}");
+            $fillCell($sheet, "G{$groupRow}:H{$groupRow}", 'FFFF00');
+
+            $sheet->mergeCells("I{$groupRow}:P{$groupRow}");
+            $sheet->setCellValue("I{$groupRow}", "=SUM(I{$grandRow}:P{$grandRow})");
+            $fillCell($sheet, "I{$groupRow}:P{$groupRow}", 'FFFF00');
+
+            $sheet->mergeCells("Q{$groupRow}:R{$groupRow}");
+            $sheet->setCellValue("Q{$groupRow}", "=Q{$grandRow}+R{$grandRow}");
+            $fillCell($sheet, "Q{$groupRow}:R{$groupRow}", 'FFC000');
+
+            $sheet->setCellValue("S{$groupRow}", "=S{$grandRow}");
+            $fillCell($sheet, "S{$groupRow}", 'FF0000');
+
+            $sheet->getStyle("G{$groupRow}:S{$groupRow}")->getNumberFormat()->setFormatCode('#,##0.00');
+            $sheet->getStyle("G{$groupRow}:U{$groupRow}")->getFont()->setBold(true);
+            $sheet->getStyle("G{$groupRow}:S{$groupRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("G{$groupRow}:U{$groupRow}")->applyFromArray($thinBorder);
+
+            // 3. BARIS ANGKA 1 DESIMAL (Round Row)
+            $sheet->mergeCells("G{$roundRow}:H{$roundRow}");
+            $sheet->setCellValue("G{$roundRow}", "=G{$groupRow}");
+            $sheet->getStyle("G{$roundRow}")->getNumberFormat()->setFormatCode('#,##0.0');
+
+            $sheet->mergeCells("I{$roundRow}:P{$roundRow}");
+            $sheet->setCellValue("I{$roundRow}", "=I{$groupRow}");
+            $sheet->getStyle("I{$roundRow}")->getNumberFormat()->setFormatCode('#,##0.00');
+
+            $sheet->mergeCells("Q{$roundRow}:R{$roundRow}");
+            $sheet->setCellValue("Q{$roundRow}", "=Q{$groupRow}");
+            $sheet->getStyle("Q{$roundRow}")->getNumberFormat()->setFormatCode('#,##0.0');
+
+            $sheet->setCellValue("U{$roundRow}", "=U{$grandRow}");
+            $sheet->getStyle("U{$roundRow}")->getNumberFormat()->setFormatCode('#,##0.00');
+            $sheet->getStyle("G{$roundRow}:U{$roundRow}")->getFont()->setBold(true);
+            $sheet->getStyle("G{$roundRow}:R{$roundRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+            // 4. BARIS PRESENTASE & REVENUE
+            $pctRow = $roundRow + 2;
+            $revRow = $pctRow + 1;
+
+            $sheet->mergeCells("A{$pctRow}:C{$pctRow}");
+            $sheet->setCellValue("A{$pctRow}", 'PRESENTASE');
+            $sheet->setCellValue("E{$pctRow}", "=IF(U{$grandRow}>0,E{$grandRow}/U{$grandRow},0)");
+            $sheet->setCellValue("F{$pctRow}", "=IF(U{$grandRow}>0,F{$grandRow}/U{$grandRow},0)");
+            $sheet->mergeCells("G{$pctRow}:H{$pctRow}");
+            $sheet->setCellValue("G{$pctRow}", "=IF(U{$grandRow}>0,G{$groupRow}/U{$grandRow},0)");
+            $sheet->mergeCells("I{$pctRow}:P{$pctRow}");
+            $sheet->setCellValue("I{$pctRow}", "=IF(U{$grandRow}>0,I{$groupRow}/U{$grandRow},0)");
+            $sheet->mergeCells("Q{$pctRow}:R{$pctRow}");
+            $sheet->setCellValue("Q{$pctRow}", "=IF(U{$grandRow}>0,Q{$groupRow}/U{$grandRow},0)");
+            $sheet->setCellValue("S{$pctRow}", "=IF(U{$grandRow}>0,S{$groupRow}/U{$grandRow},0)");
+            $sheet->mergeCells("T{$pctRow}:U{$pctRow}");
+            $sheet->setCellValue("T{$pctRow}", "=E{$pctRow}+F{$pctRow}+G{$pctRow}+I{$pctRow}+Q{$pctRow}+S{$pctRow}");
+
+            $fillCell($sheet, "A{$pctRow}:U{$pctRow}", 'FFFF00');
+            $sheet->getStyle("E{$pctRow}:U{$pctRow}")->getNumberFormat()->setFormatCode('0.00%');
+            $sheet->getStyle("G{$pctRow}:S{$pctRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("A{$pctRow}:U{$pctRow}")->getFont()->setBold(true);
+            $sheet->getStyle("A{$pctRow}:U{$pctRow}")->applyFromArray($thinBorder);
+
+            // REVENUE ROW (#F8CBAD)
+            $rpDashFmt = '_("Rp"* #,##0_);_("Rp"* \(#,##0\);_("Rp"* "-"_);_(@_)';
+            $sheet->mergeCells("A{$revRow}:C{$revRow}");
+            $sheet->setCellValue("A{$revRow}", 'REVENUE');
+            $sheet->mergeCells("D{$revRow}:E{$revRow}");
+            $sheet->setCellValue("D{$revRow}", "=E{$grandRow}*E4");
+            $sheet->setCellValue("F{$revRow}", "=F{$grandRow}*F4");
+            $sheet->mergeCells("G{$revRow}:H{$revRow}");
+            $sheet->setCellValue("G{$revRow}", "=G{$groupRow}*G4");
+            $sheet->mergeCells("I{$revRow}:P{$revRow}");
+            $sheet->setCellValue("I{$revRow}", "=I{$groupRow}*G4");
+            $sheet->mergeCells("Q{$revRow}:R{$revRow}");
+            $sheet->setCellValue("Q{$revRow}", 0);
+            $sheet->setCellValue("S{$revRow}", 0);
+            $sheet->mergeCells("T{$revRow}:U{$revRow}");
+            $sheet->setCellValue("T{$revRow}", "=D{$revRow}+F{$revRow}+G{$revRow}+I{$revRow}");
+
+            $fillCell($sheet, "A{$revRow}:U{$revRow}", 'F8CBAD');
+            $sheet->getStyle("D{$revRow}:U{$revRow}")->getNumberFormat()->setFormatCode($rpDashFmt);
+            $sheet->getStyle("A{$revRow}:C{$revRow}")->getFont()->setBold(true);
+            $sheet->getStyle("T{$revRow}:U{$revRow}")->getFont()->setBold(true);
+            $sheet->getStyle("A{$revRow}:U{$revRow}")->applyFromArray($thinBorder);
+
+            // 5. KPI BLOCK (REALIBILITY, AVAILIBILITY, UTILITITAION, AVERANGE MIRU, CYCLE TIME)
+            $relRow   = $revRow + 1;
+            $availRow = $revRow + 2;
+            $utilRow  = $revRow + 3;
+            $avgMRow  = $revRow + 4;
+            $cycRow   = $revRow + 5;
+
+            // REALIBILITY
+            $sheet->mergeCells("A{$relRow}:C{$relRow}");
+            $sheet->setCellValue("A{$relRow}", 'REALIBILITY');
+            $sheet->setCellValue("D{$relRow}", "=IF(U{$grandRow}>0,(U{$grandRow}-Q{$groupRow})/U{$grandRow},0)");
+            $sheet->getStyle("D{$relRow}")->getNumberFormat()->setFormatCode('0.00%');
+            $fillCell($sheet, "A{$relRow}:D{$relRow}", 'B1A0C7');
+            $sheet->getStyle("D{$relRow}")->getFont()->setBold(true);
+            $sheet->getStyle("A{$relRow}:D{$relRow}")->applyFromArray($thinBorder);
+
+            $sheet->mergeCells("T{$relRow}:U{$relRow}");
+            $sheet->setCellValue("T{$relRow}", "=T{$revRow}");
+            $sheet->getStyle("T{$relRow}:U{$relRow}")->getNumberFormat()->setFormatCode($rpDashFmt);
+
+            // AVAILIBILITY + SCHEDULE MTC
+            $sheet->mergeCells("A{$availRow}:C{$availRow}");
+            $sheet->setCellValue("A{$availRow}", 'AVAILIBILITY');
+            $sheet->setCellValue("D{$availRow}", "=IF(U{$grandRow}>0,(U{$grandRow}-Q{$groupRow}-F{$availRow})/U{$grandRow},0)");
+            $sheet->getStyle("D{$availRow}")->getNumberFormat()->setFormatCode('0.00%');
+            $fillCell($sheet, "A{$availRow}:D{$availRow}", 'B1A0C7');
+            $sheet->getStyle("D{$availRow}")->getFont()->setBold(true);
+            $sheet->getStyle("A{$availRow}:D{$availRow}")->applyFromArray($thinBorder);
+
+            $sheet->setCellValue("E{$availRow}", 'SCHEDULE MTC');
+            $sheet->setCellValue("F{$availRow}", $scheduleMtc);
+            $sheet->getStyle("E{$availRow}:F{$availRow}")->getFont()->setBold(true);
+            $sheet->getStyle("E{$availRow}:F{$availRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("E{$availRow}:F{$availRow}")->applyFromArray($thinBorder);
+
+            // UTILITITAION + INCENTIVE TARGET
+            $sheet->mergeCells("A{$utilRow}:C{$utilRow}");
+            $sheet->setCellValue("A{$utilRow}", 'UTILITITAION');
+            $sheet->setCellValue("D{$utilRow}", "=IF(U{$grandRow}>0,(E{$grandRow}+F{$grandRow})/U{$grandRow},0)");
+            $sheet->getStyle("D{$utilRow}")->getNumberFormat()->setFormatCode('0.00%');
+            $fillCell($sheet, "A{$utilRow}:D{$utilRow}", 'B1A0C7');
+            $sheet->getStyle("D{$utilRow}")->getFont()->setBold(true);
+            $sheet->getStyle("A{$utilRow}:D{$utilRow}")->applyFromArray($thinBorder);
+
+            $sheet->mergeCells("Q{$utilRow}:S{$utilRow}");
+            $sheet->setCellValue("Q{$utilRow}", 'INCENTIVE TARGET');
+            $sheet->mergeCells("T{$utilRow}:U{$utilRow}");
+            $sheet->setCellValue("T{$utilRow}", "=C4*(U{$grandRow}/24)*0.92");
+            $sheet->getStyle("T{$utilRow}:U{$utilRow}")->getNumberFormat()->setFormatCode($rpDashFmt);
+            $fillCell($sheet, "Q{$utilRow}:U{$utilRow}", 'FFC000');
+            $sheet->getStyle("Q{$utilRow}:U{$utilRow}")->getFont()->setBold(true)->setSize(11);
+            $sheet->getStyle("Q{$utilRow}:S{$utilRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("Q{$utilRow}:U{$utilRow}")->applyFromArray($thinBorder);
+
+            // AVERANGE MIRU
+            $sheet->mergeCells("A{$avgMRow}:C{$avgMRow}");
+            $sheet->setCellValue("A{$avgMRow}", 'AVERANGE MIRU');
+            $sheet->setCellValue("D{$avgMRow}", "=E{$grandRow}/{$miruDivisor}");
+            $sheet->getStyle("D{$avgMRow}")->getNumberFormat()->setFormatCode('#,##0.00');
+            $fillCell($sheet, "A{$avgMRow}:D{$avgMRow}", '92D050');
+            $sheet->getStyle("D{$avgMRow}")->getFont()->setBold(true);
+            $sheet->getStyle("A{$avgMRow}:D{$avgMRow}")->applyFromArray($thinBorder);
+
+            // CYCLE TIME
+            $sheet->mergeCells("A{$cycRow}:C{$cycRow}");
+            $sheet->setCellValue("A{$cycRow}", 'CYCLE TIME');
+            $sheet->setCellValue("D{$cycRow}", "=U{$grandRow}/{$compDivisor}");
+            $sheet->getStyle("D{$cycRow}")->getNumberFormat()->setFormatCode('#,##0.00');
+            $fillCell($sheet, "A{$cycRow}:D{$cycRow}", 'FFFF00');
+            $sheet->getStyle("D{$cycRow}")->getFont()->setBold(true);
+            $sheet->getStyle("A{$cycRow}:D{$cycRow}")->applyFromArray($thinBorder);
+
+            // 6. CATATAN / NOTE LAPORAN DI BAWAH TABEL (PERSIS FOTO 2)
+            $noteRow = $cycRow + 2;
+            foreach ($reportNotes as $nItem) {
+                $lokText   = trim((string)($nItem['lokasi'] ?? ''));
+                $tglText   = trim((string)($nItem['tanggal'] ?? ''));
+                $isiText   = trim((string)($nItem['isi'] ?? ''));
+                $waktuText = trim((string)($nItem['waktu'] ?? ''));
+
+                if ($lokText !== '' || $tglText !== '') {
+                    $sheet->setCellValue("B{$noteRow}", $lokText);
+                    $sheet->setCellValue("E{$noteRow}", $tglText);
+                    $sheet->getStyle("B{$noteRow}:E{$noteRow}")->getFont()->setName('Calibri')->setSize(11)->setBold(true);
+                    $noteRow++;
+                }
+                if ($isiText !== '') {
+                    $lines = preg_split('/\r\n|\r|\n/', $isiText);
+                    foreach ($lines as $lineStr) {
+                        $sheet->setCellValue("B{$noteRow}", $lineStr);
+                        $sheet->getStyle("B{$noteRow}")->getFont()->setName('Calibri')->setSize(11)->setBold(true);
+                        $noteRow++;
+                    }
+                }
+                if ($waktuText !== '') {
+                    $sheet->setCellValue("B{$noteRow}", $waktuText);
+                    $sheet->getStyle("B{$noteRow}")->getFont()->setName('Calibri')->setSize(11)->setBold(true);
+                    $noteRow++;
+                }
+                $noteRow++;
+            }
+        }
+
+        // Set Column Widths agar proporsional seperti Template Asli
+        $colWidths = [
+            'A' => 5,  'B' => 16, 'C' => 12, 'D' => 11,
+            'E' => 12, 'F' => 12,
+            'G' => 8,  'H' => 10, 'I' => 9,  'J' => 10, 'K' => 9,
+            'L' => 8,  'M' => 8,  'N' => 10, 'O' => 12, 'P' => 9,
+            'Q' => 8,  'R' => 8,  'S' => 9,
+            'T' => 10, 'U' => 11, 'V' => 36, 'W' => 14,
+        ];
+        foreach ($colWidths as $cL => $w) {
+            $sheet->getColumnDimension($cL)->setWidth($w);
+        }
+        $sheet->freezePane('E5');
+    }
+
+    /**
      * =========================================================================
-     * 4. EXPORT DAILY REPORT PER RIG (DETAIL LOG HARIAN + RINGKASAN PER SUMUR)
-     * Format Lengkap: Rincian Hari per Hari (Tanggal, Tempat/Lokasi, MIRU, OPS,
-     * Pos SBWC, UNPAID, Total Jam & Remark) + Lembar Ringkasan Per Sumur
+     * 4. EXPORT DAILY REPORT PER RIG (TEMPLATE ASLI SUMMARY REPORT PER WELL)
      * =========================================================================
      */
     public function dailyReport(int $rigId, int $bulan, int $tahun)
@@ -769,305 +1372,16 @@ class Export extends BaseController
         }
 
         $bulanName   = self::BULAN_NAMES[$bulan] ?? "BULAN {$bulan}";
-        $reports     = $this->dailyReportModel->getByRigBulanTahun($rigId, $bulan, $tahun);
-        $odrFormatted = number_format((float)($rig['odr'] ?? 0), 0, ',', '.');
-        $db          = \Config\Database::connect();
-
-        // Ambil rincian log harian per tanggal dari daily_report_log
-        $logs = $db->table('daily_report_log drl')
-            ->select('drl.*, l.nama_lokasi, dr.no_well, dr.status_job as parent_status')
-            ->join('daily_report dr', 'dr.id = drl.daily_report_id')
-            ->join('lokasi l', 'l.id = dr.lokasi_id', 'left')
-            ->where('dr.rig_id', $rigId)
-            ->where('dr.bulan', $bulan)
-            ->where('dr.tahun', $tahun)
-            ->orderBy('drl.tanggal', 'ASC')
-            ->orderBy('drl.id', 'ASC')
-            ->get()->getResultArray();
-
         $spreadsheet = new Spreadsheet();
 
-        // ─────────────────────────────────────────────────────────────
-        // SHEET 1: DETAIL LOG HARIAN OPERASI (HARI PER HARI)
-        // ─────────────────────────────────────────────────────────────
-        $sheetLog = $spreadsheet->getActiveSheet();
-        $sheetLogTitle = substr(preg_replace('/[\\\\\/\?\*\[\]]/', '', $rig['kode']) . ' LOG HARIAN', 0, 30);
-        $sheetLog->setTitle($sheetLogTitle);
-        $sheetLog->setShowGridLines(true);
-
-        $this->renderCompanyHeader(
-            $sheetLog,
-            "RINCIAN LOG HARIAN OPERASI & DOWNTIME — {$rig['kode']} ({$rig['nama_rig']})",
-            "PERIODE OPERASI: {$bulanName} {$tahun} | TARIF ODR: Rp {$odrFormatted}/HARI",
-            'Q'
-        );
-
-        $headersLog = [
-            'NO'                       => Alignment::HORIZONTAL_CENTER,
-            'TANGGAL OPERASI'          => Alignment::HORIZONTAL_CENTER,
-            'TEMPAT / LOKASI SUMUR'    => Alignment::HORIZONTAL_LEFT,
-            'JARAK (KM)'               => Alignment::HORIZONTAL_RIGHT,
-            'MIRU (JAM)'               => Alignment::HORIZONTAL_RIGHT,
-            'OPS (JAM)'                => Alignment::HORIZONTAL_RIGHT,
-            'SBWC RAIN (JAM)'          => Alignment::HORIZONTAL_RIGHT,
-            'SBWC ROAD/PAD (JAM)'      => Alignment::HORIZONTAL_RIGHT,
-            'SBWC DAYLIGHT (JAM)'      => Alignment::HORIZONTAL_RIGHT,
-            'SBWC 3RD PARTY (JAM)'     => Alignment::HORIZONTAL_RIGHT,
-            'UNPAID RIG (JAM)'         => Alignment::HORIZONTAL_RIGHT,
-            'UNPAID TOOL (JAM)'        => Alignment::HORIZONTAL_RIGHT,
-            'TOTAL DOWNTIME (JAM)'     => Alignment::HORIZONTAL_RIGHT,
-            'TOTAL JAM OPERASI (JAM)'  => Alignment::HORIZONTAL_RIGHT,
-            'STATUS JOB'               => Alignment::HORIZONTAL_CENTER,
-            'REMARK / URAIAN PEKERJAAN'=> Alignment::HORIZONTAL_LEFT,
-        ];
-
-        $colIdx = 2; // Col B
-        foreach ($headersLog as $h => $align) {
-            $cL = Coordinate::stringFromColumnIndex($colIdx);
-            $sheetLog->setCellValue("{$cL}5", $h);
-            $colIdx++;
-        }
-        $endColLog = Coordinate::stringFromColumnIndex($colIdx - 1);
-        $this->applyHeaderStyle($sheetLog, "B5:{$endColLog}5");
-        $sheetLog->getRowDimension(5)->setRowHeight(28);
-
-        $rowStart = 6;
-        $row = $rowStart;
-        $no = 1;
-
-        if (!empty($logs)) {
-            foreach ($logs as $lg) {
-                $tglFormatted = $lg['tanggal'] ? date('d/m/Y', strtotime($lg['tanggal'])) : '-';
-                $lokasiNama   = !empty($lg['nama_lokasi']) ? $lg['nama_lokasi'] : ('Sumur #' . ($lg['no_well'] ?? '-'));
-                $roadPad      = (float)($lg['dt_dry_road'] ?? 0) + (float)($lg['dt_dry_pad'] ?? 0);
-                $thirdParty   = (float)($lg['dt_3rd_party'] ?? 0) + (float)($lg['dt_phr_op'] ?? 0) + (float)($lg['dt_trans'] ?? 0) + (float)($lg['dt_ce_pe'] ?? 0) + (float)($lg['dt_phr_well'] ?? 0) + (float)($lg['dt_foam'] ?? 0);
-                $remarkText   = !empty($lg['remark_npt']) ? $lg['remark_npt'] : (!empty($lg['remark_unpaid']) ? $lg['remark_unpaid'] : '-');
-
-                $sheetLog->setCellValue("B{$row}", $no++);
-                $sheetLog->setCellValue("C{$row}", $tglFormatted);
-                $sheetLog->setCellValue("D{$row}", $lokasiNama);
-                $sheetLog->setCellValue("E{$row}", (float)($lg['jarak'] ?? 0));
-                $sheetLog->setCellValue("F{$row}", (float)($lg['miru_jam'] ?? 0));
-                $sheetLog->setCellValue("G{$row}", (float)($lg['ops_jam'] ?? 0));
-                $sheetLog->setCellValue("H{$row}", (float)($lg['dt_rain'] ?? 0));
-                $sheetLog->setCellValue("I{$row}", $roadPad);
-                $sheetLog->setCellValue("J{$row}", (float)($lg['dt_daylight'] ?? 0));
-                $sheetLog->setCellValue("K{$row}", $thirdParty);
-                $sheetLog->setCellValue("L{$row}", (float)($lg['dt_rig'] ?? 0));
-                $sheetLog->setCellValue("M{$row}", (float)($lg['dt_tool'] ?? 0));
-                $sheetLog->setCellValue("N{$row}", (float)($lg['total_dt'] ?? 0));
-                $sheetLog->setCellValue("O{$row}", (float)($lg['total_hrs'] ?? 0));
-                $sheetLog->setCellValue("P{$row}", $lg['parent_status'] ?? '-');
-                $sheetLog->setCellValue("Q{$row}", $remarkText);
-
-                $sheetLog->getStyle("B{$row}:C{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-                $sheetLog->getStyle("C{$row}")->getFont()->setBold(true);
-                $sheetLog->getStyle("D{$row}")->getFont()->setBold(true);
-                $sheetLog->getStyle("E{$row}")->getNumberFormat()->setFormatCode('#,##0.00');
-                $sheetLog->getStyle("F{$row}:O{$row}")->getNumberFormat()->setFormatCode('#,##0.00');
-                $sheetLog->getStyle("P{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-                $sheetLog->getStyle("P{$row}")->getFont()->setBold(true);
-
-                // Highlight UNPAID in red if > 0
-                if ((float)($lg['dt_rig'] ?? 0) > 0 || (float)($lg['dt_tool'] ?? 0) > 0) {
-                    $sheetLog->getStyle("L{$row}:M{$row}")->getFont()->setBold(true)->getColor()->setRGB(self::COLOR_RED);
-                }
-
-                // Highlight Status
-                $status = strtoupper(trim((string)($lg['parent_status'] ?? '')));
-                if ($status === 'COMPLETED' || $status === 'SELESAI' || $status === 'JOB COMPLETED') {
-                    $sheetLog->getStyle("P{$row}")->getFont()->getColor()->setRGB('15803D');
-                } elseif ($status === 'RUNNING' || $status === 'ON GOING' || $status === 'JOB PROGRESS') {
-                    $sheetLog->getStyle("P{$row}")->getFont()->getColor()->setRGB('0284C7');
-                }
-
-                if ($no % 2 == 0) {
-                    $sheetLog->getStyle("B{$row}:Q{$row}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB(self::COLOR_ZEBRA);
-                }
-                $sheetLog->getRowDimension($row)->setRowHeight(21);
-                $row++;
-            }
-        } elseif (!empty($reports)) {
-            // Fallback jika belum ada rincian daily_report_log per hari
-            foreach ($reports as $rep) {
-                $sheetLog->setCellValue("B{$row}", $no++);
-                $sheetLog->setCellValue("C{$row}", ($rep['tanggal_mulai'] ? date('d/m/Y', strtotime($rep['tanggal_mulai'])) : '-') . ' s/d ' . ($rep['tanggal_selesai'] ? date('d/m/Y', strtotime($rep['tanggal_selesai'])) : '-'));
-                $sheetLog->setCellValue("D{$row}", $rep['nama_lokasi'] ?? '-');
-                $sheetLog->setCellValue("E{$row}", (float)($rep['jarak'] ?? 0));
-                $sheetLog->setCellValue("F{$row}", (float)($rep['miru_jam'] ?? 0));
-                $sheetLog->setCellValue("G{$row}", (float)($rep['ops_jam'] ?? 0));
-                $sheetLog->setCellValue("H{$row}", 0);
-                $sheetLog->setCellValue("I{$row}", 0);
-                $sheetLog->setCellValue("J{$row}", 0);
-                $sheetLog->setCellValue("K{$row}", 0);
-                $sheetLog->setCellValue("L{$row}", 0);
-                $sheetLog->setCellValue("M{$row}", 0);
-                $sheetLog->setCellValue("N{$row}", (float)($rep['total_dt'] ?? 0));
-                $sheetLog->setCellValue("O{$row}", (float)($rep['total_jam'] ?? 0));
-                $sheetLog->setCellValue("P{$row}", $rep['status_job'] ?? '-');
-                $sheetLog->setCellValue("Q{$row}", $rep['remark'] ?? '-');
-
-                $sheetLog->getStyle("B{$row}:C{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-                $sheetLog->getStyle("D{$row}")->getFont()->setBold(true);
-                $sheetLog->getStyle("E{$row}:O{$row}")->getNumberFormat()->setFormatCode('#,##0.00');
-                $sheetLog->getStyle("P{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-                $sheetLog->getRowDimension($row)->setRowHeight(21);
-                $row++;
-            }
-        }
-
-        $rowEnd = $row - 1;
-        if ($rowEnd >= $rowStart) {
-            $this->applyGridBorders($sheetLog, "B{$rowStart}:{$endColLog}{$rowEnd}");
-
-            // Footer Total
-            $totRow = $row;
-            $sheetLog->setCellValue("B{$totRow}", 'TOTAL AKUMULASI');
-            $sheetLog->mergeCells("B{$totRow}:D{$totRow}");
-            $sheetLog->getStyle("B{$totRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-
-            $sheetLog->setCellValue("E{$totRow}", "=SUM(E{$rowStart}:E{$rowEnd})");
-            $sheetLog->setCellValue("F{$totRow}", "=SUM(F{$rowStart}:F{$rowEnd})");
-            $sheetLog->setCellValue("G{$totRow}", "=SUM(G{$rowStart}:G{$rowEnd})");
-            $sheetLog->setCellValue("H{$totRow}", "=SUM(H{$rowStart}:H{$rowEnd})");
-            $sheetLog->setCellValue("I{$totRow}", "=SUM(I{$rowStart}:I{$rowEnd})");
-            $sheetLog->setCellValue("J{$totRow}", "=SUM(J{$rowStart}:J{$rowEnd})");
-            $sheetLog->setCellValue("K{$totRow}", "=SUM(K{$rowStart}:K{$rowEnd})");
-            $sheetLog->setCellValue("L{$totRow}", "=SUM(L{$rowStart}:L{$rowEnd})");
-            $sheetLog->setCellValue("M{$totRow}", "=SUM(M{$rowStart}:M{$rowEnd})");
-            $sheetLog->setCellValue("N{$totRow}", "=SUM(N{$rowStart}:N{$rowEnd})");
-            $sheetLog->setCellValue("O{$totRow}", "=SUM(O{$rowStart}:O{$rowEnd})");
-            $sheetLog->setCellValue("P{$totRow}", '-');
-            $sheetLog->setCellValue("Q{$totRow}", '-');
-
-            $sheetLog->getStyle("E{$totRow}:O{$totRow}")->getNumberFormat()->setFormatCode('#,##0.00');
-            $sheetLog->getStyle("B{$totRow}:{$endColLog}{$totRow}")->applyFromArray([
-                'font' => ['bold' => true, 'name' => 'Calibri', 'size' => 11],
-                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => self::COLOR_YELLOW]],
-                'borders' => [
-                    'top'    => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '000000']],
-                    'bottom' => ['borderStyle' => Border::BORDER_DOUBLE, 'color' => ['rgb' => '000000']],
-                    'allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '000000']],
-                ],
-            ]);
-            $sheetLog->getRowDimension($totRow)->setRowHeight(24);
-        }
-        $this->autoFitColumns($sheetLog, 'B', $endColLog);
-        $sheetLog->freezePane('E6');
-
-        // ─────────────────────────────────────────────────────────────
-        // SHEET 2: RINGKASAN PER SUMUR (SUMMARY PER WELL)
-        // ─────────────────────────────────────────────────────────────
-        $sheetWell = $spreadsheet->createSheet();
-        $sheetWell->setTitle('RINGKASAN PER SUMUR');
-        $sheetWell->setShowGridLines(true);
-
-        $this->renderCompanyHeader(
-            $sheetWell,
-            "SUMMARY REPORT PER WELL — {$rig['kode']} ({$rig['nama_rig']})",
-            "PERIODE: {$bulanName} {$tahun} | KONTRAK ODR: Rp {$odrFormatted}/HARI",
-            'L'
-        );
-
-        $headersWell = [
-            'NO'                     => Alignment::HORIZONTAL_CENTER,
-            'SUMUR / TEMPAT LOKASI'  => Alignment::HORIZONTAL_LEFT,
-            'TGL MULAI'              => Alignment::HORIZONTAL_CENTER,
-            'TGL SELESAI'            => Alignment::HORIZONTAL_CENTER,
-            'DISTANCE (KM)'          => Alignment::HORIZONTAL_RIGHT,
-            'MIRU (JAM)'             => Alignment::HORIZONTAL_RIGHT,
-            'OPS (JAM)'              => Alignment::HORIZONTAL_RIGHT,
-            'DOWNTIME (JAM)'         => Alignment::HORIZONTAL_RIGHT,
-            'TOTAL JAM'              => Alignment::HORIZONTAL_RIGHT,
-            'STATUS JOB'             => Alignment::HORIZONTAL_CENTER,
-            'REMARK'                 => Alignment::HORIZONTAL_LEFT,
-        ];
-
-        $wColIdx = 2; // Col B
-        foreach ($headersWell as $h => $align) {
-            $cL = Coordinate::stringFromColumnIndex($wColIdx);
-            $sheetWell->setCellValue("{$cL}5", $h);
-            $wColIdx++;
-        }
-
-        $endColWell = Coordinate::stringFromColumnIndex($wColIdx - 1);
-        $this->applyHeaderStyle($sheetWell, "B5:{$endColWell}5");
-        $sheetWell->getRowDimension(5)->setRowHeight(26);
-
-        $wRowStart = 6;
-        $wRow = $wRowStart;
-        $wNo = 1;
-
-        foreach ($reports as $rep) {
-            $sheetWell->setCellValue("B{$wRow}", $wNo++);
-            $sheetWell->setCellValue("C{$wRow}", $rep['nama_lokasi'] ?? '-');
-            $sheetWell->setCellValue("D{$wRow}", $rep['tanggal_mulai'] ? date('d/m/Y', strtotime($rep['tanggal_mulai'])) : '-');
-            $sheetWell->setCellValue("E{$wRow}", $rep['tanggal_selesai'] ? date('d/m/Y', strtotime($rep['tanggal_selesai'])) : '-');
-            $sheetWell->setCellValue("F{$wRow}", (float)($rep['jarak'] ?? 0));
-            $sheetWell->setCellValue("G{$wRow}", (float)($rep['miru_jam'] ?? 0));
-            $sheetWell->setCellValue("H{$wRow}", (float)($rep['ops_jam'] ?? 0));
-            $sheetWell->setCellValue("I{$wRow}", (float)($rep['total_dt'] ?? 0));
-            $sheetWell->setCellValue("J{$wRow}", (float)($rep['total_jam'] ?? 0));
-            $sheetWell->setCellValue("K{$wRow}", $rep['status_job'] ?? '-');
-            $sheetWell->setCellValue("L{$wRow}", $rep['remark'] ?? '-');
-
-            $sheetWell->getStyle("B{$wRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheetWell->getStyle("C{$wRow}")->getFont()->setBold(true);
-            $sheetWell->getStyle("D{$wRow}:E{$wRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheetWell->getStyle("F{$wRow}:J{$wRow}")->getNumberFormat()->setFormatCode('#,##0.00');
-            $sheetWell->getStyle("K{$wRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheetWell->getStyle("K{$wRow}")->getFont()->setBold(true);
-
-            $status = strtoupper(trim((string)($rep['status_job'] ?? '')));
-            if ($status === 'COMPLETED' || $status === 'SELESAI' || $status === 'JOB COMPLETED') {
-                $sheetWell->getStyle("K{$wRow}")->getFont()->getColor()->setRGB('15803D');
-            } elseif ($status === 'RUNNING' || $status === 'ON GOING' || $status === 'JOB PROGRESS') {
-                $sheetWell->getStyle("K{$wRow}")->getFont()->getColor()->setRGB('0284C7');
-            }
-
-            if ($wNo % 2 == 0) {
-                $sheetWell->getStyle("B{$wRow}:L{$wRow}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB(self::COLOR_ZEBRA);
-            }
-            $sheetWell->getRowDimension($wRow)->setRowHeight(20);
-            $wRow++;
-        }
-
-        $wRowEnd = $wRow - 1;
-        if ($wRowEnd >= $wRowStart) {
-            $this->applyGridBorders($sheetWell, "B{$wRowStart}:{$endColWell}{$wRowEnd}");
-
-            $totWRow = $wRow;
-            $sheetWell->setCellValue("B{$totWRow}", 'TOTAL');
-            $sheetWell->mergeCells("B{$totWRow}:E{$totWRow}");
-            $sheetWell->getStyle("B{$totWRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-
-            $sheetWell->setCellValue("F{$totWRow}", "=SUM(F{$wRowStart}:F{$wRowEnd})");
-            $sheetWell->setCellValue("G{$totWRow}", "=SUM(G{$wRowStart}:G{$wRowEnd})");
-            $sheetWell->setCellValue("H{$totWRow}", "=SUM(H{$wRowStart}:H{$wRowEnd})");
-            $sheetWell->setCellValue("I{$totWRow}", "=SUM(I{$wRowStart}:I{$wRowEnd})");
-            $sheetWell->setCellValue("J{$totWRow}", "=SUM(J{$wRowStart}:J{$wRowEnd})");
-            $sheetWell->setCellValue("K{$totWRow}", '-');
-            $sheetWell->setCellValue("L{$totWRow}", '-');
-
-            $sheetWell->getStyle("F{$totWRow}:J{$totWRow}")->getNumberFormat()->setFormatCode('#,##0.00');
-
-            $sheetWell->getStyle("B{$totWRow}:{$endColWell}{$totWRow}")->applyFromArray([
-                'font' => ['bold' => true, 'name' => 'Calibri', 'size' => 11],
-                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => self::COLOR_YELLOW]],
-                'borders' => [
-                    'top'    => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '000000']],
-                    'bottom' => ['borderStyle' => Border::BORDER_DOUBLE, 'color' => ['rgb' => '000000']],
-                    'allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '000000']],
-                ],
-            ]);
-            $sheetWell->getRowDimension($totWRow)->setRowHeight(24);
-        }
-
-        $this->autoFitColumns($sheetWell, 'B', $endColWell);
-        $sheetWell->freezePane('F6');
+        // SHEET 1: SUMMARY REPORT PER WELL (PERSIS TEMPLATE EXCEL ASLI)
+        $sheetPerWell = $spreadsheet->getActiveSheet();
+        $sheetTitle = substr(preg_replace('/[\\\\\/\?\*\[\]]/', '', $rig['kode']), 0, 30);
+        $sheetPerWell->setTitle($sheetTitle ?: 'SUMMARY PER WELL');
+        $this->populateSummaryReportPerWellSheet($sheetPerWell, $rig, $bulan, $tahun);
 
         $spreadsheet->setActiveSheetIndex(0);
-        $filename = "Daily_Report_Detail_{$rig['kode']}_{$bulanName}_{$tahun}.xlsx";
+        $filename = "SUMMARY_REPORT_PER_WELL_{$rig['kode']}_{$bulanName}_{$tahun}.xlsx";
         $this->outputSpreadsheet($spreadsheet, $filename);
     }
 
@@ -1355,177 +1669,16 @@ class Export extends BaseController
         $allLogsSheet->freezePane('F6');
 
         // ─────────────────────────────────────────────────────────────
-        // 3. Buat Lembar Sheet Rincian Per Rig (Detail Log Harian)
+        // 3. Buat Lembar Sheet Per Rig Persis Template "SUMMARY REPORT PER WELL"
         // ─────────────────────────────────────────────────────────────
         foreach ($rigs as $rig) {
-            $rigLogs = $db->table('daily_report_log drl')
-                ->select('drl.*, l.nama_lokasi, dr.no_well, dr.status_job as parent_status')
-                ->join('daily_report dr', 'dr.id = drl.daily_report_id')
-                ->join('lokasi l', 'l.id = dr.lokasi_id', 'left')
-                ->where('dr.rig_id', $rig['id'])
-                ->where('dr.bulan', $bulan)
-                ->where('dr.tahun', $tahun)
-                ->orderBy('drl.tanggal', 'ASC')
-                ->orderBy('drl.id', 'ASC')
-                ->get()->getResultArray();
-
             $rigReports = $this->dailyReportModel->getByRigBulanTahun($rig['id'], $bulan, $tahun);
-            if (empty($rigLogs) && empty($rigReports)) continue;
+            if (empty($rigReports)) continue;
 
             $sheet = $spreadsheet->createSheet();
             $sheetTitle = substr(preg_replace('/[\\\\\/\?\*\[\]]/', '', $rig['kode']), 0, 30);
             $sheet->setTitle($sheetTitle);
-            $sheet->setShowGridLines(true);
-
-            $odrFormatted = number_format((float)($rig['odr'] ?? 0), 0, ',', '.');
-            $this->renderCompanyHeader(
-                $sheet,
-                "RINCIAN LOG HARIAN OPERASI & DOWNTIME — {$rig['kode']} ({$rig['nama_rig']})",
-                "PERIODE: {$bulanName} {$tahun} | KONTRAK ODR: Rp {$odrFormatted}/HARI",
-                'Q'
-            );
-
-            $rigHeaders = [
-                'NO'                       => Alignment::HORIZONTAL_CENTER,
-                'TANGGAL OPERASI'          => Alignment::HORIZONTAL_CENTER,
-                'TEMPAT / LOKASI SUMUR'    => Alignment::HORIZONTAL_LEFT,
-                'JARAK (KM)'               => Alignment::HORIZONTAL_RIGHT,
-                'MIRU (JAM)'               => Alignment::HORIZONTAL_RIGHT,
-                'OPS (JAM)'                => Alignment::HORIZONTAL_RIGHT,
-                'SBWC RAIN (JAM)'          => Alignment::HORIZONTAL_RIGHT,
-                'SBWC ROAD/PAD (JAM)'      => Alignment::HORIZONTAL_RIGHT,
-                'SBWC DAYLIGHT (JAM)'      => Alignment::HORIZONTAL_RIGHT,
-                'SBWC 3RD PARTY (JAM)'     => Alignment::HORIZONTAL_RIGHT,
-                'UNPAID RIG (JAM)'         => Alignment::HORIZONTAL_RIGHT,
-                'UNPAID TOOL (JAM)'        => Alignment::HORIZONTAL_RIGHT,
-                'TOTAL DOWNTIME (JAM)'     => Alignment::HORIZONTAL_RIGHT,
-                'TOTAL JAM OPERASI (JAM)'  => Alignment::HORIZONTAL_RIGHT,
-                'STATUS JOB'               => Alignment::HORIZONTAL_CENTER,
-                'REMARK / URAIAN PEKERJAAN'=> Alignment::HORIZONTAL_LEFT,
-            ];
-
-            $cIdx = 2;
-            foreach ($rigHeaders as $h => $align) {
-                $cL = Coordinate::stringFromColumnIndex($cIdx);
-                $sheet->setCellValue("{$cL}5", $h);
-                $cIdx++;
-            }
-            $rigEndCol = Coordinate::stringFromColumnIndex($cIdx - 1);
-            $this->applyHeaderStyle($sheet, "B5:{$rigEndCol}5");
-            $sheet->getRowDimension(5)->setRowHeight(28);
-
-            $rRowStart = 6;
-            $rRow = $rRowStart;
-            $rNo = 1;
-
-            if (!empty($rigLogs)) {
-                foreach ($rigLogs as $lg) {
-                    $tglFormatted = $lg['tanggal'] ? date('d/m/Y', strtotime($lg['tanggal'])) : '-';
-                    $lokasiNama   = !empty($lg['nama_lokasi']) ? $lg['nama_lokasi'] : ('Sumur #' . ($lg['no_well'] ?? '-'));
-                    $roadPad      = (float)($lg['dt_dry_road'] ?? 0) + (float)($lg['dt_dry_pad'] ?? 0);
-                    $thirdParty   = (float)($lg['dt_3rd_party'] ?? 0) + (float)($lg['dt_phr_op'] ?? 0) + (float)($lg['dt_trans'] ?? 0) + (float)($lg['dt_ce_pe'] ?? 0) + (float)($lg['dt_phr_well'] ?? 0) + (float)($lg['dt_foam'] ?? 0);
-                    $remarkText   = !empty($lg['remark_npt']) ? $lg['remark_npt'] : (!empty($lg['remark_unpaid']) ? $lg['remark_unpaid'] : '-');
-
-                    $sheet->setCellValue("B{$rRow}", $rNo++);
-                    $sheet->setCellValue("C{$rRow}", $tglFormatted);
-                    $sheet->setCellValue("D{$rRow}", $lokasiNama);
-                    $sheet->setCellValue("E{$rRow}", (float)($lg['jarak'] ?? 0));
-                    $sheet->setCellValue("F{$rRow}", (float)($lg['miru_jam'] ?? 0));
-                    $sheet->setCellValue("G{$rRow}", (float)($lg['ops_jam'] ?? 0));
-                    $sheet->setCellValue("H{$rRow}", (float)($lg['dt_rain'] ?? 0));
-                    $sheet->setCellValue("I{$rRow}", $roadPad);
-                    $sheet->setCellValue("J{$rRow}", (float)($lg['dt_daylight'] ?? 0));
-                    $sheet->setCellValue("K{$rRow}", $thirdParty);
-                    $sheet->setCellValue("L{$rRow}", (float)($lg['dt_rig'] ?? 0));
-                    $sheet->setCellValue("M{$rRow}", (float)($lg['dt_tool'] ?? 0));
-                    $sheet->setCellValue("N{$rRow}", (float)($lg['total_dt'] ?? 0));
-                    $sheet->setCellValue("O{$rRow}", (float)($lg['total_hrs'] ?? 0));
-                    $sheet->setCellValue("P{$rRow}", $lg['parent_status'] ?? '-');
-                    $sheet->setCellValue("Q{$rRow}", $remarkText);
-
-                    $sheet->getStyle("B{$rRow}:C{$rRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-                    $sheet->getStyle("C{$rRow}")->getFont()->setBold(true);
-                    $sheet->getStyle("D{$rRow}")->getFont()->setBold(true);
-                    $sheet->getStyle("E{$rRow}:O{$rRow}")->getNumberFormat()->setFormatCode('#,##0.00');
-                    $sheet->getStyle("P{$rRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-                    $sheet->getStyle("P{$rRow}")->getFont()->setBold(true);
-
-                    if ((float)($lg['dt_rig'] ?? 0) > 0 || (float)($lg['dt_tool'] ?? 0) > 0) {
-                        $sheet->getStyle("L{$rRow}:M{$rRow}")->getFont()->setBold(true)->getColor()->setRGB(self::COLOR_RED);
-                    }
-
-                    if ($rNo % 2 == 0) {
-                        $sheet->getStyle("B{$rRow}:Q{$rRow}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB(self::COLOR_ZEBRA);
-                    }
-                    $sheet->getRowDimension($rRow)->setRowHeight(21);
-                    $rRow++;
-                }
-            } else {
-                foreach ($rigReports as $rep) {
-                    $sheet->setCellValue("B{$rRow}", $rNo++);
-                    $sheet->setCellValue("C{$rRow}", ($rep['tanggal_mulai'] ? date('d/m/Y', strtotime($rep['tanggal_mulai'])) : '-') . ' s/d ' . ($rep['tanggal_selesai'] ? date('d/m/Y', strtotime($rep['tanggal_selesai'])) : '-'));
-                    $sheet->setCellValue("D{$rRow}", $rep['nama_lokasi'] ?? '-');
-                    $sheet->setCellValue("E{$rRow}", (float)($rep['jarak'] ?? 0));
-                    $sheet->setCellValue("F{$rRow}", (float)($rep['miru_jam'] ?? 0));
-                    $sheet->setCellValue("G{$rRow}", (float)($rep['ops_jam'] ?? 0));
-                    $sheet->setCellValue("H{$rRow}", 0);
-                    $sheet->setCellValue("I{$rRow}", 0);
-                    $sheet->setCellValue("J{$rRow}", 0);
-                    $sheet->setCellValue("K{$rRow}", 0);
-                    $sheet->setCellValue("L{$rRow}", 0);
-                    $sheet->setCellValue("M{$rRow}", 0);
-                    $sheet->setCellValue("N{$rRow}", (float)($rep['total_dt'] ?? 0));
-                    $sheet->setCellValue("O{$rRow}", (float)($rep['total_jam'] ?? 0));
-                    $sheet->setCellValue("P{$rRow}", $rep['status_job'] ?? '-');
-                    $sheet->setCellValue("Q{$rRow}", $rep['remark'] ?? '-');
-
-                    $sheet->getStyle("B{$rRow}:C{$rRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-                    $sheet->getStyle("D{$rRow}")->getFont()->setBold(true);
-                    $sheet->getStyle("E{$rRow}:O{$rRow}")->getNumberFormat()->setFormatCode('#,##0.00');
-                    $sheet->getStyle("P{$rRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-                    $sheet->getRowDimension($rRow)->setRowHeight(21);
-                    $rRow++;
-                }
-            }
-
-            $rRowEnd = $rRow - 1;
-            if ($rRowEnd >= $rRowStart) {
-                $this->applyGridBorders($sheet, "B{$rRowStart}:{$rigEndCol}{$rRowEnd}");
-
-                $totRRow = $rRow;
-                $sheet->setCellValue("B{$totRRow}", 'TOTAL');
-                $sheet->mergeCells("B{$totRRow}:D{$totRRow}");
-                $sheet->getStyle("B{$totRRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-
-                $sheet->setCellValue("E{$totRRow}", "=SUM(E{$rRowStart}:E{$rRowEnd})");
-                $sheet->setCellValue("F{$totRRow}", "=SUM(F{$rRowStart}:F{$rRowEnd})");
-                $sheet->setCellValue("G{$totRRow}", "=SUM(G{$rRowStart}:G{$rRowEnd})");
-                $sheet->setCellValue("H{$totRRow}", "=SUM(H{$rRowStart}:H{$rRowEnd})");
-                $sheet->setCellValue("I{$totRRow}", "=SUM(I{$rRowStart}:I{$rRowEnd})");
-                $sheet->setCellValue("J{$totRRow}", "=SUM(J{$rRowStart}:J{$rRowEnd})");
-                $sheet->setCellValue("K{$totRRow}", "=SUM(K{$rRowStart}:K{$rRowEnd})");
-                $sheet->setCellValue("L{$totRRow}", "=SUM(L{$rRowStart}:L{$rRowEnd})");
-                $sheet->setCellValue("M{$totRRow}", "=SUM(M{$rRowStart}:M{$rRowEnd})");
-                $sheet->setCellValue("N{$totRRow}", "=SUM(N{$rRowStart}:N{$rRowEnd})");
-                $sheet->setCellValue("O{$totRRow}", "=SUM(O{$rRowStart}:O{$rRowEnd})");
-                $sheet->setCellValue("P{$totRRow}", '-');
-                $sheet->setCellValue("Q{$totRRow}", '-');
-
-                $sheet->getStyle("E{$totRRow}:O{$totRRow}")->getNumberFormat()->setFormatCode('#,##0.00');
-
-                $sheet->getStyle("B{$totRRow}:{$rigEndCol}{$totRRow}")->applyFromArray([
-                    'font' => ['bold' => true, 'name' => 'Calibri', 'size' => 11],
-                    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => self::COLOR_YELLOW]],
-                    'borders' => [
-                        'top'    => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '000000']],
-                        'bottom' => ['borderStyle' => Border::BORDER_DOUBLE, 'color' => ['rgb' => '000000']],
-                        'allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '000000']],
-                    ],
-                ]);
-                $sheet->getRowDimension($totRRow)->setRowHeight(24);
-            }
-            $this->autoFitColumns($sheet, 'B', $rigEndCol);
-            $sheet->freezePane('E6');
+            $this->populateSummaryReportPerWellSheet($sheet, $rig, $bulan, $tahun);
         }
 
         $spreadsheet->setActiveSheetIndex(0);

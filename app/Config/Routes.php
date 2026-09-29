@@ -88,6 +88,8 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
         $routes->get('edit/(:num)', 'DailyReport::edit/$1');
         $routes->post('update/(:num)', 'DailyReport::update/$1');
         $routes->post('hapus/(:num)', 'DailyReport::hapus/$1');
+        $routes->post('simpan-catatan', 'DailyReport::simpanCatatan');
+        $routes->post('hapus-catatan', 'DailyReport::hapusCatatan');
     });
 
     // ---- MONTHLY REPORT ----

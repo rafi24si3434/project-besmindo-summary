@@ -3,89 +3,54 @@
 <?= $this->section('content') ?>
 <div class="ui-screen ui-screen--operations space-y-5 pb-12">
 
-    <!-- ═══ 1. HERO HEADER & WORKFLOW GUIDE (FAMILY-FRIENDLY & INTUITIF) ══════ -->
-    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-850 to-[#0A1835] border border-slate-700/80 shadow-2xl p-5 sm:p-6">
-        <!-- Ambient Glow Effects -->
-        <div class="absolute -top-16 -right-16 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="absolute -bottom-16 -left-16 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
-
-        <div class="relative z-10 flex flex-col xl:flex-row xl:items-center justify-between gap-5">
+    <!-- ═══ 1. HEADER UTAMA (BESAR, JELAS & RAMAH PENGGUNA SENIOR) ═════════════════════ -->
+    <div class="bms-bezel-shell">
+        <div class="bms-bezel-core px-5 py-4 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
             <!-- Rig Info & Title -->
-            <div class="flex items-start sm:items-center gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-cyan-400 text-white flex items-center justify-center flex-shrink-0 shadow-lg shadow-blue-500/30 border border-white/10">
-                    <i class="fa-solid fa-oil-well text-2xl"></i>
+            <div class="flex items-start sm:items-center gap-3.5">
+                <div class="w-12 h-12 rounded-xl bg-blue-600/15 text-blue-400 border border-blue-500/30 flex items-center justify-center flex-shrink-0">
+                    <i class="fa-solid fa-bore-hole text-lg"></i>
                 </div>
                 <div>
                     <div class="flex flex-wrap items-center gap-2 mb-1">
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[11px] font-black uppercase tracking-wider border border-emerald-500/40">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                            STEP 1 · REKAP SUMUR (WELL)
+                        <span class="text-xs font-extrabold uppercase tracking-wider text-blue-400">
+                            DAFTAR PEKERJAAN SUMUR (DAILY REPORT)
                         </span>
-                        <span class="text-xs text-slate-400 font-semibold flex items-center gap-1">
-                            <i class="fa-regular fa-calendar text-slate-500"></i>
-                            <?= [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni',7=>'Juli',8=>'Agustus',9=>'September',10=>'Oktober',11=>'November',12=>'Desember'][$bulan] ?? '' ?> <?= $tahun ?>
+                        <span class="px-2.5 py-0.5 rounded-md text-xs font-mono font-bold bg-white/[0.06] text-slate-200 border border-white/[0.12]">
+                            Periode: <?= [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni',7=>'Juli',8=>'Agustus',9=>'September',10=>'Oktober',11=>'November',12=>'Desember'][$bulan] ?? '' ?> <?= $tahun ?>
                         </span>
                     </div>
-                    <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2.5">
-                        <span class="bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent"><?= esc($rig['kode']) ?></span>
-                        <span class="text-slate-400 font-normal text-base hidden sm:inline">| <?= esc($rig['nama_rig']) ?></span>
+                    <h1 class="text-xl sm:text-2xl font-extrabold text-white tracking-tight flex flex-wrap items-center gap-2">
+                        <span>Rig <?= esc($rig['kode']) ?></span>
+                        <span class="text-slate-400 font-semibold text-base">— <?= esc($rig['nama_rig']) ?></span>
                     </h1>
-                    <p class="text-xs text-slate-400 mt-0.5">
-                        Pusat ringkasan pekerjaan seluruh sumur, durasi operasi, MIRU moving, dan pos downtime.
-                    </p>
                 </div>
             </div>
 
-            <!-- Workflow Step Shortcut Buttons (Family-Friendly Stepper) -->
+            <!-- Action Buttons (Ukuran Besar & Teks Jelas) -->
             <div class="flex flex-wrap items-center gap-2.5">
+                <a href="<?= base_url("daily-report/tambah/{$rigId}/{$bulan}/{$tahun}") ?>" 
+                   class="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-sm shadow-md transition flex items-center gap-2">
+                    <i class="fa-solid fa-plus-circle text-sm"></i>
+                    <span>+ Tambah Sumur Baru</span>
+                </a>
                 <a href="<?= base_url('daily-report/log-harian/' . $rigId . '/' . $bulan . '/' . $tahun) ?>"
-                   class="group px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-cyan-600 text-cyan-300 hover:text-white border border-cyan-500/30 font-bold text-xs shadow-md transition-all duration-200 flex items-center gap-2 active:scale-95">
-                    <span class="w-5 h-5 rounded-lg bg-cyan-500/30 group-hover:bg-white/20 flex items-center justify-center text-[10px] font-mono font-black">2</span>
-                    <span>Input Daily Report</span>
-                    <i class="fa-solid fa-arrow-right text-[10px] opacity-70 group-hover:translate-x-0.5 transition-transform"></i>
+                   class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-sm shadow-md transition flex items-center gap-2">
+                    <i class="fa-solid fa-calendar-check text-sm"></i>
+                    <span>Input Log Harian (24 Jam)</span>
                 </a>
                 <a href="<?= base_url('npt/' . $rigId . '/' . $bulan . '/' . $tahun) ?>"
-                   class="group px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-amber-600 text-amber-300 hover:text-white border border-amber-500/30 font-bold text-xs shadow-md transition-all duration-200 flex items-center gap-2 active:scale-95">
-                    <span class="w-5 h-5 rounded-lg bg-amber-500/30 group-hover:bg-white/20 flex items-center justify-center text-[10px] font-mono font-black">3</span>
-                    <span>Input NPT (Downtime)</span>
-                    <i class="fa-solid fa-arrow-right text-[10px] opacity-70 group-hover:translate-x-0.5 transition-transform"></i>
+                   class="px-4 py-2.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-slate-200 border border-white/[0.14] font-bold text-sm transition flex items-center gap-2">
+                    <i class="fa-solid fa-table-cells text-amber-400 text-sm"></i>
+                    <span>Lihat Tabel NPT</span>
                 </a>
-                <a href="<?= base_url("daily-report/tambah/{$rigId}/{$bulan}/{$tahun}") ?>" 
-                   class="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-xs shadow-lg shadow-blue-600/30 border border-blue-400/30 transition-all duration-200 flex items-center gap-2 active:scale-95">
-                    <i class="fa-solid fa-circle-plus text-sm"></i>
-                    <span>+ Tambah Sumur</span>
-                </a>
-            </div>
-        </div>
-
-        <!-- 3-Step Guided Path Banner (Very Friendly for Beginners) -->
-        <div class="mt-4 pt-3.5 border-t border-slate-700/60 grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-            <div class="flex items-center gap-2.5 p-2 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-200">
-                <span class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-[11px] font-black">1</span>
-                <div>
-                    <span class="font-black text-white block">Step 1: Rekap Sumur (Well)</span>
-                    <span class="text-[10px] text-blue-300/80">Daftarkan sumur baru &amp; cek ringkasan total</span>
-                </div>
-            </div>
-            <div class="flex items-center gap-2.5 p-2 rounded-xl bg-slate-800/60 border border-slate-700/60 text-slate-300">
-                <span class="w-6 h-6 rounded-full bg-slate-700 text-slate-300 flex items-center justify-center text-[11px] font-bold">2</span>
-                <div>
-                    <span class="font-bold text-slate-200 block">Step 2: Input Daily Report</span>
-                    <span class="text-[10px] text-slate-400">Catat laporan aktivitas per tanggal</span>
-                </div>
-            </div>
-            <div class="flex items-center gap-2.5 p-2 rounded-xl bg-slate-800/60 border border-slate-700/60 text-slate-300">
-                <span class="w-6 h-6 rounded-full bg-slate-700 text-slate-300 flex items-center justify-center text-[11px] font-bold">3</span>
-                <div>
-                    <span class="font-bold text-slate-200 block">Step 3: Input NPT (Downtime)</span>
-                    <span class="text-[10px] text-slate-400">Koreksi jam SBWC, UNPAID &amp; 3rd Party</span>
-                </div>
             </div>
         </div>
     </div>
 
     <!-- ═══ 2. 5 INTERACTIVE KPI DASHBOARD STAT CARDS ════════════════════════ -->
     <?php
+        $fmtKm = static fn($v) => (float)$v > 0 ? rtrim(rtrim(number_format((float)$v, 2, '.', ''), '0'), '.') : '0';
         $completedCount = 0;
         $progressCount = 0;
         $totalDistance = 0;
@@ -102,251 +67,315 @@
     ?>
     <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
         <!-- Card 1: Total Sumur & Progress -->
-        <div class="p-4 rounded-2xl bg-slate-900/95 border border-slate-700/80 shadow-lg relative overflow-hidden group hover:border-blue-500/60 transition-all duration-200">
+        <div class="dr-surface-card p-4 rounded-xl flex flex-col justify-between">
             <div class="flex items-center justify-between">
-                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Sumur</span>
-                <div class="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center justify-center text-xs">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Total Sumur</span>
+                <div class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center justify-center text-xs">
                     <i class="fa-solid fa-oil-well"></i>
                 </div>
             </div>
             <div class="mt-2 flex items-baseline gap-1.5">
-                <span class="text-2xl sm:text-3xl font-black font-num text-white"><?= $wellJobCount ?></span>
+                <span class="text-2xl sm:text-3xl font-extrabold font-num text-white"><?= $wellJobCount ?></span>
                 <span class="text-xs text-slate-400 font-semibold">Sumur</span>
             </div>
-            <!-- Progress Mini Bar -->
-            <div class="mt-2.5">
-                <div class="flex items-center justify-between text-[10px] font-bold mb-1">
+            <div class="mt-3 pt-2.5 border-t border-slate-800/80">
+                <div class="flex items-center justify-between text-xs font-bold mb-1.5">
                     <span class="text-emerald-400"><?= $completedCount ?> Selesai</span>
-                    <span class="text-amber-400"><?= $progressCount ?> On Progress</span>
+                    <span class="text-amber-400"><?= $progressCount ?> Berjalan</span>
                 </div>
-                <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden flex">
-                    <div class="bg-emerald-500 h-full rounded-full transition-all duration-500" style="width: <?= $completionPct ?>%"></div>
-                    <div class="bg-amber-500 h-full rounded-full transition-all duration-500" style="width: <?= 100 - $completionPct ?>%"></div>
+                <div class="w-full bg-slate-950 rounded-full h-2 overflow-hidden flex border border-slate-800">
+                    <div class="bg-emerald-500 h-full transition-all duration-500" style="width: <?= $completionPct ?>%"></div>
+                    <div class="bg-amber-500 h-full transition-all duration-500" style="width: <?= 100 - $completionPct ?>%"></div>
                 </div>
             </div>
         </div>
 
         <!-- Card 2: Jam Operasi (OPS) -->
-        <div class="p-4 rounded-2xl bg-slate-900/95 border border-slate-700/80 shadow-lg relative overflow-hidden group hover:border-emerald-500/60 transition-all duration-200">
+        <div class="dr-surface-card p-4 rounded-xl flex flex-col justify-between">
             <div class="flex items-center justify-between">
-                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Jam Operasi (OPS)</span>
-                <div class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center text-xs">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Jam Operasi (OPS)</span>
+                <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center text-xs">
                     <i class="fa-solid fa-gears"></i>
                 </div>
             </div>
             <div class="mt-2 flex items-baseline gap-1.5">
-                <span class="text-2xl sm:text-3xl font-black font-num text-emerald-400"><?= number_format($totalOps, 1) ?></span>
+                <span class="text-2xl sm:text-3xl font-extrabold font-num text-white"><?= number_format($totalOps, 1) ?></span>
                 <span class="text-xs text-slate-400 font-semibold">Jam</span>
             </div>
-            <div class="mt-2.5 flex items-center justify-between text-[10px] text-slate-400">
-                <span>Rata-rata: <strong class="text-emerald-300"><?= $wellJobCount > 0 ? number_format($totalOps / $wellJobCount, 1) : 0 ?>h/sumur</strong></span>
-                <span class="font-mono text-emerald-400 font-bold"><?= $opsShare ?>% Porsi</span>
+            <div class="mt-3 pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+                <span>Rata-rata: <strong class="text-slate-200 font-mono"><?= $wellJobCount > 0 ? number_format($totalOps / $wellJobCount, 1) : 0 ?>j/sumur</strong></span>
+                <span class="font-mono text-emerald-400 font-bold px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20"><?= $opsShare ?>%</span>
             </div>
         </div>
 
         <!-- Card 3: Jam Moving & MIRU -->
-        <div class="p-4 rounded-2xl bg-slate-900/95 border border-slate-700/80 shadow-lg relative overflow-hidden group hover:border-lime-500/60 transition-all duration-200">
+        <div class="dr-surface-card p-4 rounded-xl flex flex-col justify-between">
             <div class="flex items-center justify-between">
-                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Jam MIRU / Moving</span>
-                <div class="w-8 h-8 rounded-xl bg-lime-500/10 text-lime-400 border border-lime-500/20 flex items-center justify-center text-xs">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Jam MIRU / Moving</span>
+                <div class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center justify-center text-xs">
                     <i class="fa-solid fa-truck-moving"></i>
                 </div>
             </div>
             <div class="mt-2 flex items-baseline gap-1.5">
-                <span class="text-2xl sm:text-3xl font-black font-num text-lime-400"><?= number_format($totalMiru, 1) ?></span>
+                <span class="text-2xl sm:text-3xl font-extrabold font-num text-white"><?= number_format($totalMiru, 1) ?></span>
                 <span class="text-xs text-slate-400 font-semibold">Jam</span>
             </div>
-            <div class="mt-2.5 flex items-center justify-between text-[10px] text-slate-400">
-                <span>Total Jarak: <strong class="text-lime-300"><?= number_format($totalDistance, 0) ?> KM</strong></span>
-                <span class="font-mono text-lime-400 font-bold"><?= $miruShare ?>% Porsi</span>
+            <div class="mt-3 pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+                <span>Total Jarak: <strong class="text-slate-200 font-mono"><?= $fmtKm($totalDistance) ?> KM</strong></span>
+                <span class="font-mono text-blue-400 font-bold px-1.5 py-0.5 rounded bg-blue-500/10 border border-blue-500/20"><?= $miruShare ?>%</span>
             </div>
         </div>
 
         <!-- Card 4: Total Downtime -->
-        <div class="p-4 rounded-2xl bg-slate-900/95 border border-slate-700/80 shadow-lg relative overflow-hidden group hover:border-amber-500/60 transition-all duration-200">
+        <div class="dr-surface-card p-4 rounded-xl flex flex-col justify-between">
             <div class="flex items-center justify-between">
-                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Downtime</span>
-                <div class="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center text-xs">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Total Downtime</span>
+                <div class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center text-xs">
                     <i class="fa-solid fa-clock-rotate-left"></i>
                 </div>
             </div>
             <div class="mt-2 flex items-baseline gap-1.5">
-                <span class="text-2xl sm:text-3xl font-black font-num text-yellow-300"><?= number_format($grandTotalDt, 1) ?></span>
+                <span class="text-2xl sm:text-3xl font-extrabold font-num text-white"><?= number_format($grandTotalDt, 1) ?></span>
                 <span class="text-xs text-slate-400 font-semibold">Jam</span>
             </div>
-            <div class="mt-2.5 flex items-center justify-between text-[10px] text-slate-400">
-                <span>Akumulasi Kendala</span>
-                <span class="font-mono text-yellow-300 font-bold"><?= $dtShare ?>% Total</span>
+            <div class="mt-3 pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+                <span>Akumulasi NPT</span>
+                <span class="font-mono text-amber-400 font-bold px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20"><?= $dtShare ?>%</span>
             </div>
         </div>
 
         <!-- Card 5: Nilai Kontrak ODR -->
-        <div class="p-4 rounded-2xl bg-slate-900/95 border border-slate-700/80 shadow-lg relative overflow-hidden group hover:border-purple-500/60 transition-all duration-200 col-span-2 sm:col-span-1">
+        <div class="dr-surface-card p-4 rounded-xl flex flex-col justify-between col-span-2 sm:col-span-1">
             <div class="flex items-center justify-between">
-                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Tarif ODR Kontrak</span>
-                <div class="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20 flex items-center justify-center text-xs">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Tarif ODR Kontrak</span>
+                <div class="w-8 h-8 rounded-lg bg-white/[0.05] text-slate-300 border border-slate-700 flex items-center justify-center text-xs">
                     <i class="fa-solid fa-file-invoice-dollar"></i>
                 </div>
             </div>
             <div class="mt-2 flex items-baseline gap-1">
                 <span class="text-xs text-slate-400 font-bold">Rp</span>
-                <span class="text-xl font-black font-num text-purple-300"><?= number_format($odr, 0, ',', '.') ?></span>
+                <span class="text-xl font-extrabold font-num text-white"><?= number_format($odr, 0, ',', '.') ?></span>
             </div>
-            <div class="mt-2.5 flex items-center justify-between text-[10px] text-purple-400 font-semibold">
-                <span>Per Hari Operasi</span>
-                <span class="text-[9px] px-1.5 py-0.2 rounded bg-purple-500/20 border border-purple-500/30">Contract Rate</span>
+            <div class="mt-3 pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+                <span>Operating Day Rate</span>
+                <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-white/[0.04] border border-slate-700 text-slate-300">24 Jam/Hari</span>
             </div>
         </div>
     </div>
 
-    <!-- ═══ 3. FILTER, SEARCH & VIEW MODE TOOLBAR (INTERAKTIF & TACTILE) ══════ -->
+    <!-- ═══ 3. PANEL FILTER & NAVIGASI PERIODE (BESAR, JELAS, MUDAH DIGUNAKAN) ══════ -->
     <style>
+        .dr-surface-card {
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            transition: border-color 150ms ease, box-shadow 150ms ease;
+        }
+        .dr-surface-card:hover {
+            border-color: var(--border-strong);
+        }
         .dr-toolbar-card {
-            background: linear-gradient(135deg, rgba(17, 29, 46, 0.97) 0%, rgba(13, 20, 34, 0.98) 100%);
-            border: 1px solid rgba(37, 48, 64, 0.9);
-            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.45);
+            background-color: var(--card);
+            border: 1px solid var(--border-strong);
+            box-shadow: var(--shadow-sm);
         }
-        .dr-control-box {
-            background: #091322;
-            border: 1px solid #1e2f47;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        .dr-senior-select,
+        .dr-senior-input {
+            width: 100%;
+            height: 44px;
+            padding: 0 14px;
+            border-radius: 12px;
+            background-color: var(--background);
+            border: 1.5px solid var(--border-strong) !important;
+            color: var(--foreground) !important;
+            font-size: 14px;
+            font-weight: 800;
+            transition: border-color 150ms ease, box-shadow 150ms ease;
         }
-        .dr-control-box:hover {
-            border-color: #3b5375;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        .dr-senior-select:hover,
+        .dr-senior-input:hover {
+            border-color: #3b82f6 !important;
         }
-        .dr-control-box:focus-within {
-            border-color: #d4a820;
-            box-shadow: 0 0 0 3px rgba(212, 168, 32, 0.18);
+        .dr-senior-select:focus,
+        .dr-senior-input:focus {
+            outline: none;
+            border-color: #2563eb !important;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18) !important;
         }
-        .dr-stepper-btn {
-            width: 34px;
-            height: 34px;
+        .dr-month-step-btn {
+            height: 44px;
+            padding: 0 13px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            border-radius: 10px;
-            background: #0f1c30;
-            border: 1px solid #20334e;
-            color: #8fa0b5;
-            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            gap: 6px;
+            border-radius: 12px;
+            background-color: var(--background);
+            border: 1.5px solid var(--border-strong);
+            color: var(--foreground);
+            font-size: 12.5px;
+            font-weight: 800;
+            white-space: nowrap;
+            transition: all 150ms ease;
             cursor: pointer;
+            text-decoration: none;
         }
-        .dr-stepper-btn:hover {
-            background: #1e3355;
-            color: #f8fafc;
-            border-color: #4a77b5;
-            transform: translateY(-1px);
-        }
-        .dr-stepper-btn:active {
-            transform: scale(0.92);
+        .dr-month-step-btn:hover {
+            border-color: #2563eb;
+            background-color: rgba(37, 99, 235, 0.08);
+            color: #2563eb;
         }
         /* Segmented View Switcher */
         .dr-segmented-group {
-            background: #091322;
-            border: 1px solid #1e2f47;
+            background-color: var(--background);
+            border: 1.5px solid var(--border-strong);
             padding: 4px;
-            border-radius: 14px;
+            border-radius: 12px;
             display: inline-flex;
             align-items: center;
             gap: 4px;
         }
         .dr-view-pill {
-            padding: 7px 15px;
-            border-radius: 10px;
-            font-size: 11px;
+            padding: 8px 14px;
+            border-radius: 9px;
+            font-size: 12.5px;
             font-weight: 700;
             display: inline-flex;
             align-items: center;
-            gap: 7px;
-            color: #7e93ab;
+            gap: 6px;
+            color: var(--muted-foreground);
             background: transparent;
             border: 1px solid transparent;
-            transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 150ms ease;
             cursor: pointer;
             user-select: none;
             white-space: nowrap;
         }
         .dr-view-pill:hover {
-            color: #e2e8f0;
-            background: rgba(255, 255, 255, 0.04);
-            transform: translateY(-1px);
-        }
-        .dr-view-pill:active {
-            transform: scale(0.95);
+            color: var(--foreground);
         }
         .dr-view-pill.active {
-            background: linear-gradient(135deg, #1b2e4b 0%, #15243b 100%) !important;
+            background-color: #2563eb !important;
             color: #ffffff !important;
-            border-color: #3b82f6 !important;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+            border-color: #1d4ed8 !important;
+            box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
         }
         .dr-view-pill.active i {
-            color: #d4a820 !important;
+            color: #ffffff !important;
         }
         /* Filter Chips */
         .dr-chip-btn {
-            padding: 7px 13px;
-            border-radius: 12px;
-            font-size: 11px;
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 12.5px;
             font-weight: 700;
             display: inline-flex;
             align-items: center;
             gap: 7px;
-            background: #091322;
-            border: 1px solid #1e2f47;
-            color: #7e93ab;
-            transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+            background-color: var(--background);
+            border: 1.5px solid var(--border-strong);
+            color: var(--muted-foreground);
+            transition: all 150ms ease;
             cursor: pointer;
             user-select: none;
             white-space: nowrap;
         }
         .dr-chip-btn:hover {
-            background: #112036;
-            color: #e2e8f0;
-            border-color: #2b4363;
-            transform: translateY(-1px);
-        }
-        .dr-chip-btn:active {
-            transform: scale(0.95);
+            color: var(--foreground);
+            border-color: var(--muted-foreground);
         }
         .dr-chip-btn.active-all {
-            background: linear-gradient(135deg, #d4a820 0%, #b38813 100%) !important;
-            color: #0f172a !important;
-            border-color: #facc15 !important;
-            box-shadow: 0 4px 14px rgba(212, 168, 32, 0.35);
+            background-color: var(--foreground) !important;
+            color: var(--background) !important;
+            border-color: var(--foreground) !important;
+        }
+        .dr-chip-btn.active-all span {
+            background-color: rgba(128, 128, 128, 0.25) !important;
+            color: var(--background) !important;
         }
         .dr-chip-btn.active-completed {
-            background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
-            color: #ffffff !important;
-            border-color: #34d399 !important;
-            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+            background-color: var(--success-bg) !important;
+            color: var(--success-fg) !important;
+            border-color: var(--success-border) !important;
         }
         .dr-chip-btn.active-progress {
-            background: linear-gradient(135deg, #d97706 0%, #b45309 100%) !important;
-            color: #ffffff !important;
-            border-color: #fbbf24 !important;
-            box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
+            background-color: var(--warning-bg) !important;
+            color: var(--warning-fg) !important;
+            border-color: var(--warning-border) !important;
         }
         /* Export Button */
         .dr-export-action {
-            background: linear-gradient(135deg, #059669 0%, #047857 100%);
-            border: 1px solid #10b981;
-            color: #ffffff;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
-            transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+            height: 44px;
+            background-color: #059669;
+            border: 1.5px solid #047857;
+            color: #ffffff !important;
+            transition: all 150ms ease;
         }
         .dr-export-action:hover {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            box-shadow: 0 6px 18px rgba(16, 185, 129, 0.45);
-            transform: translateY(-1px);
+            background-color: #047857;
         }
-        .dr-export-action:active {
-            transform: scale(0.95);
+        /* Table Structural Headers & Footers */
+        .dr-table-head th {
+            background-color: #131824 !important;
+            color: #cbd5e1 !important;
+            border-color: rgba(255, 255, 255, 0.1) !important;
+        }
+        html[data-theme="light"] .dr-table-head th {
+            background-color: #f1f5f9 !important;
+            color: #1e293b !important;
+            border-color: #cbd5e1 !important;
+        }
+        .dr-table-foot td {
+            background-color: #141a26 !important;
+            border-color: rgba(255, 255, 255, 0.1) !important;
+        }
+        html[data-theme="light"] .dr-table-foot td {
+            background-color: #f1f5f9 !important;
+            border-color: #cbd5e1 !important;
+        }
+        /* Clear Labeled Row Action Buttons */
+        .dr-row-action-btn {
+            height: 32px;
+            padding: 0 10px;
+            border-radius: 8px;
+            background-color: var(--background);
+            border: 1px solid var(--border-strong);
+            color: var(--foreground);
+            font-size: 11.5px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            transition: all 140ms ease;
+            text-decoration: none;
+        }
+        .dr-row-action-btn:hover {
+            background-color: var(--muted);
+            border-color: #2563eb;
+            color: #2563eb;
+        }
+        .dr-row-action-btn--primary {
+            background-color: rgba(16, 185, 129, 0.12);
+            border-color: rgba(16, 185, 129, 0.35);
+            color: #059669;
+        }
+        html:not([data-theme="light"]) .dr-row-action-btn--primary {
+            color: #34d399;
+        }
+        .dr-row-action-btn--primary:hover {
+            background-color: #059669;
+            border-color: #059669;
+            color: #ffffff !important;
+        }
+        .dr-row-action-btn--danger:hover {
+            background-color: var(--danger-bg);
+            color: var(--danger-fg);
+            border-color: var(--danger-border);
         }
     </style>
 
-    <div class="dr-toolbar-card p-4 rounded-3xl space-y-3.5">
+    <div class="dr-toolbar-card p-5 rounded-2xl space-y-4">
         <?php
             $bulanList = [
                 1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
@@ -359,127 +388,124 @@
             $nextTahun = $bulan < 12 ? $tahun : $tahun + 1;
         ?>
 
-        <!-- Baris 1: Navigasi Periode, Armada & Pilihan View Mode -->
-        <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-3">
-            <!-- Left: Rig, Month Stepper, Year -->
-            <div class="flex flex-wrap items-center gap-2.5">
-                <!-- Rig Selector -->
-                <div class="dr-control-box flex items-center gap-2 px-3 py-2 rounded-xl shadow-inner">
-                    <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                        <i class="fa-solid fa-oil-well text-amber-400"></i>
-                        <span>Rig:</span>
-                    </span>
-                    <select id="selectRig" onchange="navigateGrid()" class="bg-transparent border-0 text-xs font-black text-white focus:outline-none cursor-pointer pr-1">
-                        <?php foreach ($allRigs as $r): ?>
-                            <option value="<?= $r['id'] ?>" class="bg-slate-900 text-white" <?= $r['id'] == $rigId ? 'selected' : '' ?>><?= esc($r['kode']) ?> - <?= esc($r['nama_rig']) ?></option>
+        <!-- BARIS 1: PILIH RIG, BULAN (DENGAN TOMBOL BULAN LALU/DEPAN), TAHUN & DOWNLOAD EXCEL -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+
+            <!-- 1. Pilih Unit Rig (4 Kolom) -->
+            <div class="md:col-span-4">
+                <label for="selectRig" class="block text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-1.5 flex items-center gap-1.5">
+                    <i class="fa-solid fa-oil-well text-amber-500"></i>
+                    <span>1. Pilih Unit Rig</span>
+                </label>
+                <select id="selectRig" onchange="navigateGrid()" class="dr-senior-select cursor-pointer">
+                    <?php foreach ($allRigs as $r): ?>
+                        <option value="<?= $r['id'] ?>" <?= $r['id'] == $rigId ? 'selected' : '' ?>>
+                            <?= esc($r['kode']) ?> — <?= esc($r['nama_rig']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <!-- 2. Pilih Bulan Operasi + Tombol Ganti Bulan Cepat (4 Kolom) -->
+            <div class="md:col-span-4">
+                <label for="selectBulan" class="block text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-1.5 flex items-center gap-1.5">
+                    <i class="fa-regular fa-calendar-check text-blue-500"></i>
+                    <span>2. Pilih Bulan Operasi</span>
+                </label>
+                <div class="flex items-center gap-1.5">
+                    <a href="<?= base_url("daily-report/{$rigId}/{$prevBulan}/{$prevTahun}") ?>" 
+                       class="dr-month-step-btn" title="Pindah ke Bulan <?= $bulanList[$prevBulan] ?? '' ?> <?= $prevTahun ?>">
+                        <i class="fa-solid fa-chevron-left text-xs"></i>
+                        <span class="hidden sm:inline"><?= substr($bulanList[$prevBulan] ?? '', 0, 3) ?></span>
+                    </a>
+                    <select id="selectBulan" onchange="navigateGrid()" class="dr-senior-select cursor-pointer flex-1">
+                        <?php foreach ($bulanList as $num => $nama): ?>
+                            <option value="<?= $num ?>" <?= $bulan == $num ? 'selected' : '' ?>><?= $nama ?></option>
                         <?php endforeach; ?>
                     </select>
-                </div>
-
-                <!-- Month Quick Stepper -->
-                <div class="dr-control-box flex items-center p-1 rounded-xl shadow-inner gap-1">
-                    <a href="<?= base_url("daily-report/{$rigId}/{$prevBulan}/{$prevTahun}") ?>" 
-                       class="dr-stepper-btn" title="Bulan Sebelumnya (<?= $bulanList[$prevBulan] ?? '' ?>)">
-                        <i class="fa-solid fa-chevron-left text-xs"></i>
-                    </a>
-                    <div class="flex items-center px-2.5 py-1 gap-1.5">
-                        <i class="fa-regular fa-calendar text-amber-400 text-xs"></i>
-                        <select id="selectBulan" onchange="navigateGrid()" class="bg-transparent border-0 text-xs font-black text-white focus:outline-none cursor-pointer">
-                            <?php foreach ($bulanList as $num => $nama): ?>
-                                <option value="<?= $num ?>" class="bg-slate-900 text-white" <?= $bulan == $num ? 'selected' : '' ?>><?= $nama ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
                     <a href="<?= base_url("daily-report/{$rigId}/{$nextBulan}/{$nextTahun}") ?>" 
-                       class="dr-stepper-btn" title="Bulan Berikutnya (<?= $bulanList[$nextBulan] ?? '' ?>)">
+                       class="dr-month-step-btn" title="Pindah ke Bulan <?= $bulanList[$nextBulan] ?? '' ?> <?= $nextTahun ?>">
+                        <span class="hidden sm:inline"><?= substr($bulanList[$nextBulan] ?? '', 0, 3) ?></span>
                         <i class="fa-solid fa-chevron-right text-xs"></i>
                     </a>
                 </div>
-
-                <!-- Selector Tahun -->
-                <div class="dr-control-box flex items-center gap-2 px-3 py-2 rounded-xl shadow-inner">
-                    <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                        <i class="fa-solid fa-calendar-days text-sky-400 text-xs"></i>
-                        <span>Tahun:</span>
-                    </span>
-                    <select id="selectTahun" onchange="navigateGrid()" class="bg-transparent border-0 text-xs font-black text-white focus:outline-none cursor-pointer pr-1">
-                        <?php for ($y = 2024; $y <= 2028; $y++): ?>
-                            <option value="<?= $y ?>" class="bg-slate-900 text-white" <?= $tahun == $y ? 'selected' : '' ?>><?= $y ?></option>
-                        <?php endfor; ?>
-                    </select>
-                </div>
-
-                <!-- Penjelasan Singkat Sesuai Konteks Proyek SIMOR BMS -->
-                <div class="dr-control-box hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl shadow-inner bg-slate-900/60 border border-slate-750 text-slate-300">
-                    <i class="fa-solid fa-circle-info text-cyan-400 text-xs flex-shrink-0"></i>
-                    <span class="text-[11px] text-slate-300 leading-tight">
-                        Filter aktif: Rekapitulasi operasional sumur <strong class="text-white"><?= esc($rig['kode']) ?></strong> periode <strong class="text-cyan-300"><?= $bulanList[$bulan] ?? '' ?> <?= $tahun ?></strong>.
-                    </span>
-                </div>
             </div>
 
-            <!-- Right: View Mode Segmented Switcher & Export -->
-            <div class="flex flex-wrap items-center gap-2.5">
-                <!-- View Mode Segmented Control -->
-                <div class="dr-segmented-group">
-                    <button type="button" onclick="switchViewMode('compact')" id="btnView_compact" class="dr-view-pill active" title="Tampilan Ringkasan Pintar (Tabel + Log Harian)">
-                        <i class="fa-solid fa-table-list text-xs"></i>
-                        <span>Ringkasan</span>
-                    </button>
-                    <button type="button" onclick="switchViewMode('cards')" id="btnView_cards" class="dr-view-pill" title="Tampilan Kartu Visual per Sumur">
-                        <i class="fa-solid fa-grip text-xs"></i>
-                        <span>Kartu Sumur</span>
-                    </button>
-                    <button type="button" onclick="switchViewMode('full')" id="btnView_full" class="dr-view-pill" title="Tampilan Matriks Lengkap SYS (30+ Kolom)">
-                        <i class="fa-solid fa-table-cells text-xs"></i>
-                        <span>Matriks SYS</span>
-                    </button>
-                </div>
+            <!-- 3. Pilih Tahun (2 Kolom) -->
+            <div class="md:col-span-2">
+                <label for="selectTahun" class="block text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-1.5 flex items-center gap-1.5">
+                    <i class="fa-solid fa-calendar-days text-sky-500"></i>
+                    <span>3. Tahun</span>
+                </label>
+                <select id="selectTahun" onchange="navigateGrid()" class="dr-senior-select cursor-pointer font-mono">
+                    <?php for ($y = 2024; $y <= 2028; $y++): ?>
+                        <option value="<?= $y ?>" <?= $tahun == $y ? 'selected' : '' ?>><?= $y ?></option>
+                    <?php endfor; ?>
+                </select>
+            </div>
 
-                <!-- Export Button (Membuka Dialog Pilihan Lengkap) -->
+            <!-- 4. Tombol Download Excel (2 Kolom) -->
+            <div class="md:col-span-2">
+                <label class="block text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-1.5">
+                    <span>4. Unduh Laporan</span>
+                </label>
                 <button type="button" onclick="openExportModal()"
-                   class="dr-export-action px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 active:scale-95 shadow-lg shadow-emerald-600/25" title="Buka Menu Pilihan Download Excel">
-                    <i class="fa-solid fa-file-excel text-base text-emerald-200"></i>
-                    <span class="text-white">Export Excel</span>
-                    <i class="fa-solid fa-chevron-down text-[10px] opacity-80 ml-0.5"></i>
+                   class="dr-export-action w-full px-4 rounded-xl text-sm font-extrabold flex items-center justify-center gap-2 cursor-pointer shadow-md" title="Buka Menu Pilihan Download Excel">
+                    <i class="fa-solid fa-file-excel text-base"></i>
+                    <span>Download Excel</span>
                 </button>
             </div>
         </div>
 
-        <!-- Baris 2: Pencarian Cepat & Filter Status Interaktif -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-3 border-t border-slate-700/60">
-            <!-- Search Bar -->
-            <div class="dr-control-box flex items-center px-3.5 py-2 rounded-xl shadow-inner flex-1 max-w-md">
-                <i class="fa-solid fa-magnifying-glass text-slate-400 text-xs mr-2.5"></i>
+        <!-- BARIS 2: PENCARIAN SUMUR, FILTER STATUS & PILIHAN TAMPILAN -->
+        <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-3.5 pt-4 border-t border-slate-700/50">
+            <!-- Pencarian Cepat -->
+            <div class="relative flex-1 max-w-md">
+                <i class="fa-solid fa-magnifying-glass text-slate-400 text-sm absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
                 <input type="text" id="searchWellInput" onkeyup="filterWellsTable()" 
-                       placeholder="Ketik no sumur, nama lokasi, atau status..." 
-                       class="bg-transparent border-0 text-xs font-semibold text-white focus:outline-none w-full placeholder-slate-500">
-                <button type="button" onclick="clearSearch()" id="btnClearSearch" class="text-slate-400 hover:text-white text-xs px-1.5 py-0.5 rounded-md hover:bg-slate-700/50 transition hidden" title="Hapus pencarian (Esc)">
+                       placeholder="Cari nomor sumur atau nama lokasi (contoh: 5T-52B)..." 
+                       class="dr-senior-input pl-10 pr-9 !font-semibold !text-sm">
+                <button type="button" onclick="clearSearch()" id="btnClearSearch"
+                        class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs px-2 py-1 rounded-md hidden" title="Hapus pencarian (Esc)">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
-                <span class="text-[10px] font-mono font-bold text-slate-500 border border-slate-700/80 rounded px-1.5 py-0.5 ml-1 hidden sm:inline">ESC</span>
             </div>
 
-            <!-- Status Quick Filter Chips -->
-            <div class="flex flex-wrap items-center gap-2">
-                <span class="text-[11px] font-bold text-slate-400 mr-1 hidden sm:inline-flex items-center gap-1">
-                    <i class="fa-solid fa-filter text-[10px] text-amber-400"></i> Status:
-                </span>
-                <button type="button" onclick="setStatusFilter('ALL')" id="btnFilter_ALL" class="dr-chip-btn active-all" title="Tampilkan Semua Status Pekerjaan">
-                    <i class="fa-solid fa-layer-group text-[10px]"></i>
-                    <span>Semua</span>
-                    <span class="px-2 py-0.5 rounded-full bg-black/25 text-[10px] font-mono font-black"><?= $wellJobCount ?></span>
-                </button>
-                <button type="button" onclick="setStatusFilter('COMPLETED')" id="btnFilter_COMPLETED" class="dr-chip-btn" title="Filter Hanya Sumur yang Sudah Selesai">
-                    <i class="fa-solid fa-circle-check text-[10px] text-emerald-400"></i>
-                    <span>Completed</span>
-                    <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-mono font-black"><?= $completedCount ?></span>
-                </button>
-                <button type="button" onclick="setStatusFilter('PROGRESS')" id="btnFilter_PROGRESS" class="dr-chip-btn" title="Filter Sumur yang Masih Sedang Berjalan">
-                    <i class="fa-solid fa-spinner fa-spin-pulse text-[10px] text-amber-400"></i>
-                    <span>Progress</span>
-                    <span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-mono font-black"><?= $progressCount ?></span>
-                </button>
+            <!-- Filter Status & Pilihan Mode Tampilan -->
+            <div class="flex flex-wrap items-center gap-3">
+                <!-- Status Quick Filter Chips -->
+                <div class="flex flex-wrap items-center gap-1.5">
+                    <button type="button" onclick="setStatusFilter('ALL')" id="btnFilter_ALL" class="dr-chip-btn active-all" title="Tampilkan Semua Sumur">
+                        <span>Semua Sumur</span>
+                        <span class="px-2 py-0.5 rounded-full bg-black/25 text-xs font-mono font-black"><?= $wellJobCount ?></span>
+                    </button>
+                    <button type="button" onclick="setStatusFilter('COMPLETED')" id="btnFilter_COMPLETED" class="dr-chip-btn" title="Hanya Sumur yang Sudah Selesai">
+                        <i class="fa-solid fa-circle-check text-xs text-emerald-500"></i>
+                        <span>Selesai</span>
+                        <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-mono font-black"><?= $completedCount ?></span>
+                    </button>
+                    <button type="button" onclick="setStatusFilter('PROGRESS')" id="btnFilter_PROGRESS" class="dr-chip-btn" title="Sumur yang Sedang Dikerjakan">
+                        <i class="fa-solid fa-spinner text-xs text-amber-500"></i>
+                        <span>Berjalan</span>
+                        <span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 text-xs font-mono font-black"><?= $progressCount ?></span>
+                    </button>
+                </div>
+
+                <!-- View Mode Segmented Control -->
+                <div class="dr-segmented-group">
+                    <button type="button" onclick="switchViewMode('full')" id="btnView_full" class="dr-view-pill active" title="Tampilan Laporan Per Well Persis Template Excel">
+                        <i class="fa-solid fa-file-excel text-xs"></i>
+                        <span>Laporan Per Well (Excel)</span>
+                    </button>
+                    <button type="button" onclick="switchViewMode('compact')" id="btnView_compact" class="dr-view-pill" title="Tampilan Tabel Ringkas + Rincian Log">
+                        <i class="fa-solid fa-table-list text-xs"></i>
+                        <span>Tabel Ringkas</span>
+                    </button>
+                    <button type="button" onclick="switchViewMode('cards')" id="btnView_cards" class="dr-view-pill" title="Tampilan Kartu Besar per Sumur">
+                        <i class="fa-solid fa-grip text-xs"></i>
+                        <span>Kartu Sumur</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -488,79 +514,73 @@
     <!-- ════════════════════════════════════════════════════════════════════════ -->
     <!-- VIEW 1: RINGKASAN PINTAR (COMPACT NO-SCROLL TABLE + ACCORDION LOGS)     -->
     <!-- ════════════════════════════════════════════════════════════════════════ -->
-    <div id="viewContainer_compact" class="space-y-4">
-        <div class="rounded-2xl bg-slate-900 border border-slate-700 shadow-xl overflow-hidden">
+    <div id="viewContainer_compact" class="hidden space-y-4">
+        <div class="dr-surface-card rounded-2xl overflow-hidden">
             
-            <!-- Table Header Banner (High Contrast & Clear) -->
-            <div class="bg-slate-850 border-b-2 border-amber-500/40 py-3 px-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-white">
+            <!-- Table Header Banner -->
+            <div class="bg-slate-900 border-b border-slate-800 py-3.5 px-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-white">
                 <div class="flex flex-wrap items-center gap-2.5">
-                    <span class="text-xs bg-amber-500/20 text-amber-300 font-mono px-3 py-1 rounded-full font-bold border border-amber-500/40">
-                        <span id="renderedWellCount"><?= count($reports) ?></span> Sumur
+                    <span class="text-xs bg-blue-500/15 text-blue-400 font-mono px-3 py-1 rounded-lg font-extrabold border border-blue-500/30">
+                        <span id="renderedWellCount"><?= count($reports) ?></span> Sumur Terdaftar
                     </span>
-                    <span class="font-black text-xs sm:text-sm uppercase tracking-wider text-white">
-                        RINGKASAN OPERASI SUMUR <span class="text-amber-400 font-extrabold"><?= esc($rig['kode']) ?></span> — PERIODE <span class="text-sky-300 font-extrabold"><?= strtoupper($bulanList[$bulan] ?? '') ?> <?= $tahun ?></span>
+                    <span class="font-extrabold text-sm sm:text-base tracking-tight text-white">
+                        Daftar Pekerjaan Sumur <span class="text-blue-400"><?= esc($rig['kode']) ?></span> — <span class="text-slate-300"><?= $bulanList[$bulan] ?? '' ?> <?= $tahun ?></span>
                     </span>
                 </div>
                 <!-- Accordion Quick Triggers -->
                 <div class="flex items-center gap-2 text-xs font-sans font-bold">
-                    <button type="button" onclick="expandAllCompactLogs()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 transition flex items-center gap-1.5 active:scale-95 cursor-pointer">
-                        <i class="fa-solid fa-angles-down text-amber-400"></i>
-                        <span>Buka Semua Log</span>
+                    <button type="button" onclick="expandAllCompactLogs()" class="px-3 py-1.5 rounded-lg bg-slate-950 hover:bg-slate-800 text-slate-200 border border-slate-700 transition flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-angles-down text-blue-400 text-xs"></i>
+                        <span>Buka Semua Rincian Harian</span>
                     </button>
-                    <button type="button" onclick="collapseAllCompactLogs()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 transition flex items-center gap-1.5 active:scale-95 cursor-pointer">
-                        <i class="fa-solid fa-angles-up text-amber-400"></i>
-                        <span>Tutup Semua</span>
+                    <button type="button" onclick="collapseAllCompactLogs()" class="px-3 py-1.5 rounded-lg bg-slate-950 hover:bg-slate-800 text-slate-200 border border-slate-700 transition flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-angles-up text-slate-400 text-xs"></i>
+                        <span>Tutup Rincian</span>
                     </button>
                 </div>
             </div>
 
             <!-- Table Body -->
             <div class="w-full overflow-x-auto custom-scrollbar">
-                <table class="w-full text-left border-collapse border border-slate-700" id="compactWellTable">
-                    <thead class="bg-[#0B1E4A] text-white font-extrabold uppercase text-[10.5px] border-b-2 border-slate-700 tracking-wider text-center select-none">
+                <table class="w-full text-left border-collapse" id="compactWellTable">
+                    <thead class="dr-table-head font-extrabold uppercase text-xs border-b border-slate-800 tracking-wider text-center select-none">
                         <tr>
-                            <th class="py-2.5 px-2 w-12 border border-slate-700 bg-[#0B1E4A]">No</th>
-                            <th class="py-2.5 px-4 border border-slate-700 bg-[#0B1E4A] min-w-[170px] text-left">
-                                <div class="flex items-center gap-1.5 justify-start">
-                                    <i class="fa-solid fa-location-dot text-rose-400 text-xs"></i>
-                                    <span>Tempat / Nama Lokasi Sumur</span>
-                                </div>
-                            </th>
-                            <th class="py-2.5 px-3 border border-slate-700 bg-[#0B1E4A] w-32 text-center">
-                                <div class="flex items-center gap-1.5 justify-center">
-                                    <i class="fa-solid fa-calendar-days text-sky-400 text-xs"></i>
-                                    <span>Periode Tanggal</span>
-                                </div>
-                            </th>
-                            <th class="py-2.5 px-3 border border-slate-700 bg-[#0B1E4A] w-20 text-right">Jarak</th>
-                            <th class="py-2.5 px-3 border border-slate-700 bg-[#0B1E4A] w-24 text-right text-lime-400">MIRU (Jam)</th>
-                            <th class="py-2.5 px-3 border border-slate-700 bg-[#0B1E4A] w-24 text-right text-lime-300">OPS (Jam)</th>
-                            <th class="py-2.5 px-3 border border-slate-700 bg-[#0E2A66] w-24 text-right text-yellow-300">SBWC (Jam)</th>
-                            <th class="py-2.5 px-3 border border-slate-700 bg-[#0E2A66] w-24 text-right text-rose-400">UNPAID (Jam)</th>
-                            <th class="py-2.5 px-3 border border-slate-700 bg-[#0E2A66] w-24 text-right text-emerald-400 font-black">Total (Jam)</th>
-                            <th class="py-2.5 px-3 border border-slate-700 bg-[#0B1E4A] w-28 text-center">Status</th>
-                            <th class="py-2.5 px-3 border border-slate-700 bg-[#0B1E4A] w-28 text-center">Aksi</th>
+                            <th class="py-3 px-3 w-14 border-r border-slate-800">Well</th>
+                            <th class="py-3 px-4 border-r border-slate-800 min-w-[190px] text-left">Nama Lokasi Sumur</th>
+                            <th class="py-3 px-3 border-r border-slate-800 w-36 text-center">Jadwal Tanggal</th>
+                            <th class="py-3 px-3 border-r border-slate-800 w-24 text-right">Jarak</th>
+                            <th class="py-3 px-3 border-r border-slate-800 w-24 text-right">MIRU (Jam)</th>
+                            <th class="py-3 px-3 border-r border-slate-800 w-24 text-right">OPS (Jam)</th>
+                            <th class="py-3 px-3 border-r border-slate-800 w-24 text-right">SBWC (Jam)</th>
+                            <th class="py-3 px-3 border-r border-slate-800 w-24 text-right">UNPAID (Jam)</th>
+                            <th class="py-3 px-3 border-r border-slate-800 w-28 text-right font-extrabold">Total Jam</th>
+                            <th class="py-3 px-3 border-r border-slate-800 w-32 text-center">Status</th>
+                            <th class="py-3 px-3 w-52 text-center">Menu Tindakan</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-800 text-slate-200 font-num" id="compactTableBody">
-                        <?php if (empty($reports)): ?>
+                        <?php 
+                        $footerTotalSbwc = 0.0;
+                        $footerTotalUnpaid = 0.0;
+                        if (empty($reports)): ?>
                         <tr id="emptyRowCompact">
                             <td colspan="11" class="py-16 text-center text-slate-500 font-sans">
                                 <div class="max-w-sm mx-auto space-y-3">
                                     <div class="w-12 h-12 rounded-2xl bg-slate-800 flex items-center justify-center mx-auto text-slate-400 text-xl shadow-inner">
                                         <i class="fa-solid fa-inbox"></i>
                                     </div>
-                                    <p class="text-sm font-bold text-slate-400">Belum ada pekerjaan sumur untuk periode ini</p>
+                                    <p class="text-base font-bold text-slate-400">Belum ada pekerjaan sumur untuk periode ini</p>
                                     <p class="text-xs text-slate-500">Klik tombol di bawah untuk mendaftarkan pekerjaan sumur baru.</p>
-                                    <a href="<?= base_url("daily-report/tambah/{$rigId}/{$bulan}/{$tahun}") ?>" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md transition">
+                                    <a href="<?= base_url("daily-report/tambah/{$rigId}/{$bulan}/{$tahun}") ?>" class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm shadow-md transition">
                                         <i class="fa-solid fa-plus text-xs"></i>
-                                        <span>Tambah Sumur Pertama</span>
+                                        <span>+ Tambah Sumur Pertama</span>
                                     </a>
                                 </div>
                             </td>
                         </tr>
                         <?php else: ?>
-                            <?php foreach ($reports as $idx => $rep): 
+                            <?php 
+                            foreach ($reports as $idx => $rep): 
                                 $repId   = $rep['id'];
                                 $dt      = $dtDetails[$repId] ?? [];
                                 $logs    = $dailyLogs[$repId] ?? [];
@@ -570,15 +590,39 @@
                                 // Unpaid sum (Rig Downtime & Tool Downtime)
                                 $unpaidSum = (float)($dt[1] ?? 0) + (float)($dt[2] ?? 0);
                                 // SBWC sum
-                                $sbwcSum = 0;
+                                $sbwcSum = 0.0;
                                 foreach ($kategoriList as $k) {
                                     if ($k['tipe'] === 'SBWC') {
                                         $sbwcSum += (float)($dt[$k['id']] ?? 0);
                                     }
                                 }
+
+                                // Jika ada log harian, pastikan angka SBWC & UNPAID terhitung langsung dari log jika dt belum terisi
+                                if ($hasLogs && ($sbwcSum + $unpaidSum) == 0) {
+                                    foreach ($logs as $lgRow) {
+                                        $unpaidSum += (float)($lgRow['dt_rig'] ?? 0) + (float)($lgRow['dt_tool'] ?? 0);
+                                        $sbwcSum   += (float)($lgRow['dt_rain'] ?? 0) + (float)($lgRow['dt_dry_road'] ?? 0)
+                                                    + (float)($lgRow['dt_dry_pad'] ?? 0) + (float)($lgRow['dt_phr_op'] ?? 0)
+                                                    + (float)($lgRow['dt_trans'] ?? 0) + (float)($lgRow['dt_ce_pe'] ?? 0)
+                                                    + (float)($lgRow['dt_3rd_party'] ?? 0) + (float)($lgRow['dt_daylight'] ?? 0)
+                                                    + (float)($lgRow['dt_phr_well'] ?? 0) + (float)($lgRow['dt_foam'] ?? 0)
+                                                    + (float)($lgRow['dt_shutdown'] ?? 0);
+                                    }
+                                }
+
                                 if ($sbwcSum == 0 && (float)$rep['total_dt'] > $unpaidSum) {
                                     $sbwcSum = (float)$rep['total_dt'] - $unpaidSum;
                                 }
+
+                                $miruRowVal  = (float)$rep['miru_jam'];
+                                $opsRowVal   = (float)$rep['ops_jam'];
+                                $totalRowVal = $miruRowVal + $opsRowVal + $sbwcSum + $unpaidSum;
+                                if ((float)$rep['total_jam'] > $totalRowVal) {
+                                    $totalRowVal = (float)$rep['total_jam'];
+                                }
+
+                                $footerTotalSbwc   += $sbwcSum;
+                                $footerTotalUnpaid += $unpaidSum;
                             ?>
                             <!-- PARENT WELL ROW -->
                             <tr class="hover:bg-slate-850/90 transition-all cursor-pointer well-item-row" 
@@ -586,115 +630,100 @@
                                 data-status="<?= $isCompleted ? 'COMPLETED' : 'PROGRESS' ?>"
                                 data-wellname="<?= strtolower(esc($rep['nama_lokasi'] ?? '')) ?>"
                                 onclick="toggleCompactWell(<?= $repId ?>)">
-                                <td class="py-2.5 px-2 text-center border border-slate-800 bg-slate-900/60">
+                                <td class="py-3.5 px-3 text-center border border-slate-800 bg-slate-900/60">
                                     <div class="flex items-center justify-center gap-1.5">
-                                        <span class="font-bold text-slate-400 text-xs"><?= $rep['no_well'] ?></span>
+                                        <span class="font-extrabold text-white text-sm">#<?= $rep['no_well'] ?></span>
                                         <?php if ($hasLogs): ?>
-                                            <i id="compact-icon-<?= $repId ?>" class="fa-solid fa-chevron-down text-[9px] text-blue-400 transition-transform duration-200"></i>
+                                            <i id="compact-icon-<?= $repId ?>" class="fa-solid fa-chevron-down text-[10px] text-blue-400 transition-transform duration-200"></i>
                                         <?php endif; ?>
                                     </div>
                                 </td>
-                                <td class="py-2.5 px-4 font-bold text-white text-xs border border-slate-800 font-sans">
-                                    <div class="flex items-center gap-2">
-                                        <span class="w-2.5 h-2.5 rounded-full flex-shrink-0 <?= $isCompleted ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]' : 'bg-amber-400 animate-ping' ?>"></span>
+                                <td class="py-3.5 px-4 font-bold text-white text-sm border border-slate-800 font-sans">
+                                    <?php $isSuspendRow = (strtoupper(trim((string)($rep['status_job'] ?? ''))) === 'JOB SUSPEND'); ?>
+                                    <div class="flex items-center gap-2.5">
+                                        <span class="w-2.5 h-2.5 rounded-full flex-shrink-0 <?= $isCompleted ? 'bg-emerald-500' : ($isSuspendRow ? 'bg-rose-500' : 'bg-amber-500') ?>"></span>
                                         <div class="min-w-0">
                                             <a href="<?= base_url('daily-report/detail/' . $repId) ?>" 
                                                onclick="event.stopPropagation()"
-                                               class="group/link inline-flex items-center gap-1.5 text-sky-300 hover:text-amber-300 transition-colors text-sm font-black"
+                                               class="group/link inline-flex items-center gap-1.5 text-white hover:text-blue-400 transition-colors text-sm sm:text-base font-extrabold"
                                                title="Buka Halaman Rincian Penuh Sumur <?= esc($rep['nama_lokasi'] ?? '') ?>">
                                                 <span><?= esc($rep['nama_lokasi'] ?? 'Sumur #' . $rep['no_well']) ?></span>
-                                                <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-60 group-hover/link:opacity-100 group-hover/link:translate-x-0.5 transition-all text-amber-400"></i>
                                             </a>
-                                            <div class="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5 font-sans font-medium">
-                                                <i class="fa-solid fa-map-pin text-rose-400 text-[10px]"></i>
-                                                <span>Tempat: <strong class="text-slate-200"><?= esc($rep['nama_lokasi'] ?? '-') ?></strong></span>
+                                            <div class="text-xs text-slate-400 flex items-center gap-1.5 mt-0.5 font-sans font-medium">
+                                                <span>Sumur #<?= $rep['no_well'] ?></span>
+                                                <?php if ($hasLogs): ?>
+                                                    <span>·</span>
+                                                    <span class="text-emerald-400 font-bold"><?= count($logs) ?> Hari Terisi</span>
+                                                <?php endif; ?>
                                             </div>
                                         </div>
-                                        <?php if ($hasLogs): ?>
-                                            <a href="<?= base_url('daily-report/detail/' . $repId) ?>"
-                                               onclick="event.stopPropagation()"
-                                               class="text-[10px] font-mono px-2 py-0.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-bold transition flex items-center gap-1 ml-auto flex-shrink-0"
-                                               title="Buka rincian <?= count($logs) ?> catatan log harian">
-                                                <i class="fa-solid fa-calendar-day text-[9px] text-amber-400"></i>
-                                                <span><?= count($logs) ?> hari</span>
-                                            </a>
-                                        <?php endif; ?>
                                     </div>
                                 </td>
-                                <td class="py-2.5 px-3 text-center text-xs text-slate-300 border border-slate-800 font-sans">
-                                    <div class="font-bold text-sky-200 tracking-wide text-xs">
-                                        <i class="fa-regular fa-calendar-check text-[10px] text-sky-400 mr-1"></i><?= $rep['tanggal_mulai'] ? date('d/m/Y', strtotime($rep['tanggal_mulai'])) : '-' ?>
+                                <td class="py-3.5 px-3 text-center text-xs text-slate-300 border border-slate-800 font-num">
+                                    <div class="font-bold text-white text-xs sm:text-sm">
+                                        <?= $rep['tanggal_mulai'] ? date('d/m/Y', strtotime($rep['tanggal_mulai'])) : '-' ?>
                                     </div>
-                                    <div class="text-[11px] text-slate-400 font-medium mt-0.5">
+                                    <div class="text-xs text-slate-400 font-medium mt-0.5">
                                         s/d <?= $rep['tanggal_selesai'] ? date('d/m/Y', strtotime($rep['tanggal_selesai'])) : '<span class="text-amber-400 font-bold">Sekarang</span>' ?>
                                     </div>
                                 </td>
-                                <td class="py-2.5 px-3 text-right text-xs text-slate-300 border border-slate-800">
-                                    <?= (float)$rep['jarak'] > 0 ? number_format((float)$rep['jarak'], 0) . ' KM' : '-' ?>
+                                <td class="py-3.5 px-3 text-right text-sm font-bold text-slate-300 border border-slate-800">
+                                    <?= $fmtKm($rep['jarak']) ?> KM
                                 </td>
-                                <td class="py-2.5 px-3 text-right font-bold text-xs text-lime-400 border border-slate-800 bg-lime-950/10">
-                                    <?= (float)$rep['miru_jam'] > 0 ? number_format((float)$rep['miru_jam'], 2) : '-' ?>
+                                <td class="py-3.5 px-3 text-right font-bold text-sm <?= $miruRowVal > 0 ? 'text-blue-400' : 'text-slate-500' ?> border border-slate-800">
+                                    <?= number_format($miruRowVal, 2) ?>
                                 </td>
-                                <td class="py-2.5 px-3 text-right font-bold text-xs text-lime-300 border border-slate-800 bg-lime-950/10">
-                                    <?= (float)$rep['ops_jam'] > 0 ? number_format((float)$rep['ops_jam'], 2) : '-' ?>
+                                <td class="py-3.5 px-3 text-right font-bold text-sm <?= $opsRowVal > 0 ? 'text-emerald-400' : 'text-slate-500' ?> border border-slate-800">
+                                    <?= number_format($opsRowVal, 2) ?>
                                 </td>
-                                <td class="py-2.5 px-3 text-right text-xs font-bold text-yellow-300 border border-slate-800 bg-amber-950/10">
-                                    <?= $sbwcSum > 0 ? number_format($sbwcSum, 2) : '-' ?>
+                                <td class="py-3.5 px-3 text-right text-sm font-bold <?= $sbwcSum > 0 ? 'text-amber-400' : 'text-slate-500' ?> border border-slate-800">
+                                    <?= number_format($sbwcSum, 2) ?>
                                 </td>
-                                <td class="py-2.5 px-3 text-right text-xs font-bold text-rose-400 border border-slate-800 bg-rose-950/10">
-                                    <?= $unpaidSum > 0 ? number_format($unpaidSum, 2) : '-' ?>
+                                <td class="py-3.5 px-3 text-right text-sm font-bold <?= $unpaidSum > 0 ? 'text-rose-400' : 'text-slate-500' ?> border border-slate-800">
+                                    <?= number_format($unpaidSum, 2) ?>
                                 </td>
-                                <td class="py-2.5 px-3 text-right font-black text-sm text-emerald-400 border border-slate-800 bg-emerald-950/20">
-                                    <?= (float)$rep['total_jam'] > 0 ? number_format((float)$rep['total_jam'], 2) : '-' ?>
+                                <td class="py-3.5 px-3 text-right font-extrabold text-base text-white border border-slate-800 bg-slate-950/50">
+                                    <?= number_format($totalRowVal, 2) ?>
                                 </td>
-                                <td class="py-2.5 px-3 text-center border border-slate-800 font-sans whitespace-nowrap">
+                                <td class="py-3.5 px-3 text-center border border-slate-800 font-sans whitespace-nowrap">
+                                    <?php $isSuspend = (strtoupper(trim((string)($rep['status_job'] ?? ''))) === 'JOB SUSPEND'); ?>
                                     <?php if ($isCompleted): ?>
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> COMPLETED
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span> SELESAI
+                                        </span>
+                                    <?php elseif ($isSuspend): ?>
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-rose-500/15 text-rose-400 border border-rose-500/30">
+                                            <span class="w-2 h-2 rounded-full bg-rose-500"></span> SUSPEND
                                         </span>
                                     <?php else: ?>
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-500/15 text-amber-400 border border-amber-500/30 animate-pulse">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span> PROGRESS
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                                            <span class="w-2 h-2 rounded-full bg-amber-500"></span> BERJALAN
                                         </span>
                                     <?php endif; ?>
                                 </td>
-                                <td class="py-2.5 px-3 text-center border border-slate-800 whitespace-nowrap" onclick="event.stopPropagation()">
+                                <td class="py-3.5 px-3 text-center border border-slate-800 whitespace-nowrap font-sans" onclick="event.stopPropagation()">
                                     <div class="inline-flex items-center gap-1.5">
-                                        <!-- Halaman Detail Sumur Penuh -->
-                                        <a href="<?= base_url('daily-report/detail/' . $rep['id']) ?>" class="w-7 h-7 rounded-lg bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-slate-950 border border-amber-500/40 flex items-center justify-center transition shadow-sm" title="Buka Halaman Rincian Lengkap Sumur">
-                                            <i class="fa-solid fa-up-right-from-square text-xs"></i>
-                                        </a>
-                                        <!-- Quick Modal Look -->
-                                        <button type="button" onclick="openWellQuickLook(<?= htmlspecialchars(json_encode([
-                                            'no_well' => $rep['no_well'],
-                                            'nama_lokasi' => $rep['nama_lokasi'] ?? '',
-                                            'tanggal_mulai' => $rep['tanggal_mulai'] ? date('d/m/Y', strtotime($rep['tanggal_mulai'])) : '-',
-                                            'tanggal_selesai' => $rep['tanggal_selesai'] ? date('d/m/Y', strtotime($rep['tanggal_selesai'])) : '-',
-                                            'jarak' => (float)$rep['jarak'],
-                                            'miru_jam' => (float)$rep['miru_jam'],
-                                            'ops_jam' => (float)$rep['ops_jam'],
-                                            'sbwc_jam' => $sbwcSum,
-                                            'unpaid_jam' => $unpaidSum,
-                                            'total_jam' => (float)$rep['total_jam'],
-                                            'status_job' => $rep['status_job'],
-                                            'remark' => $rep['remark'] ?? '',
-                                            'edit_url' => base_url('daily-report/edit/' . $rep['id']),
-                                            'log_count' => count($logs)
-                                        ]), ENT_QUOTES, 'UTF-8') ?>)" class="w-7 h-7 rounded-lg bg-indigo-600/20 hover:bg-indigo-600 text-indigo-300 hover:text-white border border-indigo-500/30 flex items-center justify-center transition" title="Quick Look">
-                                            <i class="fa-solid fa-eye text-xs"></i>
-                                        </button>
-                                        <!-- Edit -->
-                                        <a href="<?= base_url('daily-report/edit/' . $rep['id']) ?>" class="w-7 h-7 rounded-lg bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white border border-blue-500/30 flex items-center justify-center transition" title="Edit Data Sumur">
-                                            <i class="fa-solid fa-pen-to-square text-xs"></i>
-                                        </a>
-                                        <!-- Log Harian Direct Link -->
-                                        <a href="<?= base_url("daily-report/log-harian/{$rigId}/{$bulan}/{$tahun}") ?>" class="w-7 h-7 rounded-lg bg-cyan-600/20 hover:bg-cyan-600 text-cyan-400 hover:text-white border border-cyan-500/30 flex items-center justify-center transition" title="Input Log Harian">
+                                        <!-- Tombol Langsung Input Log Harian untuk Sumur Ini -->
+                                        <a href="<?= base_url("daily-report/log-harian/{$rigId}/{$bulan}/{$tahun}?well_id={$rep['id']}") ?>"
+                                           class="dr-row-action-btn dr-row-action-btn--primary" title="Isi atau Edit Jam Kerja Harian Sumur Ini">
                                             <i class="fa-solid fa-calendar-plus text-xs"></i>
+                                            <span>Isi Log</span>
                                         </a>
-                                        <!-- Delete -->
+                                        <!-- Edit Sumur -->
+                                        <a href="<?= base_url('daily-report/edit/' . $rep['id']) ?>"
+                                           class="dr-row-action-btn" title="Ubah Lokasi / Jadwal Sumur">
+                                            <i class="fa-solid fa-pen text-xs"></i>
+                                            <span>Edit</span>
+                                        </a>
+                                        <!-- Detail Lengkap -->
+                                        <a href="<?= base_url('daily-report/detail/' . $rep['id']) ?>"
+                                           class="dr-row-action-btn" title="Lihat Rincian Lengkap Sumur">
+                                            <i class="fa-solid fa-eye text-xs"></i>
+                                        </a>
+                                        <!-- Hapus Sumur -->
                                         <form action="<?= base_url('daily-report/hapus/' . $rep['id']) ?>" method="POST" onsubmit="return confirm('Hapus data sumur <?= esc($rep['nama_lokasi'] ?? '') ?>?');" class="inline">
                                             <?= csrf_field() ?>
-                                            <button type="submit" class="w-7 h-7 rounded-lg bg-rose-600/20 hover:bg-rose-600 text-rose-400 hover:text-white border border-rose-500/30 flex items-center justify-center transition" title="Hapus Sumur">
+                                            <button type="submit" class="dr-row-action-btn dr-row-action-btn--danger" title="Hapus Sumur">
                                                 <i class="fa-solid fa-trash text-xs"></i>
                                             </button>
                                         </form>
@@ -704,22 +733,22 @@
 
                             <!-- NESTED LOG HARIAN ACCORDION DRAWER -->
                             <?php if ($hasLogs): ?>
-                            <tr id="compact-logs-<?= $repId ?>" class="hidden bg-slate-950/80 border-t border-b border-blue-900/40">
-                                <td colspan="11" class="p-3 pl-8">
-                                    <div class="rounded-2xl bg-slate-900/90 border border-slate-700/80 p-3.5 space-y-2.5 shadow-inner">
+                            <tr id="compact-logs-<?= $repId ?>" class="hidden bg-slate-950/70 border-t border-b border-slate-800">
+                                <td colspan="11" class="p-3 pl-6">
+                                    <div class="rounded-xl bg-slate-900 border border-slate-800 p-3.5 space-y-2.5">
                                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs pb-2.5 border-b border-slate-800">
-                                            <div class="flex items-center gap-2 font-bold text-white">
+                                            <div class="flex items-center gap-2 font-semibold text-white">
                                                 <i class="fa-solid fa-timeline text-blue-400"></i>
-                                                <span>Rincian Log Harian: <strong class="text-yellow-300"><?= esc($rep['nama_lokasi'] ?? '') ?></strong> (<?= count($logs) ?> Hari Operasi)</span>
+                                                <span>Rincian Log Harian: <strong><?= esc($rep['nama_lokasi'] ?? '') ?></strong> (<?= count($logs) ?> Hari Operasi)</span>
                                             </div>
-                                            <a href="<?= base_url("daily-report/log-harian/{$rigId}/{$bulan}/{$tahun}") ?>" class="text-[11px] font-bold text-cyan-400 hover:text-cyan-300 flex items-center gap-1.5 bg-cyan-950/30 px-2.5 py-1 rounded-lg border border-cyan-800/40">
-                                                <span>+ Tambah / Edit Log Hari Ini</span>
+                                            <a href="<?= base_url("daily-report/log-harian/{$rigId}/{$bulan}/{$tahun}?well_id={$rep['id']}") ?>" class="text-[11px] font-semibold text-blue-400 hover:underline flex items-center gap-1.5">
+                                                <span>+ Tambah / Edit Log Sumur Ini</span>
                                                 <i class="fa-solid fa-arrow-right text-[10px]"></i>
                                             </a>
                                         </div>
 
                                         <table class="w-full text-xs text-left border-collapse border border-slate-800 font-num">
-                                            <thead class="bg-[#0A1A3F] text-slate-300 text-[10px] uppercase font-extrabold text-center border-b border-slate-700">
+                                            <thead class="dr-table-head text-[10px] uppercase font-bold text-center border-b border-slate-800">
                                                 <tr>
                                                     <th class="py-1.5 px-2 w-10 border border-slate-800">Hari</th>
                                                     <th class="py-1.5 px-3 border border-slate-800 w-28 text-center">Tanggal</th>
@@ -730,32 +759,32 @@
                                                     <th class="py-1.5 px-2 border border-slate-800 text-center">SBWC Road/Pad</th>
                                                     <th class="py-1.5 px-2 border border-slate-800 text-center">SBWC Daylight</th>
                                                     <th class="py-1.5 px-2 border border-slate-800 text-center">SBWC 3rd Party</th>
-                                                    <th class="py-1.5 px-2 border border-slate-800 text-center text-rose-400">UNPAID Rig</th>
-                                                    <th class="py-1.5 px-2 border border-slate-800 text-right font-black text-yellow-300">Total DT</th>
-                                                    <th class="py-1.5 px-2 border border-slate-800 text-right font-black text-emerald-400">Total Jam</th>
+                                                    <th class="py-1.5 px-2 border border-slate-800 text-center">UNPAID Rig</th>
+                                                    <th class="py-1.5 px-2 border border-slate-800 text-right font-bold">Total DT</th>
+                                                    <th class="py-1.5 px-2 border border-slate-800 text-right font-bold">Total Jam</th>
                                                     <th class="py-1.5 px-3 border border-slate-800 text-left font-sans min-w-[200px]">Remark Uraian</th>
                                                 </tr>
                                             </thead>
-                                            <tbody class="divide-y divide-slate-800/60 text-slate-300 text-[11px]">
+                                            <tbody class="divide-y divide-slate-800 text-slate-300 text-[11px]">
                                                 <?php foreach ($logs as $li => $lg): 
                                                     $lgDt = (float)$lg['total_dt'];
                                                     $lgHrs = (float)$lg['total_hrs'];
                                                 ?>
                                                 <tr class="hover:bg-slate-800/40 transition">
-                                                    <td class="py-1.5 px-2 text-center text-slate-500 font-mono border border-slate-800 bg-slate-900/50"><?= $li + 1 ?></td>
-                                                    <td class="py-1.5 px-3 text-center text-sky-300 font-sans border border-slate-800 font-bold"><?= date('d/m/Y', strtotime($lg['tanggal'])) ?></td>
-                                                    <td class="py-1.5 px-3 text-left text-slate-200 font-sans border border-slate-800 font-bold">
-                                                        <i class="fa-solid fa-map-pin text-[9px] text-rose-400 mr-1"></i><?= esc($rep['nama_lokasi'] ?? '-') ?>
+                                                    <td class="py-1.5 px-2 text-center text-slate-400 font-mono border border-slate-800"><?= $li + 1 ?></td>
+                                                    <td class="py-1.5 px-3 text-center text-white font-sans border border-slate-800 font-semibold"><?= date('d/m/Y', strtotime($lg['tanggal'])) ?></td>
+                                                    <td class="py-1.5 px-3 text-left text-slate-200 font-sans border border-slate-800 font-medium">
+                                                        <?= esc($rep['nama_lokasi'] ?? '-') ?>
                                                     </td>
-                                                    <td class="py-1.5 px-2 text-right text-lime-400 border border-slate-800"><?= (float)$lg['miru_jam'] > 0 ? number_format((float)$lg['miru_jam'], 2) : '-' ?></td>
-                                                    <td class="py-1.5 px-2 text-right text-lime-300 border border-slate-800"><?= (float)$lg['ops_jam'] > 0 ? number_format((float)$lg['ops_jam'], 2) : '-' ?></td>
-                                                    <td class="py-1.5 px-2 text-center border border-slate-800 <?= (float)$lg['dt_rain'] > 0 ? 'text-yellow-300 font-bold' : 'text-slate-600' ?>"><?= (float)$lg['dt_rain'] > 0 ? number_format((float)$lg['dt_rain'], 2) : '-' ?></td>
-                                                    <td class="py-1.5 px-2 text-center border border-slate-800 <?= ((float)$lg['dt_dry_road'] + (float)$lg['dt_dry_pad']) > 0 ? 'text-yellow-300 font-bold' : 'text-slate-600' ?>"><?= ((float)$lg['dt_dry_road'] + (float)$lg['dt_dry_pad']) > 0 ? number_format((float)$lg['dt_dry_road'] + (float)$lg['dt_dry_pad'], 2) : '-' ?></td>
-                                                    <td class="py-1.5 px-2 text-center border border-slate-800 <?= (float)$lg['dt_daylight'] > 0 ? 'text-yellow-300 font-bold' : 'text-slate-600' ?>"><?= (float)$lg['dt_daylight'] > 0 ? number_format((float)$lg['dt_daylight'], 2) : '-' ?></td>
-                                                    <td class="py-1.5 px-2 text-center border border-slate-800 <?= (float)$lg['dt_3rd_party'] > 0 ? 'text-yellow-300 font-bold' : 'text-slate-600' ?>"><?= (float)$lg['dt_3rd_party'] > 0 ? number_format((float)$lg['dt_3rd_party'], 2) : '-' ?></td>
-                                                    <td class="py-1.5 px-2 text-center border border-slate-800 <?= (float)$lg['dt_rig'] > 0 ? 'text-rose-400 font-bold' : 'text-slate-600' ?>"><?= (float)$lg['dt_rig'] > 0 ? number_format((float)$lg['dt_rig'], 2) : '-' ?></td>
-                                                    <td class="py-1.5 px-2 text-right font-bold text-yellow-300 border border-slate-800"><?= $lgDt > 0 ? number_format($lgDt, 2) : '-' ?></td>
-                                                    <td class="py-1.5 px-2 text-right font-bold text-emerald-400 border border-slate-800"><?= $lgHrs > 0 ? number_format($lgHrs, 2) : '-' ?></td>
+                                                    <td class="py-1.5 px-2 text-right text-blue-400 border border-slate-800"><?= (float)$lg['miru_jam'] > 0 ? number_format((float)$lg['miru_jam'], 2) : '-' ?></td>
+                                                    <td class="py-1.5 px-2 text-right text-emerald-400 border border-slate-800"><?= (float)$lg['ops_jam'] > 0 ? number_format((float)$lg['ops_jam'], 2) : '-' ?></td>
+                                                    <td class="py-1.5 px-2 text-center border border-slate-800 <?= (float)$lg['dt_rain'] > 0 ? 'text-amber-400 font-semibold' : 'text-slate-500' ?>"><?= (float)$lg['dt_rain'] > 0 ? number_format((float)$lg['dt_rain'], 2) : '-' ?></td>
+                                                    <td class="py-1.5 px-2 text-center border border-slate-800 <?= ((float)$lg['dt_dry_road'] + (float)$lg['dt_dry_pad']) > 0 ? 'text-amber-400 font-semibold' : 'text-slate-500' ?>"><?= ((float)$lg['dt_dry_road'] + (float)$lg['dt_dry_pad']) > 0 ? number_format((float)$lg['dt_dry_road'] + (float)$lg['dt_dry_pad'], 2) : '-' ?></td>
+                                                    <td class="py-1.5 px-2 text-center border border-slate-800 <?= (float)$lg['dt_daylight'] > 0 ? 'text-amber-400 font-semibold' : 'text-slate-500' ?>"><?= (float)$lg['dt_daylight'] > 0 ? number_format((float)$lg['dt_daylight'], 2) : '-' ?></td>
+                                                    <td class="py-1.5 px-2 text-center border border-slate-800 <?= (float)$lg['dt_3rd_party'] > 0 ? 'text-amber-400 font-semibold' : 'text-slate-500' ?>"><?= (float)$lg['dt_3rd_party'] > 0 ? number_format((float)$lg['dt_3rd_party'], 2) : '-' ?></td>
+                                                    <td class="py-1.5 px-2 text-center border border-slate-800 <?= (float)$lg['dt_rig'] > 0 ? 'text-rose-400 font-semibold' : 'text-slate-500' ?>"><?= (float)$lg['dt_rig'] > 0 ? number_format((float)$lg['dt_rig'], 2) : '-' ?></td>
+                                                    <td class="py-1.5 px-2 text-right font-semibold text-amber-400 border border-slate-800"><?= $lgDt > 0 ? number_format($lgDt, 2) : '-' ?></td>
+                                                    <td class="py-1.5 px-2 text-right font-bold text-white border border-slate-800"><?= $lgHrs > 0 ? number_format($lgHrs, 2) : '-' ?></td>
                                                     <td class="py-1.5 px-3 text-left font-sans text-slate-300 border border-slate-800 truncate max-w-xs" title="<?= esc($lg['remark_npt'] ?? '') ?>">
                                                         <?= esc($lg['remark_npt'] ?: '-') ?>
                                                     </td>
@@ -772,16 +801,19 @@
                         <?php endif; ?>
                     </tbody>
                     <!-- TOTAL FOOTER -->
-                    <tfoot class="bg-[#0B1E4A] font-extrabold text-white border-t-2 border-slate-600 text-xs text-center">
+                    <tfoot class="dr-table-foot font-bold text-white border-t-2 border-slate-700 text-xs text-center">
                         <tr>
-                            <td colspan="4" class="py-3 px-4 text-center font-sans font-black uppercase text-amber-300 border border-slate-700">
-                                TOTAL AKUMULASI OPERASI (<span id="footerWellCount"><?= count($reports) ?></span> SUMUR)
+                            <td colspan="4" class="py-3 px-4 text-left font-sans font-bold uppercase text-slate-300 border border-slate-800">
+                                Total Akumulasi Operasi (<span id="footerWellCount"><?= count($reports) ?></span> Sumur)
                             </td>
-                            <td class="py-3 px-3 text-right font-black text-lime-400 border border-slate-700"><?= number_format($totalMiru, 2) ?></td>
-                            <td class="py-3 px-3 text-right font-black text-lime-300 border border-slate-700"><?= number_format($totalOps, 2) ?></td>
-                            <td colspan="2" class="py-3 px-3 text-center border border-slate-700 text-yellow-300 font-sans text-xs">Total Downtime: <strong class="text-white"><?= number_format($grandTotalDt, 2) ?>h</strong></td>
-                            <td class="py-3 px-3 text-right font-black text-sm text-emerald-300 bg-[#0E2A66] border border-slate-700"><?= number_format($totalJam, 2) ?></td>
-                            <td colspan="2" class="border border-slate-700 bg-[#0B1E4A]"></td>
+                            <td class="py-3 px-3 text-right font-bold text-blue-400 border border-slate-800"><?= number_format($totalMiru, 2) ?></td>
+                            <td class="py-3 px-3 text-right font-bold text-emerald-400 border border-slate-800"><?= number_format($totalOps, 2) ?></td>
+                            <td class="py-3 px-3 text-right font-bold text-amber-400 border border-slate-800" title="Total SBWC"><?= number_format($footerTotalSbwc, 2) ?></td>
+                            <td class="py-3 px-3 text-right font-bold text-rose-400 border border-slate-800" title="Total Unpaid"><?= number_format($footerTotalUnpaid, 2) ?></td>
+                            <td class="py-3 px-3 text-right font-extrabold text-sm text-white border border-slate-800"><?= number_format($totalJam, 2) ?></td>
+                            <td colspan="2" class="py-3 px-3 text-center border border-slate-800 text-slate-300 font-sans text-xs">
+                                Total DT: <strong class="text-amber-400 font-mono"><?= number_format($footerTotalSbwc + $footerTotalUnpaid, 2) ?>h</strong>
+                            </td>
                         </tr>
                     </tfoot>
                 </table>
@@ -800,12 +832,32 @@
                 $isComp = ($rep['status_job'] === 'JOB COMPLETED');
                 $wOps = (float)$rep['ops_jam'];
                 $wMiru = (float)$rep['miru_jam'];
-                $wDt = (float)$rep['total_dt'];
+                $wUnpaid = (float)($dt[1] ?? 0) + (float)($dt[2] ?? 0);
+                $wSbwc = 0.0;
+                foreach ($kategoriList as $k) {
+                    if ($k['tipe'] === 'SBWC') {
+                        $wSbwc += (float)($dt[$k['id']] ?? 0);
+                    }
+                }
+                if (!empty($logs) && ($wSbwc + $wUnpaid) == 0) {
+                    foreach ($logs as $lgRow) {
+                        $wUnpaid += (float)($lgRow['dt_rig'] ?? 0) + (float)($lgRow['dt_tool'] ?? 0);
+                        $wSbwc   += (float)($lgRow['dt_rain'] ?? 0) + (float)($lgRow['dt_dry_road'] ?? 0)
+                                  + (float)($lgRow['dt_dry_pad'] ?? 0) + (float)($lgRow['dt_phr_op'] ?? 0)
+                                  + (float)($lgRow['dt_trans'] ?? 0) + (float)($lgRow['dt_ce_pe'] ?? 0)
+                                  + (float)($lgRow['dt_3rd_party'] ?? 0) + (float)($lgRow['dt_daylight'] ?? 0)
+                                  + (float)($lgRow['dt_phr_well'] ?? 0) + (float)($lgRow['dt_foam'] ?? 0)
+                                  + (float)($lgRow['dt_shutdown'] ?? 0);
+                    }
+                }
+                $wDt = ($wSbwc + $wUnpaid) > 0 ? ($wSbwc + $wUnpaid) : (float)$rep['total_dt'];
                 $wTotal = (float)$rep['total_jam'] > 0 ? (float)$rep['total_jam'] : ($wOps + $wMiru + $wDt);
                 $wOpsPct = $wTotal > 0 ? round(($wOps / $wTotal) * 100) : 0;
+                $isSuspendCard = (strtoupper(trim((string)($rep['status_job'] ?? ''))) === 'JOB SUSPEND');
+                $cardStatusKey = $isComp ? 'COMPLETED' : ($isSuspendCard ? 'SUSPEND' : 'PROGRESS');
             ?>
             <div class="p-5 rounded-3xl bg-slate-900 border border-slate-700/80 shadow-xl space-y-3.5 relative overflow-hidden group hover:border-blue-500/60 hover:shadow-2xl transition-all duration-300 well-card-item" 
-                 data-status="<?= $isComp ? 'COMPLETED' : 'PROGRESS' ?>"
+                 data-status="<?= $cardStatusKey ?>"
                  data-wellname="<?= strtolower(esc($rep['nama_lokasi'] ?? '')) ?>">
                 
                 <!-- Card Header -->
@@ -824,8 +876,8 @@
                             <?= esc($rep['nama_lokasi'] ?? 'Lokasi Sumur') ?>
                         </h3>
                     </div>
-                    <span class="px-3 py-1 rounded-full text-[10.5px] font-black <?= $isComp ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/15 text-amber-400 border border-amber-500/30 animate-pulse' ?>">
-                        <?= $isComp ? 'COMPLETED' : 'ON PROGRESS' ?>
+                    <span class="px-3 py-1 rounded-full text-[10.5px] font-black <?= $isComp ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' : ($isSuspendCard ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30' : 'bg-amber-500/15 text-amber-400 border border-amber-500/30 animate-pulse') ?>">
+                        <?= $isComp ? 'COMPLETED' : ($isSuspendCard ? 'JOB SUSPEND' : 'ON PROGRESS') ?>
                     </span>
                 </div>
 
@@ -842,19 +894,23 @@
                     </div>
                 </div>
 
-                <!-- Stats 3-Grid -->
-                <div class="grid grid-cols-3 gap-2 p-3 rounded-2xl bg-slate-950/80 border border-slate-800 text-center font-num">
+                <!-- Stats 4-Grid -->
+                <div class="grid grid-cols-4 gap-1.5 p-2.5 rounded-2xl bg-slate-950/80 border border-slate-800 text-center font-num">
                     <div>
-                        <span class="text-[10px] font-bold uppercase text-slate-500 block">OPS</span>
-                        <span class="text-sm font-black text-lime-300"><?= number_format($wOps, 1) ?>h</span>
+                        <span class="text-[9px] font-bold uppercase text-slate-500 block">MIRU</span>
+                        <span class="text-xs font-black text-lime-400"><?= number_format($wMiru, 2) ?>h</span>
                     </div>
                     <div>
-                        <span class="text-[10px] font-bold uppercase text-slate-500 block">MIRU</span>
-                        <span class="text-sm font-black text-lime-400"><?= number_format($wMiru, 1) ?>h</span>
+                        <span class="text-[9px] font-bold uppercase text-slate-500 block">OPS</span>
+                        <span class="text-xs font-black text-lime-300"><?= number_format($wOps, 2) ?>h</span>
                     </div>
                     <div>
-                        <span class="text-[10px] font-bold uppercase text-slate-500 block">Downtime</span>
-                        <span class="text-sm font-black text-yellow-300"><?= number_format($wDt, 1) ?>h</span>
+                        <span class="text-[9px] font-bold uppercase text-slate-500 block">SBWC</span>
+                        <span class="text-xs font-black text-yellow-300"><?= number_format($wSbwc, 2) ?>h</span>
+                    </div>
+                    <div>
+                        <span class="text-[9px] font-bold uppercase text-slate-500 block">UNPAID</span>
+                        <span class="text-xs font-black text-rose-400"><?= number_format($wUnpaid, 2) ?>h</span>
                     </div>
                 </div>
 
@@ -869,7 +925,7 @@
                 <!-- Card Footer Actions -->
                 <div class="flex items-center justify-between pt-2 border-t border-slate-800 text-xs">
                     <span class="text-[11px] text-slate-400 font-mono font-bold">
-                        <i class="fa-solid fa-calendar-day mr-1 text-cyan-400"></i> <?= count($logs) ?> Hari Log
+                        <i class="fa-solid fa-calendar-day mr-1 text-cyan-400"></i> <?= count($logs) ?> Hari Log · DT: <strong class="text-yellow-300"><?= number_format($wDt, 2) ?>h</strong>
                     </span>
                     <div class="flex items-center gap-1.5">
                         <button type="button" onclick="openWellQuickLook(<?= htmlspecialchars(json_encode([
@@ -878,11 +934,11 @@
                             'tanggal_mulai' => $rep['tanggal_mulai'] ? date('d/m/Y', strtotime($rep['tanggal_mulai'])) : '-',
                             'tanggal_selesai' => $rep['tanggal_selesai'] ? date('d/m/Y', strtotime($rep['tanggal_selesai'])) : '-',
                             'jarak' => (float)$rep['jarak'],
-                            'miru_jam' => (float)$rep['miru_jam'],
-                            'ops_jam' => (float)$rep['ops_jam'],
-                            'sbwc_jam' => $wDt,
-                            'unpaid_jam' => 0,
-                            'total_jam' => (float)$rep['total_jam'],
+                            'miru_jam' => $wMiru,
+                            'ops_jam' => $wOps,
+                            'sbwc_jam' => $wSbwc,
+                            'unpaid_jam' => $wUnpaid,
+                            'total_jam' => $wTotal,
                             'status_job' => $rep['status_job'],
                             'remark' => $rep['remark'] ?? '',
                             'edit_url' => base_url('daily-report/edit/' . $rep['id']),
@@ -904,88 +960,714 @@
     </div>
 
     <!-- ════════════════════════════════════════════════════════════════════════ -->
-    <!-- VIEW 3: MATRIKS DETAIL LENGKAP (FULL 24 KOLOM PERSIS FORMAT SYS)        -->
+    <!-- VIEW 3: SUMMARY REPORT PER WELL (REPLIKA PERSIS TEMPLATE EXCEL SYS)      -->
     <!-- ════════════════════════════════════════════════════════════════════════ -->
-    <div id="viewContainer_full" class="hidden space-y-4">
-        <div class="rounded-2xl bg-slate-900 border border-slate-700 shadow-xl overflow-hidden">
-            <div class="bg-[#0B1E4A] text-white p-3 border-b border-slate-700 flex items-center justify-between">
-                <span class="text-xs font-bold text-yellow-300 uppercase tracking-wider">Lembar Kerja Lengkap 24 Kolom (MIRU, OPS, 11 Pos SBWC, 2 Pos UNPAID)</span>
-                <span class="text-xs text-slate-400">Format Lembar Kerja Excel Asli SYS</span>
+    <?php
+        $rateOdr  = (float)($odr ?? $rig['odr'] ?? 0);
+        $rateOps  = $rateOdr > 0 ? round($rateOdr / 24) : 0;
+        $rateMiru = $rateOdr > 0 ? round(($rateOdr / 24) * 0.75) : 0;
+        $rateSbwc = $rateOdr > 0 ? round(($rateOdr / 24) * 0.65) : 0;
+        $fmtRpExcel = static fn($v) => $v > 0 ? number_format((float)$v, 0, ',', '.') : '-';
+        $fmtNumComma = static fn($v) => number_format((float)$v, 2, ',', '.');
+        $fmtBlankOrComma = static fn($v) => (float)$v > 0 ? number_format((float)$v, 2, ',', '.') : '';
+        $fmtJarakExcel = static function($v) {
+            $val = (float)$v;
+            if ($val <= 0) return '';
+            $formatted = rtrim(rtrim(number_format($val, 2, ',', '.'), '0'), ',');
+            return $formatted . ' KM';
+        };
+        $fmtDateExcel = static function($dStr) {
+            if (empty($dStr)) return '-';
+            return date('d-M-y', strtotime($dStr));
+        };
+    ?>
+    <style>
+        .xl-sheet-wrap {
+            background: #ffffff !important;
+            color: #000000 !important;
+            border: 2px solid #1e293b;
+            border-radius: 14px;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+            overflow: hidden;
+        }
+        .xl-report-table {
+            width: 100%;
+            border-collapse: collapse !important;
+            font-family: 'Calibri', 'Plus Jakarta Sans', Arial, sans-serif !important;
+            font-size: 12px !important;
+            background: #ffffff !important;
+            color: #000000 !important;
+        }
+        .xl-report-table th,
+        .xl-report-table td {
+            border: 1px solid #000000 !important;
+            padding: 4px 6px !important;
+            line-height: 1.25 !important;
+            color: #000000 !important;
+            vertical-align: middle;
+        }
+        .xl-title-cell {
+            background: #ffffff !important;
+            color: #000000 !important;
+            font-size: 16px !important;
+            font-weight: 800 !important;
+            text-align: center !important;
+            padding: 8px 12px !important;
+            letter-spacing: 0.02em;
+        }
+        .xl-bg-sky     { background-color: #92CDDC !important; font-weight: 700 !important; text-align: center; }
+        .xl-bg-green   { background-color: #92D050 !important; font-weight: 700 !important; text-align: center; }
+        .xl-bg-yellow  { background-color: #FFFF00 !important; font-weight: 700 !important; text-align: center; }
+        .xl-bg-orange  { background-color: #FFC000 !important; font-weight: 700 !important; text-align: center; }
+        .xl-bg-red     { background-color: #FF0000 !important; font-weight: 700 !important; text-align: center; }
+        .xl-bg-peach   { background-color: #F4B084 !important; font-weight: 700 !important; text-align: center; }
+        .xl-bg-sage    { background-color: #A9D08E !important; font-weight: 700 !important; text-align: center; }
+        .xl-bg-pink    { background-color: #E6B8B7 !important; font-weight: 700 !important; text-align: center; }
+        .xl-bg-dist    { background-color: #DDD9C4 !important; font-weight: 700 !important; text-align: center; }
+        .xl-bg-sub     { background-color: #D9E1F2 !important; font-weight: 700 !important; }
+        .xl-bg-grand   { background-color: #FFFF00 !important; font-weight: 800 !important; }
+        .xl-text-red   { color: #FF0000 !important; font-weight: 700 !important; }
+        .xl-row-hover:hover td.xl-white-cell {
+            background-color: #f0f9ff !important;
+        }
+    </style>
+
+    <div id="viewContainer_full" class="space-y-4">
+        <div class="xl-sheet-wrap">
+            <!-- Top Action Ribbon above Excel Sheet -->
+            <div class="px-5 py-3 bg-slate-900 text-white flex flex-wrap items-center justify-between gap-3 border-b border-slate-700">
+                <div class="flex items-center gap-2.5">
+                    <span class="px-2.5 py-1 rounded-md bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-extrabold flex items-center gap-1.5">
+                        <i class="fa-solid fa-table"></i>
+                        <span>TEMPLATE EXCEL ASLI</span>
+                    </span>
+                    <span class="text-xs sm:text-sm font-bold text-slate-200">
+                        Klik pada baris tanggal atau nama lokasi sumur untuk langsung mengedit Log Harian sumur tersebut.
+                    </span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <a href="<?= base_url("export/daily-report/{$rigId}/{$bulan}/{$tahun}") ?>"
+                       class="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold flex items-center gap-1.5 shadow transition">
+                        <i class="fa-solid fa-download"></i>
+                        <span>Download File Excel (.xlsx) Ini</span>
+                    </a>
+                </div>
             </div>
 
-            <div class="overflow-x-auto custom-scrollbar max-h-[75vh]">
-                <table class="w-full text-left border-collapse border border-slate-700 text-xs">
-                    <thead class="bg-[#0A1A3F] text-white font-extrabold uppercase text-[10px] tracking-wider text-center select-none sticky top-0 z-10">
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="xl-report-table">
+                    <thead>
+                        <!-- BARIS 1: JUDUL UTAMA LAPORAN -->
                         <tr>
-                            <th rowspan="2" class="py-2.5 px-2 w-10 border border-slate-700 bg-[#0B1E4A]">No</th>
-                            <th rowspan="2" class="py-2.5 px-3 border border-slate-700 bg-[#0B1E4A] min-w-[100px] text-left">Location</th>
-                            <th rowspan="2" class="py-2.5 px-2.5 border border-slate-700 bg-[#0B1E4A] w-20">Date</th>
-                            <th rowspan="2" class="py-2.5 px-2 border border-slate-700 bg-[#0B1E4A] w-16">Distance</th>
-                            <th rowspan="2" class="py-2.5 px-2 border border-slate-700 bg-[#0E2A66] text-lime-400 w-16">MIRU</th>
-                            <th rowspan="2" class="py-2.5 px-2 border border-slate-700 bg-[#0E2A66] text-lime-300 w-16">OPS</th>
-                            <th colspan="11" class="py-1 px-2 border border-slate-700 bg-[#0B1E4A] text-yellow-300">SBWC</th>
-                            <th colspan="2" class="py-1 px-2 border border-slate-700 bg-[#0B1E4A] text-rose-300">UNPAID</th>
-                            <th rowspan="2" class="py-2.5 px-2 border border-slate-700 bg-[#0E2A66] text-yellow-300 w-20">Total DT</th>
-                            <th rowspan="2" class="py-2.5 px-2 border border-slate-700 bg-[#0E2A66] text-emerald-400 w-20 font-black">Total HRS</th>
-                            <th rowspan="2" class="py-2.5 px-3 border border-slate-700 bg-[#0B1E4A] min-w-[140px] text-left">Remark NPT</th>
-                            <th rowspan="2" class="py-2.5 px-3 border border-slate-700 bg-[#0B1E4A] w-24 text-center">Status</th>
+                            <th colspan="23" class="xl-title-cell">
+                                SUMMARY REPORT PER WELL <?= strtoupper(esc($rig['kode'])) ?> <?= strtoupper($bulanList[$bulan] ?? '') ?> <?= $tahun ?>
+                            </th>
                         </tr>
-                        <tr class="text-[9px] bg-[#001745] text-slate-300">
-                            <th class="py-1.5 px-1 border border-slate-700">Rain</th>
-                            <th class="py-1.5 px-1 border border-slate-700">Road</th>
-                            <th class="py-1.5 px-1 border border-slate-700">Pad</th>
-                            <th class="py-1.5 px-1 border border-slate-700">PHR Op</th>
-                            <th class="py-1.5 px-1 border border-slate-700">Trans</th>
-                            <th class="py-1.5 px-1 border border-slate-700">CE/PE</th>
-                            <th class="py-1.5 px-1 border border-slate-700">3rd Party</th>
-                            <th class="py-1.5 px-1 border border-slate-700">Daylight</th>
-                            <th class="py-1.5 px-1 border border-slate-700">PHR Well</th>
-                            <th class="py-1.5 px-1 border border-slate-700">Foam</th>
-                            <th class="py-1.5 px-1 border border-slate-700">Idul Fitri</th>
-                            <th class="py-1.5 px-1 border border-slate-700 text-rose-300">Rig</th>
-                            <th class="py-1.5 px-1 border border-slate-700 text-rose-300">Tool</th>
+
+                        <!-- BARIS 2 & 3: HEADER KOLOM STANDAR EXCEL BESMINDO -->
+                        <tr>
+                            <th rowspan="2" class="xl-bg-sky w-9">No</th>
+                            <th rowspan="2" class="xl-bg-sky min-w-[120px]">Location</th>
+                            <th rowspan="2" class="xl-bg-sky min-w-[82px]">Date</th>
+                            <th rowspan="2" class="xl-bg-sky w-20">DISTANCE</th>
+                            <th rowspan="2" class="xl-bg-green w-20">MIRU</th>
+                            <th rowspan="2" class="xl-bg-green w-20">OPS</th>
+                            <th colspan="10" class="xl-bg-yellow">SBWC</th>
+                            <th colspan="2" class="xl-bg-orange">UNPAID</th>
+                            <th rowspan="2" class="xl-bg-red w-16">SHUT<br>DOWN</th>
+                            <th rowspan="2" class="xl-bg-peach w-16">TOTAL<br>DT</th>
+                            <th rowspan="2" class="xl-bg-sage w-16">TOTAL<br>HRS</th>
+                            <th rowspan="2" class="xl-bg-sky min-w-[210px]">REMARK NPT</th>
+                            <th rowspan="2" class="xl-bg-pink min-w-[100px]">JOB</th>
+                        </tr>
+                        <tr class="text-[11px]">
+                            <th class="xl-bg-yellow w-14">Rain<br>(U.C)</th>
+                            <th class="xl-bg-yellow w-14">DRY ROAD</th>
+                            <th class="xl-bg-yellow w-14">DRY<br>WELL<br>PAD</th>
+                            <th class="xl-bg-yellow w-16">PHR<br>Operator</th>
+                            <th class="xl-bg-yellow w-14">Trans<br>Sharing</th>
+                            <th class="xl-bg-yellow w-12">CE/PE</th>
+                            <th class="xl-bg-yellow w-14">3 Party</th>
+                            <th class="xl-bg-yellow w-16">WO<br>DAYLIGHT</th>
+                            <th class="xl-bg-yellow w-18">PHR Well &amp;<br>Accessories</th>
+                            <th class="xl-bg-yellow w-14">W.O<br>FOAM<br>UNIT</th>
+                            <th class="xl-bg-orange w-14">RIG</th>
+                            <th class="xl-bg-orange w-14">BMS<br>TOOL</th>
+                        </tr>
+
+                        <!-- BARIS 4: BARIS TARIF KONTRAK (RP MERah) -->
+                        <tr class="bg-white">
+                            <th class="bg-white"></th>
+                            <th class="bg-white"></th>
+                            <th class="bg-white xl-text-red text-right whitespace-nowrap font-mono text-[11px]">
+                                <div class="flex items-center justify-between gap-1">
+                                    <span>Rp</span>
+                                    <span><?= $fmtRpExcel($rateOdr) ?></span>
+                                </div>
+                            </th>
+                            <th class="bg-white"></th>
+                            <th class="bg-white xl-text-red text-right whitespace-nowrap font-mono text-[11px]">
+                                <div class="flex items-center justify-between gap-1">
+                                    <span>Rp</span>
+                                    <span><?= $fmtRpExcel($rateMiru) ?></span>
+                                </div>
+                            </th>
+                            <th class="bg-white xl-text-red text-right whitespace-nowrap font-mono text-[11px]">
+                                <div class="flex items-center justify-between gap-1">
+                                    <span>Rp</span>
+                                    <span><?= $fmtRpExcel($rateOps) ?></span>
+                                </div>
+                            </th>
+                            <th colspan="10" class="bg-white xl-text-red text-right whitespace-nowrap font-mono text-[11px]">
+                                <div class="flex items-center justify-between px-1">
+                                    <span>Rp</span>
+                                    <span><?= $fmtRpExcel($rateSbwc) ?></span>
+                                </div>
+                            </th>
+                            <th colspan="2" class="bg-white xl-text-red text-center whitespace-nowrap font-mono text-[11px]">
+                                Rp &nbsp;&nbsp;&nbsp; -
+                            </th>
+                            <th class="bg-white xl-text-red text-center whitespace-nowrap font-mono text-[11px]">
+                                Rp &nbsp; -
+                            </th>
+                            <th class="bg-white"></th>
+                            <th class="bg-white"></th>
+                            <th class="bg-white"></th>
+                            <th class="bg-white"></th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-800 text-slate-200 font-num">
-                        <?php foreach ($reports as $rep): 
-                            $dt = $dtDetails[$rep['id']] ?? [];
-                            $fmt = fn($v) => $v > 0 ? (fmod($v, 1) !== 0.0 ? number_format($v, 2) : (int)$v) : '-';
-                        ?>
-                        <tr class="hover:bg-slate-800/80 transition">
-                            <td class="py-2 px-2 text-center border border-slate-800 bg-slate-900/50 text-slate-400 font-mono"><?= $rep['no_well'] ?></td>
-                            <td class="py-2 px-3 font-bold text-white text-xs border border-slate-800 font-sans"><?= esc($rep['nama_lokasi'] ?? '') ?></td>
-                            <td class="py-2 px-2 text-center text-slate-400 border border-slate-800"><?= $rep['tanggal_mulai'] ? date('d/m/y', strtotime($rep['tanggal_mulai'])) : '-' ?></td>
-                            <td class="py-2 px-2 text-right text-slate-400 border border-slate-800"><?= (float)$rep['jarak'] > 0 ? (int)$rep['jarak'] : '-' ?></td>
-                            <td class="py-2 px-2 text-right font-bold text-lime-400 border border-slate-800 bg-lime-950/10"><?= $fmt((float)$rep['miru_jam']) ?></td>
-                            <td class="py-2 px-2 text-right font-bold text-lime-300 border border-slate-800 bg-lime-950/10"><?= $fmt((float)$rep['ops_jam']) ?></td>
-                            
-                            <td class="py-2 px-1 text-center border border-slate-800"><?= $fmt((float)($dt[3] ?? 0)) ?></td>
-                            <td class="py-2 px-1 text-center border border-slate-800"><?= $fmt((float)($dt[4] ?? 0)) ?></td>
-                            <td class="py-2 px-1 text-center border border-slate-800"><?= $fmt((float)($dt[5] ?? 0)) ?></td>
-                            <td class="py-2 px-1 text-center border border-slate-800"><?= $fmt((float)($dt[13] ?? 0)) ?></td>
-                            <td class="py-2 px-1 text-center border border-slate-800"><?= $fmt((float)($dt[11] ?? 0)) ?></td>
-                            <td class="py-2 px-1 text-center border border-slate-800"><?= $fmt((float)($dt[14] ?? 0)) ?></td>
-                            <td class="py-2 px-1 text-center border border-slate-800"><?= $fmt((float)($dt[10] ?? 0)) ?></td>
-                            <td class="py-2 px-1 text-center border border-slate-800"><?= $fmt((float)($dt[6] ?? 0)) ?></td>
-                            <td class="py-2 px-1 text-center border border-slate-800"><?= $fmt((float)($dt[8] ?? 0)) ?></td>
-                            <td class="py-2 px-1 text-center border border-slate-800"><?= $fmt((float)($dt[12] ?? 0)) ?></td>
-                            <td class="py-2 px-1 text-center border border-slate-800"><?= $fmt((float)($dt[15] ?? 0)) ?></td>
-                            
-                            <td class="py-2 px-1 text-center border border-slate-800 text-rose-400 font-bold"><?= $fmt((float)($dt[1] ?? 0)) ?></td>
-                            <td class="py-2 px-1 text-center border border-slate-800 text-rose-400 font-bold"><?= $fmt((float)($dt[2] ?? 0)) ?></td>
 
-                            <td class="py-2 px-2 text-right font-bold text-yellow-300 border border-slate-800 bg-[#0E2A66]/30"><?= $fmt((float)$rep['total_dt']) ?></td>
-                            <td class="py-2 px-2 text-right font-black text-emerald-400 border border-slate-800 bg-[#0E2A66]/30"><?= $fmt((float)$rep['total_jam']) ?></td>
-                            <td class="py-2 px-3 text-left font-sans text-slate-300 border border-slate-800 truncate max-w-xs" title="<?= esc($rep['remark'] ?? '') ?>"><?= esc($rep['remark'] ?: '-') ?></td>
-                            <td class="py-2 px-2 text-center border border-slate-800 font-sans text-[10px]">
-                                <span class="px-2 py-0.5 rounded-full font-bold <?= $rep['status_job'] === 'JOB COMPLETED' ? 'bg-emerald-500/15 text-emerald-400' : 'bg-amber-500/15 text-amber-400' ?>">
-                                    <?= $rep['status_job'] === 'JOB COMPLETED' ? 'COMPLETED' : 'PROGRESS' ?>
-                                </span>
+                    <?php
+                        $scheduleMtc = (float)($reportMeta['schedule_mtc'] ?? 0.0);
+                        $reportNotes = $reportMeta['notes'] ?? [];
+                    ?>
+                    <tbody>
+                        <?php if (empty($reports)): ?>
+                        <tr>
+                            <td colspan="23" class="py-10 text-center font-bold text-slate-500">
+                                Belum ada data sumur (Well) pada periode <?= $bulanList[$bulan] ?? '' ?> <?= $tahun ?>. Klik "+ Tambah Sumur Baru" di atas untuk memulai.
                             </td>
                         </tr>
-                        <?php endforeach; ?>
+                        <?php else: ?>
+                            <?php
+                            // Grand Total Accumulators across all wells
+                            $grandTotals = [
+                                'miru' => 0.0, 'ops' => 0.0,
+                                'rain' => 0.0, 'road' => 0.0, 'pad' => 0.0, 'phr_op' => 0.0,
+                                'trans' => 0.0, 'ce_pe' => 0.0, 'tp' => 0.0, 'daylight' => 0.0,
+                                'phr_well' => 0.0, 'foam' => 0.0,
+                                'rig' => 0.0, 'tool' => 0.0, 'shutdown' => 0.0,
+                                'total_dt' => 0.0, 'total_hrs' => 0.0,
+                            ];
+
+                            foreach ($reports as $rep):
+                                $repId = (int)$rep['id'];
+                                $wellLogs = $dailyLogs[$repId] ?? [];
+                                $dt = $dtDetails[$repId] ?? [];
+
+                                // Jika belum ada daily_report_log, bangun minimal 1 baris dari data parent well supaya tetap tampil lengkap
+                                if (empty($wellLogs)) {
+                                    $fallbackDt = (float)($rep['total_dt'] ?? 0);
+                                    $fallbackHrs = (float)($rep['total_jam'] ?? ((float)$rep['miru_jam'] + (float)$rep['ops_jam'] + $fallbackDt));
+                                    $wellLogs = [[
+                                        'tanggal'       => $rep['tanggal_mulai'] ?: sprintf('%04d-%02d-01', $tahun, $bulan),
+                                        'miru_jam'      => (float)($rep['miru_jam'] ?? 0),
+                                        'ops_jam'       => (float)($rep['ops_jam'] ?? 0),
+                                        'dt_rain'       => (float)($dt[3] ?? 0),
+                                        'dt_dry_road'   => (float)($dt[4] ?? 0),
+                                        'dt_dry_pad'    => (float)($dt[5] ?? 0),
+                                        'dt_phr_op'     => (float)($dt[13] ?? 0),
+                                        'dt_trans'      => (float)($dt[11] ?? 0),
+                                        'dt_ce_pe'      => (float)($dt[14] ?? 0),
+                                        'dt_3rd_party'  => (float)($dt[10] ?? 0),
+                                        'dt_daylight'   => (float)($dt[6] ?? 0),
+                                        'dt_phr_well'   => (float)($dt[8] ?? 0),
+                                        'dt_foam'       => (float)($dt[12] ?? 0),
+                                        'dt_rig'        => (float)($dt[1] ?? 0),
+                                        'dt_tool'       => (float)($dt[2] ?? 0),
+                                        'dt_shutdown'   => (float)($dt[15] ?? 0),
+                                        'total_dt'      => $fallbackDt,
+                                        'total_hrs'     => $fallbackHrs,
+                                        'remark_npt'    => $rep['remark'] ?? '',
+                                        'remark_unpaid' => '',
+                                    ]];
+                                }
+
+                                $rowCount = count($wellLogs);
+                                $wSum = [
+                                    'miru' => 0.0, 'ops' => 0.0,
+                                    'rain' => 0.0, 'road' => 0.0, 'pad' => 0.0, 'phr_op' => 0.0,
+                                    'trans' => 0.0, 'ce_pe' => 0.0, 'tp' => 0.0, 'daylight' => 0.0,
+                                    'phr_well' => 0.0, 'foam' => 0.0,
+                                    'rig' => 0.0, 'tool' => 0.0, 'shutdown' => 0.0,
+                                    'total_dt' => 0.0, 'total_hrs' => 0.0,
+                                ];
+
+                                foreach ($wellLogs as $dIdx => $dRow):
+                                    $vMiru     = (float)($dRow['miru_jam'] ?? 0);
+                                    $vOps      = (float)($dRow['ops_jam'] ?? 0);
+                                    $vRain     = (float)($dRow['dt_rain'] ?? 0);
+                                    $vRoad     = (float)($dRow['dt_dry_road'] ?? 0);
+                                    $vPad      = (float)($dRow['dt_dry_pad'] ?? 0);
+                                    $vPhrOp    = (float)($dRow['dt_phr_op'] ?? 0);
+                                    $vTrans    = (float)($dRow['dt_trans'] ?? 0);
+                                    $vCePe     = (float)($dRow['dt_ce_pe'] ?? 0);
+                                    $vTp       = (float)($dRow['dt_3rd_party'] ?? 0);
+                                    $vDaylight = (float)($dRow['dt_daylight'] ?? 0);
+                                    $vPhrWell  = (float)($dRow['dt_phr_well'] ?? 0);
+                                    $vFoam     = (float)($dRow['dt_foam'] ?? 0);
+                                    $vRig      = (float)($dRow['dt_rig'] ?? 0);
+                                    $vTool     = (float)($dRow['dt_tool'] ?? 0);
+                                    $vShutdown = (float)($dRow['dt_shutdown'] ?? 0);
+
+                                    $vTotDt  = $vRain + $vRoad + $vPad + $vPhrOp + $vTrans + $vCePe + $vTp + $vDaylight + $vPhrWell + $vFoam + $vRig + $vTool + $vShutdown;
+                                    if ($vTotDt == 0 && (float)($dRow['total_dt'] ?? 0) > 0) {
+                                        $vTotDt = (float)$dRow['total_dt'];
+                                    }
+                                    $vTotHrs = $vMiru + $vOps + $vTotDt;
+                                    if ($vTotHrs == 0 && (float)($dRow['total_hrs'] ?? 0) > 0) {
+                                        $vTotHrs = (float)$dRow['total_hrs'];
+                                    }
+
+                                    $wSum['miru']     += $vMiru;
+                                    $wSum['ops']      += $vOps;
+                                    $wSum['rain']     += $vRain;
+                                    $wSum['road']     += $vRoad;
+                                    $wSum['pad']      += $vPad;
+                                    $wSum['phr_op']   += $vPhrOp;
+                                    $wSum['trans']    += $vTrans;
+                                    $wSum['ce_pe']    += $vCePe;
+                                    $wSum['tp']       += $vTp;
+                                    $wSum['daylight'] += $vDaylight;
+                                    $wSum['phr_well'] += $vPhrWell;
+                                    $wSum['foam']     += $vFoam;
+                                    $wSum['rig']      += $vRig;
+                                    $wSum['tool']     += $vTool;
+                                    $wSum['shutdown'] += $vShutdown;
+                                    $wSum['total_dt'] += $vTotDt;
+                                    $wSum['total_hrs']+= $vTotHrs;
+
+                                    $remParts = [];
+                                    if (!empty($dRow['remark_npt']))    $remParts[] = trim($dRow['remark_npt']);
+                                    if (!empty($dRow['remark_unpaid'])) $remParts[] = trim($dRow['remark_unpaid']);
+                                    $remText = implode(' | ', array_unique($remParts));
+                                    $hasUnpaidDay = ($vRig > 0 || $vTool > 0 || !empty($dRow['remark_unpaid']));
+                                    $editDayUrl = base_url("daily-report/log-harian/{$rigId}/{$bulan}/{$tahun}?well_id={$repId}&tanggal=" . urlencode($dRow['tanggal'] ?? ''));
+                            ?>
+                            <tr class="xl-row-hover cursor-pointer" onclick="window.location.href='<?= $editDayUrl ?>'" title="Klik untuk mengedit Log Harian tanggal <?= $fmtDateExcel($dRow['tanggal'] ?? '') ?> pada <?= esc($rep['nama_lokasi'] ?? '') ?>">
+                                <?php if ($dIdx === 0): ?>
+                                    <td rowspan="<?= $rowCount ?>" class="text-center font-bold bg-white">
+                                        <?= (int)$rep['no_well'] ?>
+                                    </td>
+                                    <td rowspan="<?= $rowCount ?>" class="text-center font-bold bg-white">
+                                        <?= esc($rep['nama_lokasi'] ?? ('WELL #' . $rep['no_well'])) ?>
+                                    </td>
+                                <?php endif; ?>
+
+                                <td class="xl-white-cell text-center whitespace-nowrap font-semibold">
+                                    <?= $fmtDateExcel($dRow['tanggal'] ?? '') ?>
+                                </td>
+
+                                <?php if ($dIdx === 0): ?>
+                                    <td rowspan="<?= $rowCount ?>" class="xl-bg-dist whitespace-nowrap">
+                                        <?= $fmtJarakExcel($rep['jarak'] ?? 0) ?>
+                                    </td>
+                                <?php endif; ?>
+
+                                <td class="xl-white-cell text-right font-semibold"><?= $fmtBlankOrComma($vMiru) ?></td>
+                                <td class="xl-white-cell text-right font-semibold"><?= $fmtBlankOrComma($vOps) ?></td>
+
+                                <!-- 10 SBWC Columns -->
+                                <td class="xl-white-cell text-right"><?= $fmtBlankOrComma($vRain) ?></td>
+                                <td class="xl-white-cell text-right"><?= $fmtBlankOrComma($vRoad) ?></td>
+                                <td class="xl-white-cell text-right"><?= $fmtBlankOrComma($vPad) ?></td>
+                                <td class="xl-white-cell text-right"><?= $fmtBlankOrComma($vPhrOp) ?></td>
+                                <td class="xl-white-cell text-right"><?= $fmtBlankOrComma($vTrans) ?></td>
+                                <td class="xl-white-cell text-right"><?= $fmtBlankOrComma($vCePe) ?></td>
+                                <td class="xl-white-cell text-right"><?= $fmtBlankOrComma($vTp) ?></td>
+                                <td class="xl-white-cell text-right"><?= $fmtBlankOrComma($vDaylight) ?></td>
+                                <td class="xl-white-cell text-right"><?= $fmtBlankOrComma($vPhrWell) ?></td>
+                                <td class="xl-white-cell text-right"><?= $fmtBlankOrComma($vFoam) ?></td>
+
+                                <!-- 2 UNPAID Columns (Red if > 0) -->
+                                <td class="xl-white-cell text-right <?= $vRig > 0 ? 'xl-text-red' : '' ?>"><?= $fmtBlankOrComma($vRig) ?></td>
+                                <td class="xl-white-cell text-right <?= $vTool > 0 ? 'xl-text-red' : '' ?>"><?= $fmtBlankOrComma($vTool) ?></td>
+
+                                <!-- SHUT DOWN -->
+                                <td class="xl-white-cell text-right"><?= $fmtBlankOrComma($vShutdown) ?></td>
+
+                                <!-- TOTAL DT (Peach) -->
+                                <td class="xl-bg-peach text-right"><?= $fmtNumComma($vTotDt) ?></td>
+
+                                <!-- TOTAL HRS -->
+                                <td class="xl-white-cell text-right font-bold"><?= $fmtNumComma($vTotHrs) ?></td>
+
+                                <!-- REMARK NPT -->
+                                <td class="xl-white-cell text-left <?= $hasUnpaidDay ? 'xl-text-red' : 'font-semibold' ?>">
+                                    <?= esc($remText) ?>
+                                </td>
+
+                                <?php if ($dIdx === 0): ?>
+                                    <td rowspan="<?= $rowCount ?>" class="xl-bg-pink text-center font-extrabold text-[11px] leading-tight">
+                                        <?= nl2br(esc(str_replace(' ', "\n", trim($rep['status_job'] ?: 'JOB PROGRESS')))) ?>
+                                    </td>
+                                <?php endif; ?>
+                            </tr>
+                            <?php endforeach; ?>
+
+                            <!-- BARIS SUBTOTAL PER SUMUR (BIRU MUDA #D9E1F2 PERSIS EXCEL) -->
+                            <tr class="xl-bg-sub">
+                                <td class="xl-bg-sub"></td>
+                                <td class="xl-bg-sub"></td>
+                                <td class="xl-bg-sub"></td>
+                                <td class="xl-bg-sub"></td>
+                                <td class="xl-bg-sub text-right"><?= $fmtNumComma($wSum['miru']) ?></td>
+                                <td class="xl-bg-sub text-right"><?= $fmtNumComma($wSum['ops']) ?></td>
+                                <td class="xl-bg-sub text-right"><?= $fmtNumComma($wSum['rain']) ?></td>
+                                <td class="xl-bg-sub text-right"><?= $fmtNumComma($wSum['road']) ?></td>
+                                <td class="xl-bg-sub text-right"><?= $fmtNumComma($wSum['pad']) ?></td>
+                                <td class="xl-bg-sub text-right"><?= $fmtNumComma($wSum['phr_op']) ?></td>
+                                <td class="xl-bg-sub text-right"><?= $fmtNumComma($wSum['trans']) ?></td>
+                                <td class="xl-bg-sub text-right"><?= $fmtNumComma($wSum['ce_pe']) ?></td>
+                                <td class="xl-bg-sub text-right"><?= $fmtNumComma($wSum['tp']) ?></td>
+                                <td class="xl-bg-sub text-right"><?= $fmtNumComma($wSum['daylight']) ?></td>
+                                <td class="xl-bg-sub text-right"><?= $fmtNumComma($wSum['phr_well']) ?></td>
+                                <td class="xl-bg-sub text-right"><?= $fmtNumComma($wSum['foam']) ?></td>
+                                <td class="xl-bg-sub text-right <?= $wSum['rig'] > 0 ? 'xl-text-red' : '' ?>"><?= $fmtNumComma($wSum['rig']) ?></td>
+                                <td class="xl-bg-sub text-right <?= $wSum['tool'] > 0 ? 'xl-text-red' : '' ?>"><?= $fmtNumComma($wSum['tool']) ?></td>
+                                <td class="xl-bg-sub text-right"><?= $fmtNumComma($wSum['shutdown']) ?></td>
+                                <td class="xl-bg-peach text-right"><?= $fmtNumComma($wSum['total_dt']) ?></td>
+                                <td class="xl-bg-sub text-right font-extrabold"><?= $fmtNumComma($wSum['total_hrs']) ?></td>
+                                <td class="xl-bg-sub"></td>
+                                <td class="xl-bg-sub"></td>
+                            </tr>
+                            <?php
+                                foreach ($grandTotals as $gk => $gv) {
+                                    $grandTotals[$gk] += $wSum[$gk];
+                                }
+                            endforeach;
+                            ?>
+
+                            <?php
+                                $gtMiru        = (float)$grandTotals['miru'];
+                                $gtOps         = (float)$grandTotals['ops'];
+                                $sumWeatherRd  = (float)$grandTotals['rain'] + (float)$grandTotals['road'];
+                                $sumOtherSbwc  = (float)$grandTotals['pad'] + (float)$grandTotals['phr_op']
+                                               + (float)$grandTotals['trans'] + (float)$grandTotals['ce_pe']
+                                               + (float)$grandTotals['tp'] + (float)$grandTotals['daylight']
+                                               + (float)$grandTotals['phr_well'] + (float)$grandTotals['foam'];
+                                $sumUnpaid     = (float)$grandTotals['rig'] + (float)$grandTotals['tool'];
+                                $sumShutdown   = (float)$grandTotals['shutdown'];
+                                $gtDt          = (float)$grandTotals['total_dt'];
+                                $gtHrs         = (float)$grandTotals['total_hrs'];
+
+                                $pctMiru       = $gtHrs > 0 ? ($gtMiru / $gtHrs) * 100.0 : 0.0;
+                                $pctOps        = $gtHrs > 0 ? ($gtOps / $gtHrs) * 100.0 : 0.0;
+                                $pctWeatherRd  = $gtHrs > 0 ? ($sumWeatherRd / $gtHrs) * 100.0 : 0.0;
+                                $pctOtherSbwc  = $gtHrs > 0 ? ($sumOtherSbwc / $gtHrs) * 100.0 : 0.0;
+                                $pctUnpaid     = $gtHrs > 0 ? ($sumUnpaid / $gtHrs) * 100.0 : 0.0;
+                                $pctShutdown   = $gtHrs > 0 ? ($sumShutdown / $gtHrs) * 100.0 : 0.0;
+                                $pctTotal      = $gtHrs > 0 ? 100.0 : 0.0;
+
+                                $revMiru       = round($gtMiru * ($rateOdr / 24.0 * 0.75));
+                                $revOps        = round($gtOps * ($rateOdr / 24.0));
+                                $revWeatherRd  = round($sumWeatherRd * ($rateOdr / 24.0 * 0.65));
+                                $revOtherSbwc  = round($sumOtherSbwc * ($rateOdr / 24.0 * 0.65));
+                                $revTotal      = $revMiru + $revOps + $revWeatherRd + $revOtherSbwc;
+
+                                $scheduleMtc   = (float)($reportMeta['schedule_mtc'] ?? 0.0);
+                                $reportNotes   = $reportMeta['notes'] ?? [];
+
+                                $kpiRel        = $gtHrs > 0 ? max(0.0, (($gtHrs - $sumUnpaid) / $gtHrs) * 100.0) : 0.0;
+                                $kpiAvail      = $gtHrs > 0 ? max(0.0, (($gtHrs - $sumUnpaid - $scheduleMtc) / $gtHrs) * 100.0) : 0.0;
+                                $kpiUtil       = $gtHrs > 0 ? ((($gtMiru + $gtOps) / $gtHrs) * 100.0) : 0.0;
+
+                                $miruWellCnt = 0;
+                                $compWellCnt = 0;
+                                foreach ($reports as $rItem) {
+                                    if ((float)($rItem['miru_jam'] ?? 0) > 0) $miruWellCnt++;
+                                    if (strtoupper(trim((string)($rItem['status_job'] ?? ''))) === 'JOB COMPLETED') $compWellCnt++;
+                                }
+                                $kpiAvgMiru    = $miruWellCnt > 0 ? ($gtMiru / $miruWellCnt) : $gtMiru;
+                                $kpiCycleTime  = $compWellCnt > 0 ? ($gtHrs / $compWellCnt) : $gtHrs;
+                                $incentiveTarget = round(($rateOdr * ($gtHrs / 24.0)) * 0.92);
+
+                                $fmtPctComma = static fn($v) => number_format((float)$v, 2, ',', '.') . '%';
+                                $fmtRpCell   = static function($v) {
+                                    $val = round((float)$v);
+                                    if ($val <= 0) {
+                                        return '<div class="flex items-center justify-between px-1"><span>Rp</span><span>-</span></div>';
+                                    }
+                                    return '<div class="flex items-center justify-between px-1"><span>Rp</span><span>' . number_format($val, 0, ',', '.') . '</span></div>';
+                                };
+                            ?>
+
+                            <!-- ═══ BARIS 1 FOOTER: TOTAL AKUMULASI (PERSIS FOTO 1) ═══ -->
+                            <tr>
+                                <td colspan="3" class="xl-bg-sky text-center font-extrabold">TOTAL</td>
+                                <td class="xl-bg-sky"></td>
+                                <td class="xl-bg-green text-right font-extrabold"><?= $fmtNumComma($gtMiru) ?></td>
+                                <td class="xl-bg-green text-right font-extrabold"><?= $fmtNumComma($gtOps) ?></td>
+                                <td class="xl-bg-green text-right font-extrabold"><?= $fmtNumComma($grandTotals['rain']) ?></td>
+                                <td class="xl-bg-green text-right font-extrabold"><?= $fmtNumComma($grandTotals['road']) ?></td>
+                                <td class="xl-bg-green text-right font-extrabold"><?= $fmtNumComma($grandTotals['pad']) ?></td>
+                                <td class="xl-bg-green text-right font-extrabold"><?= $fmtNumComma($grandTotals['phr_op']) ?></td>
+                                <td class="xl-bg-green text-right font-extrabold"><?= $fmtNumComma($grandTotals['trans']) ?></td>
+                                <td class="xl-bg-green text-right font-extrabold"><?= $fmtNumComma($grandTotals['ce_pe']) ?></td>
+                                <td class="xl-bg-green text-right font-extrabold"><?= $fmtNumComma($grandTotals['tp']) ?></td>
+                                <td class="xl-bg-green text-right font-extrabold"><?= $fmtNumComma($grandTotals['daylight']) ?></td>
+                                <td class="xl-bg-green text-right font-extrabold"><?= $fmtNumComma($grandTotals['phr_well']) ?></td>
+                                <td class="xl-bg-green text-right font-extrabold"><?= $fmtNumComma($grandTotals['foam']) ?></td>
+                                <td class="xl-bg-green text-right font-extrabold <?= $grandTotals['rig'] > 0 ? 'xl-text-red' : '' ?>"><?= $fmtNumComma($grandTotals['rig']) ?></td>
+                                <td class="xl-bg-green text-right font-extrabold <?= $grandTotals['tool'] > 0 ? 'xl-text-red' : '' ?>"><?= $fmtNumComma($grandTotals['tool']) ?></td>
+                                <td class="xl-bg-green text-right font-extrabold"><?= $fmtNumComma($grandTotals['shutdown']) ?></td>
+                                <td rowspan="2" class="xl-bg-orange text-right font-extrabold"><?= $fmtNumComma($gtDt) ?></td>
+                                <td rowspan="2" class="xl-bg-sage text-right font-extrabold"><?= $fmtNumComma($gtHrs) ?></td>
+                                <td colspan="2" class="!border-0 bg-white"></td>
+                            </tr>
+
+                            <!-- ═══ BARIS 2 FOOTER: SUBTOTAL KELOMPOK DT (RAIN+ROAD | OTHER SBWC | UNPAID | SHUTDOWN) ═══ -->
+                            <tr>
+                                <td colspan="6" class="!border-0 bg-white"></td>
+                                <td colspan="2" class="xl-bg-yellow text-center font-extrabold"><?= $fmtNumComma($sumWeatherRd) ?></td>
+                                <td colspan="8" class="xl-bg-yellow text-center font-extrabold"><?= $fmtNumComma($sumOtherSbwc) ?></td>
+                                <td colspan="2" class="xl-bg-orange text-center font-extrabold"><?= $fmtNumComma($sumUnpaid) ?></td>
+                                <td class="xl-bg-red text-center font-extrabold"><?= $fmtNumComma($sumShutdown) ?></td>
+                                <td colspan="2" class="!border-0 bg-white"></td>
+                            </tr>
+
+                            <!-- ═══ BARIS 3 FOOTER: ANGKA PEMBULATAN 1 DESIMAL DI BAWAH KELOMPOK DT ═══ -->
+                            <tr>
+                                <td colspan="6" class="!border-0 bg-white"></td>
+                                <td colspan="2" class="!border-0 bg-white text-center font-extrabold"><?= number_format($sumWeatherRd, 1, ',', '.') ?></td>
+                                <td colspan="8" class="!border-0 bg-white text-center font-extrabold"><?= $fmtNumComma($sumOtherSbwc) ?></td>
+                                <td colspan="2" class="!border-0 bg-white text-center font-extrabold"><?= number_format($sumUnpaid, 1, ',', '.') ?></td>
+                                <td class="!border-0 bg-white"></td>
+                                <td class="!border-0 bg-white"></td>
+                                <td class="!border-0 bg-white text-right font-extrabold"><?= $fmtNumComma($gtHrs) ?></td>
+                                <td colspan="2" class="!border-0 bg-white"></td>
+                            </tr>
+
+                            <!-- SPACER ROW -->
+                            <tr>
+                                <td colspan="23" class="!border-0 bg-white py-1.5"></td>
+                            </tr>
+
+                            <!-- ═══ BARIS PRESENTASE (KUNING #FFFF00) ═══ -->
+                            <tr>
+                                <td colspan="3" class="xl-bg-yellow !text-left font-extrabold">PRESENTASE</td>
+                                <td class="xl-bg-yellow"></td>
+                                <td class="xl-bg-yellow text-right font-extrabold"><?= $fmtPctComma($pctMiru) ?></td>
+                                <td class="xl-bg-yellow text-right font-extrabold"><?= $fmtPctComma($pctOps) ?></td>
+                                <td colspan="2" class="xl-bg-yellow text-center font-extrabold"><?= $fmtPctComma($pctWeatherRd) ?></td>
+                                <td colspan="8" class="xl-bg-yellow text-center font-extrabold"><?= $fmtPctComma($pctOtherSbwc) ?></td>
+                                <td colspan="2" class="xl-bg-yellow text-center font-extrabold"><?= $fmtPctComma($pctUnpaid) ?></td>
+                                <td class="xl-bg-yellow text-center font-extrabold"><?= $fmtPctComma($pctShutdown) ?></td>
+                                <td colspan="2" class="xl-bg-yellow text-right font-extrabold"><?= $fmtPctComma($pctTotal) ?></td>
+                                <td colspan="2" class="!border-0 bg-white"></td>
+                            </tr>
+
+                            <!-- ═══ BARIS REVENUE (PEACH #F8CBAD) ═══ -->
+                            <tr style="background-color: #F8CBAD !important;">
+                                <td colspan="3" style="background-color: #F8CBAD !important;" class="font-extrabold text-left">REVENUE</td>
+                                <td colspan="2" style="background-color: #F8CBAD !important;" class="font-semibold"><?= $fmtRpCell($revMiru) ?></td>
+                                <td style="background-color: #F8CBAD !important;" class="font-semibold"><?= $fmtRpCell($revOps) ?></td>
+                                <td colspan="2" style="background-color: #F8CBAD !important;" class="font-semibold"><?= $fmtRpCell($revWeatherRd) ?></td>
+                                <td colspan="8" style="background-color: #F8CBAD !important;" class="font-semibold"><?= $fmtRpCell($revOtherSbwc) ?></td>
+                                <td colspan="2" style="background-color: #F8CBAD !important;" class="font-semibold"><?= $fmtRpCell(0) ?></td>
+                                <td style="background-color: #F8CBAD !important;" class="font-semibold"><?= $fmtRpCell(0) ?></td>
+                                <td colspan="2" style="background-color: #F8CBAD !important;" class="font-extrabold"><?= $fmtRpCell($revTotal) ?></td>
+                                <td colspan="2" class="!border-0 bg-white"></td>
+                            </tr>
+
+                            <!-- ═══ BARIS KPI 1: REALIBILITY ═══ -->
+                            <tr>
+                                <td colspan="3" style="background-color: #B1A0C7 !important;" class="font-semibold text-left">REALIBILITY</td>
+                                <td style="background-color: #B1A0C7 !important;" class="font-extrabold text-right"><?= $fmtPctComma($kpiRel) ?></td>
+                                <td colspan="15" class="!border-0 bg-white"></td>
+                                <td colspan="2" class="!border-0 bg-white font-semibold"><?= $fmtRpCell($revTotal) ?></td>
+                                <td colspan="2" class="!border-0 bg-white"></td>
+                            </tr>
+
+                            <!-- ═══ BARIS KPI 2: AVAILIBILITY + SCHEDULE MTC ═══ -->
+                            <tr>
+                                <td colspan="3" style="background-color: #B1A0C7 !important;" class="font-semibold text-left">AVAILIBILITY</td>
+                                <td style="background-color: #B1A0C7 !important;" class="font-extrabold text-right"><?= $fmtPctComma($kpiAvail) ?></td>
+                                <td class="bg-white text-center font-extrabold">SCHEDULE MTC</td>
+                                <td class="bg-white text-center font-extrabold cursor-pointer hover:bg-sky-50"
+                                    onclick="document.getElementById('noteEditorPanel').scrollIntoView({behavior:'smooth'}); document.getElementById('inputScheduleMtc').focus();"
+                                    title="Klik untuk mengubah jam Schedule MTC">
+                                    <?= number_format($scheduleMtc, 0, ',', '.') ?>
+                                </td>
+                                <td colspan="17" class="!border-0 bg-white"></td>
+                            </tr>
+
+                            <!-- ═══ BARIS KPI 3: UTILITITAION + INCENTIVE TARGET ═══ -->
+                            <tr>
+                                <td colspan="3" style="background-color: #B1A0C7 !important;" class="font-semibold text-left">UTILITITAION</td>
+                                <td style="background-color: #B1A0C7 !important;" class="font-extrabold text-right"><?= $fmtPctComma($kpiUtil) ?></td>
+                                <td colspan="12" class="!border-0 bg-white"></td>
+                                <td colspan="3" class="xl-bg-orange text-center font-extrabold text-sm">INCENTIVE TARGET</td>
+                                <td colspan="2" class="xl-bg-orange font-extrabold text-sm"><?= $fmtRpCell($incentiveTarget) ?></td>
+                                <td colspan="2" class="!border-0 bg-white"></td>
+                            </tr>
+
+                            <!-- ═══ BARIS KPI 4: AVERANGE MIRU ═══ -->
+                            <tr>
+                                <td colspan="3" class="xl-bg-green !text-left font-semibold">AVERANGE MIRU</td>
+                                <td class="xl-bg-green text-right font-extrabold"><?= $fmtNumComma($kpiAvgMiru) ?></td>
+                                <td colspan="19" class="!border-0 bg-white"></td>
+                            </tr>
+
+                            <!-- ═══ BARIS KPI 5: CYCLE TIME ═══ -->
+                            <tr>
+                                <td colspan="3" class="xl-bg-yellow !text-left font-semibold">CYCLE TIME</td>
+                                <td class="xl-bg-yellow text-right font-extrabold"><?= $fmtNumComma($kpiCycleTime) ?></td>
+                                <td colspan="19" class="!border-0 bg-white"></td>
+                            </tr>
+                        <?php endif; ?>
                     </tbody>
                 </table>
+            </div>
+
+            <!-- ════════════════════════════════════════════════════════════════════════
+                 BAGIAN BAWAH LAPORAN: NOTE / CATATAN LAPORAN PERSIS FOTO 2
+                 (Contoh: 5H-0310A   28-Sep   8 Hrs Preventive maintenance Check and service...)
+                 ════════════════════════════════════════════════════════════════════════ -->
+            <div class="bg-white border-t border-slate-300 px-6 py-5 text-black" style="font-family: 'Calibri', 'Plus Jakarta Sans', Arial, sans-serif;">
+                <div class="flex flex-wrap items-center justify-between gap-3 pb-3 mb-3 border-b border-slate-200">
+                    <div class="flex items-center gap-2">
+                        <span class="px-2.5 py-1 rounded bg-amber-100 text-amber-900 border border-amber-300 text-xs font-extrabold uppercase tracking-wider">
+                            <i class="fa-solid fa-note-sticky mr-1"></i> Note / Catatan Tambahan Laporan
+                        </span>
+                        <span class="text-xs text-slate-600 font-semibold">
+                            Tampil di bagian bawah laporan &amp; otomatis ikut tercetak di Excel (.xlsx)
+                        </span>
+                    </div>
+                    <button type="button" onclick="toggleNoteEditorForm()"
+                        class="px-3.5 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-xs font-extrabold flex items-center gap-1.5 shadow-sm transition cursor-pointer">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>+ Buat / Edit Note di Laporan</span>
+                    </button>
+                </div>
+
+                <!-- Daftar Note Tampil Persis Seperti Foto 2 Excel -->
+                <?php if (!empty($reportNotes)): ?>
+                <div class="space-y-4 mb-4">
+                    <?php foreach ($reportNotes as $nItem): ?>
+                    <div class="group relative rounded-xl p-3.5 bg-white hover:bg-slate-50 border border-transparent hover:border-slate-300 transition">
+                        <!-- Baris 1: Kode Lokasi / Sumur + Tanggal (Persis Foto 2) -->
+                        <div class="flex flex-wrap items-center gap-16 sm:gap-28 font-extrabold text-[15px] text-black leading-snug">
+                            <span><?= esc($nItem['lokasi'] ?? '') ?></span>
+                            <span><?= esc($nItem['tanggal'] ?? '') ?></span>
+                        </div>
+                        <!-- Baris 2: Isi Note / Preventive Maintenance -->
+                        <div class="font-extrabold text-[15px] text-black leading-snug whitespace-pre-line mt-0.5 max-w-4xl"><?= esc($nItem['isi'] ?? '') ?></div>
+                        <!-- Baris 3: Rentang Waktu [09:00 am - 17:00 pm] -->
+                        <?php if (!empty($nItem['waktu'])): ?>
+                        <div class="font-extrabold text-[15px] text-black leading-snug mt-0.5"><?= esc($nItem['waktu']) ?></div>
+                        <?php endif; ?>
+
+                        <!-- Tombol Edit & Hapus Note -->
+                        <div class="mt-2.5 flex items-center gap-2">
+                            <button type="button"
+                                onclick='editReportNote(<?= json_encode($nItem, JSON_HEX_APOS | JSON_HEX_QUOT) ?>)'
+                                class="px-2.5 py-1 rounded bg-sky-100 hover:bg-sky-200 text-sky-800 text-xs font-bold transition cursor-pointer">
+                                <i class="fa-solid fa-pen mr-1"></i> Edit Note
+                            </button>
+                            <form method="POST" action="<?= base_url('daily-report/hapus-catatan') ?>"
+                                onsubmit="return confirm('Hapus catatan laporan ini?')" class="inline">
+                                <?= csrf_field() ?>
+                                <input type="hidden" name="rig_id" value="<?= $rigId ?>">
+                                <input type="hidden" name="bulan" value="<?= $bulan ?>">
+                                <input type="hidden" name="tahun" value="<?= $tahun ?>">
+                                <input type="hidden" name="note_id" value="<?= esc($nItem['id'] ?? '') ?>">
+                                <button type="submit"
+                                    class="px-2.5 py-1 rounded bg-rose-100 hover:bg-rose-200 text-rose-800 text-xs font-bold transition cursor-pointer">
+                                    <i class="fa-solid fa-trash-can mr-1"></i> Hapus
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+                <?php else: ?>
+                <div class="py-3 text-xs text-slate-500 italic mb-3">
+                    Belum ada catatan / note khusus pada laporan bulan ini. Klik <strong>"+ Buat / Edit Note di Laporan"</strong> untuk menambahkan catatan (seperti Preventive Maintenance, dll.).
+                </div>
+                <?php endif; ?>
+
+                <!-- FORM INPUT / EDIT NOTE LAPORAN & SCHEDULE MTC -->
+                <div id="noteEditorPanel" class="rounded-xl bg-slate-100 border border-slate-300 p-4 mt-2">
+                    <form method="POST" action="<?= base_url('daily-report/simpan-catatan') ?>" class="space-y-3">
+                        <?= csrf_field() ?>
+                        <input type="hidden" name="rig_id" value="<?= $rigId ?>">
+                        <input type="hidden" name="bulan" value="<?= $bulan ?>">
+                        <input type="hidden" name="tahun" value="<?= $tahun ?>">
+                        <input type="hidden" name="note_id" id="inputNoteId" value="">
+
+                        <div class="flex items-center justify-between border-b border-slate-300 pb-2">
+                            <h4 id="noteFormTitle" class="text-xs font-extrabold uppercase tracking-wider text-slate-800">
+                                Tambah Note Laporan Baru &amp; Pengaturan Schedule MTC
+                            </h4>
+                            <button type="button" onclick="resetReportNoteForm()" class="text-xs font-bold text-sky-700 hover:underline cursor-pointer">
+                                Reset Form Baru
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                            <div class="sm:col-span-4">
+                                <label class="block text-[11px] font-extrabold uppercase text-slate-700 mb-1">
+                                    Kode Lokasi / Sumur (Baris Atas Kiri)
+                                </label>
+                                <input type="text" name="note_lokasi" id="inputNoteLokasi"
+                                    placeholder="Contoh: 5H-0310A"
+                                    class="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-xs font-bold text-slate-900">
+                            </div>
+                            <div class="sm:col-span-3">
+                                <label class="block text-[11px] font-extrabold uppercase text-slate-700 mb-1">
+                                    Tanggal Note (Baris Atas Kanan)
+                                </label>
+                                <input type="text" name="note_tanggal" id="inputNoteTanggal"
+                                    placeholder="Contoh: 28-Sep"
+                                    class="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-xs font-bold text-slate-900">
+                            </div>
+                            <div class="sm:col-span-3">
+                                <label class="block text-[11px] font-extrabold uppercase text-slate-700 mb-1">
+                                    Rentang Jam (Baris Bawah)
+                                </label>
+                                <input type="text" name="note_waktu" id="inputNoteWaktu"
+                                    placeholder="Contoh: [09:00 am - 17:00 pm]"
+                                    class="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-xs font-bold text-slate-900">
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label class="block text-[11px] font-extrabold uppercase text-slate-700 mb-1">
+                                    Schedule MTC (Jam)
+                                </label>
+                                <input type="number" step="0.5" min="0" name="schedule_mtc" id="inputScheduleMtc"
+                                    value="<?= esc((string)$scheduleMtc) ?>"
+                                    class="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-xs font-extrabold text-right text-slate-900">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-extrabold uppercase text-slate-700 mb-1">
+                                Isi Keterangan Note (Tampil Tebal di Bawah Kode &amp; Tanggal)
+                            </label>
+                            <textarea name="note_isi" id="inputNoteIsi" rows="2"
+                                placeholder="Contoh: 8 Hrs Preventive maintenance Check and service: Rig carrier, Mast Rig, office caravan, genset & accumulator, Mud pump, lighting, genset moving"
+                                class="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-xs font-bold text-slate-900"></textarea>
+                        </div>
+
+                        <div class="flex justify-end gap-2">
+                            <button type="submit"
+                                class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold flex items-center gap-1.5 shadow transition cursor-pointer">
+                                <i class="fa-solid fa-floppy-disk"></i>
+                                <span>Simpan Note &amp; Schedule MTC ke Laporan</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
@@ -1396,5 +2078,39 @@
             console.error(e);
         }
     });
+
+    function toggleNoteEditorForm() {
+        const panel = document.getElementById('noteEditorPanel');
+        if (!panel) return;
+        panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const lokInput = document.getElementById('inputNoteLokasi');
+        if (lokInput) lokInput.focus();
+    }
+
+    function editReportNote(note) {
+        if (!note) return;
+        document.getElementById('inputNoteId').value = note.id || '';
+        document.getElementById('inputNoteLokasi').value = note.lokasi || '';
+        document.getElementById('inputNoteTanggal').value = note.tanggal || '';
+        document.getElementById('inputNoteWaktu').value = note.waktu || '';
+        document.getElementById('inputNoteIsi').value = note.isi || '';
+        const titleEl = document.getElementById('noteFormTitle');
+        if (titleEl) {
+            titleEl.textContent = `Edit Note Laporan: ${note.lokasi || ''} (${note.tanggal || ''})`;
+        }
+        toggleNoteEditorForm();
+    }
+
+    function resetReportNoteForm() {
+        document.getElementById('inputNoteId').value = '';
+        document.getElementById('inputNoteLokasi').value = '';
+        document.getElementById('inputNoteTanggal').value = '';
+        document.getElementById('inputNoteWaktu').value = '';
+        document.getElementById('inputNoteIsi').value = '';
+        const titleEl = document.getElementById('noteFormTitle');
+        if (titleEl) {
+            titleEl.textContent = 'Tambah Note Laporan Baru & Pengaturan Schedule MTC';
+        }
+    }
 </script>
 <?= $this->endSection() ?>

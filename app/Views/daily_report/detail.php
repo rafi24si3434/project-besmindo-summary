@@ -31,10 +31,16 @@
 
         <!-- Status Pekerjaan Badge Besar -->
         <div>
-            <?php if ($report['status_job'] === 'JOB COMPLETED'): ?>
+            <?php $stDetail = strtoupper(trim((string)($report['status_job'] ?? ''))); ?>
+            <?php if ($stDetail === 'JOB COMPLETED'): ?>
                 <div class="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-emerald-500/20 text-emerald-300 border-2 border-emerald-500/50 text-xs sm:text-sm font-black">
                     <span class="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></span>
                     <span>SELESAI (JOB COMPLETED)</span>
+                </div>
+            <?php elseif ($stDetail === 'JOB SUSPEND'): ?>
+                <div class="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-rose-500/20 text-rose-300 border-2 border-rose-500/50 text-xs sm:text-sm font-black">
+                    <span class="w-3 h-3 rounded-full bg-rose-400"></span>
+                    <span>DITUNDA (JOB SUSPEND)</span>
                 </div>
             <?php else: ?>
                 <div class="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-amber-500/20 text-amber-300 border-2 border-amber-500/50 text-xs sm:text-sm font-black">
@@ -98,7 +104,7 @@
                 <span class="text-3xl sm:text-4xl font-black font-num text-lime-400"><?= number_format($miruJam, 2) ?></span>
                 <span class="text-sm font-bold text-slate-300">Jam</span>
             </div>
-            <p class="text-xs text-slate-400 mt-1">Jarak tempuh: <strong class="text-white"><?= number_format((float)$report['jarak'], 0) ?> KM</strong></p>
+            <p class="text-xs text-slate-400 mt-1">Jarak tempuh: <strong class="text-white"><?= (float)$report['jarak'] > 0 ? rtrim(rtrim(number_format((float)$report['jarak'], 2, '.', ''), '0'), '.') : '0' ?> KM</strong></p>
         </div>
 
         <!-- Total Kendala (Downtime) -->

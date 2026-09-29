@@ -66,12 +66,14 @@ class RekapTahunan extends BaseController
         }
 
         $months = $this->monthlySummaryModel->getByRigTahun($rigId, $tahun);
+        $rigs   = $this->rigModel->getRigAktif();
 
         $data = [
             'title'         => "Rekap Tahunan {$rig['kode']} - Tahun {$tahun}",
             'page_title'    => "Rekap Tahunan: {$rig['kode']} ({$rig['nama_rig']})",
             'page_subtitle' => "Historis performa bulanan armada dalam satu tahun kalender",
             'rig'           => $rig,
+            'rigs'          => $rigs,
             'tahun'         => $tahun,
             'months'        => $months,
         ];

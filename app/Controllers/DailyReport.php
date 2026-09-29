@@ -72,6 +72,19 @@ class DailyReport extends BaseController
         $reports = $this->dailyReportModel->getByRigBulanTahun($rigId, $bulan, $tahun);
         $kategoriList = $this->kategoriModel->getKategoriAktif();
 
+        // Pastikan setiap sumur yang memiliki daily_report_log tersinkronisasi penuh (MIRU, OPS, SBWC, UNPAID, Total DT)
+        if (!empty($reports)) {
+            $db = \Config\Database::connect();
+            foreach ($reports as $rCheck) {
+                $hasLogCount = $db->table('daily_report_log')->where('daily_report_id', $rCheck['id'])->countAllResults();
+                if ($hasLogCount > 0) {
+                    $this->recalcParentWell((int)$rCheck['id']);
+                }
+            }
+            // Reload reports setelah rekalkulasi agar angka terbaru tampil
+            $reports = $this->dailyReportModel->getByRigBulanTahun($rigId, $bulan, $tahun);
+        }
+
         // Ambil rincian breakdown downtime per daily_report_id
         $dtDetails = [];
         if (!empty($reports)) {
@@ -82,7 +95,8 @@ class DailyReport extends BaseController
                 ->get()->getResultArray();
 
             foreach ($dtRows as $dtr) {
-                $dtDetails[$dtr['daily_report_id']][$dtr['kategori_id']] = (float)$dtr['jam'];
+                $dtDetails[$dtr['daily_report_id']][$dtr['kategori_id']] =
+                    ($dtDetails[$dtr['daily_report_id']][$dtr['kategori_id']] ?? 0.0) + (float)$dtr['jam'];
             }
 
             // Ambil rincian log harian per tanggal dari tabel daily_report_log
@@ -121,6 +135,8 @@ class DailyReport extends BaseController
         $rateOps = $odr > 0 ? ($odr / 24.0) : 0;
         $rateSbwc = $odr > 0 ? ($odr / 24.0 * 0.65) : 0;
 
+        $reportMeta = $this->getReportMeta($rigId, $bulan, $tahun);
+
         $data = [
             'title'            => "Rekap Sumur {$rig['kode']} - Bulan {$bulan}/{$tahun}",
             'page_title'       => "Rekap Sumur (Well): {$rig['kode']} ({$rig['nama_rig']})",
@@ -129,6 +145,7 @@ class DailyReport extends BaseController
             'rigId'            => $rigId,
             'bulan'            => $bulan,
             'tahun'            => $tahun,
+            'reportMeta'       => $reportMeta,
             'allRigs'          => $allRigs,
             'reports'          => $reports,
             'kategoriList'     => $kategoriList,
@@ -178,60 +195,42 @@ class DailyReport extends BaseController
         $bulan = (int)$this->request->getPost('bulan');
         $tahun = (int)$this->request->getPost('tahun');
 
-        $miruJam = (float)$this->request->getPost('miru_jam');
-        $opsJam = (float)$this->request->getPost('ops_jam');
-        
-        // Hitung total downtime dari pos kategori
-        $downtimeInputs = $this->request->getPost('dt') ?? []; // [kategori_id] => jam
-        $totalDt = 0;
-        foreach ($downtimeInputs as $kId => $jam) {
-            $totalDt += (float)$jam;
+        $tglMulai   = $this->request->getPost('tanggal_mulai') ?: sprintf('%04d-%02d-01', $tahun, $bulan);
+        $tglSelesai = $this->request->getPost('tanggal_selesai') ?: $tglMulai;
+
+        if ($tglSelesai < $tglMulai) {
+            // Jika terbalik, sesuaikan agar mulai <= selesai
+            $tmp = $tglMulai;
+            $tglMulai = $tglSelesai;
+            $tglSelesai = $tmp;
         }
 
-        $totalJam = $miruJam + $opsJam + $totalDt;
+        $lokasiIdInput   = (int)$this->request->getPost('lokasi_id');
+        $namaLokasiInput = (string)$this->request->getPost('nama_lokasi_input');
+        $finalLokasiId   = $this->lokasiModel->findOrCreate($namaLokasiInput, $lokasiIdInput);
+
+        if ($finalLokasiId <= 0) {
+            return redirect()->back()->withInput()->with('error', 'Silakan ketik atau pilih Nama Sumur / Lokasi.');
+        }
 
         $dailyReportId = $this->dailyReportModel->insert([
             'rig_id'          => $rigId,
-            'lokasi_id'       => (int)$this->request->getPost('lokasi_id'),
+            'lokasi_id'       => $finalLokasiId,
             'no_well'         => (int)$this->request->getPost('no_well'),
-            'tanggal_mulai'   => $this->request->getPost('tanggal_mulai') ?: null,
-            'tanggal_selesai' => $this->request->getPost('tanggal_selesai') ?: null,
-            'jarak'           => (float)$this->request->getPost('jarak'),
-            'miru_jam'        => $miruJam,
-            'ops_jam'         => $opsJam,
-            'total_dt'        => $totalDt,
-            'total_jam'       => $totalJam,
-            'status_job'      => $this->request->getPost('status_job') ?? 'JOB COMPLETED',
-            'remark'          => $this->request->getPost('remark'),
-            'remark_unpaid'   => $this->request->getPost('remark_unpaid'),
+            'tanggal_mulai'   => $tglMulai,
+            'tanggal_selesai' => $tglSelesai,
+            'jarak'           => (float)str_replace(',', '.', (string)$this->request->getPost('jarak')),
+            'miru_jam'        => 0,
+            'ops_jam'         => 0,
+            'total_dt'        => 0,
+            'total_jam'       => 0,
+            'status_job'      => $this->request->getPost('status_job') ?: 'JOB PROGRESS',
+            'remark'          => null,
+            'remark_unpaid'   => null,
             'bulan'           => $bulan,
             'tahun'           => $tahun,
             'created_at'      => date('Y-m-d H:i:s'),
         ]);
-
-        // Simpan rincian pos downtime ke daily_report_dt
-        $tglPakai = $this->request->getPost('tanggal_mulai') ?: sprintf('%04d-%02d-01', $tahun, $bulan);
-        foreach ($downtimeInputs as $kId => $jam) {
-            $jamVal = (float)$jam;
-            if ($jamVal > 0) {
-                $this->dailyReportDtModel->insert([
-                    'daily_report_id' => $dailyReportId,
-                    'tanggal'         => $tglPakai,
-                    'kategori_id'     => (int)$kId,
-                    'jam'             => $jamVal,
-                ]);
-            }
-        }
-
-        // AUTO-SYNC ke NPT Harian
-        $reportData = [
-            'tanggal_mulai' => $tglPakai,
-            'bulan'         => $bulan,
-            'tahun'         => $tahun,
-            'remark'        => $this->request->getPost('remark'),
-            'remark_unpaid' => $this->request->getPost('remark_unpaid'),
-        ];
-        $this->nptModel->syncFromDailyReportSummary($rigId, $reportData, $downtimeInputs);
 
         // Sinkronisasi ke Monthly Summary
         $summaryModel = new MonthlySummaryModel();
@@ -244,15 +243,23 @@ class DailyReport extends BaseController
         ActivityLogModel::record(
             'DAILY_REPORT',
             'TAMBAH_SUMUR',
-            "Menambahkan data pekerjaan sumur No. {$noWell} pada {$rigKode} (Periode " . sprintf('%02d/%04d', $bulan, $tahun) . ", Total Jam: {$totalJam}j).",
+            "Mendaftarkan pekerjaan sumur No. {$noWell} pada {$rigKode} (Jadwal: {$tglMulai} s/d {$tglSelesai}).",
             $rigId
         );
 
-        return redirect()->to(base_url("daily-report/{$rigId}/{$bulan}/{$tahun}"))->with('success', 'Data pekerjaan sumur berhasil ditambahkan dan disinkronkan ke NPT Harian.');
+        $redirectAction = $this->request->getPost('redirect_action') ?? 'log_harian';
+        if ($redirectAction === 'log_harian') {
+            return redirect()->to(base_url("daily-report/log-harian/{$rigId}/{$bulan}/{$tahun}?well_id={$dailyReportId}&tanggal=" . urlencode($tglMulai)))
+                ->with('success', "Sumur #{$noWell} (Jadwal: " . date('d/m/Y', strtotime($tglMulai)) . " s/d " . date('d/m/Y', strtotime($tglSelesai)) . ") berhasil didaftarkan! Silakan isi jam MIRU, OPS, & Downtime sesuai tanggal tersebut.");
+        }
+
+        return redirect()->to(base_url("daily-report/{$rigId}/{$bulan}/{$tahun}"))
+            ->with('success', "Sumur #{$noWell} berhasil didaftarkan (Jadwal: " . date('d/m/Y', strtotime($tglMulai)) . " s/d " . date('d/m/Y', strtotime($tglSelesai)) . ").");
     }
 
     public function detail(int $id)
     {
+        $this->recalcParentWell($id);
         $report = $this->dailyReportModel->find($id);
         if (!$report) {
             return redirect()->to(base_url('daily-report'))->with('error', 'Data pekerjaan sumur tidak ditemukan.');
@@ -327,6 +334,7 @@ class DailyReport extends BaseController
 
     public function edit(int $id)
     {
+        $this->recalcParentWell($id);
         $report = $this->dailyReportModel->find($id);
         if (!$report) {
             return redirect()->to(base_url('daily-report'))->with('error', 'Data tidak ditemukan.');
@@ -347,7 +355,7 @@ class DailyReport extends BaseController
         $data = [
             'title'         => "Edit Sumur #{$report['no_well']} - {$rig['kode']}",
             'page_title'    => "Edit Pekerjaan Sumur #{$report['no_well']}: {$rig['kode']}",
-            'page_subtitle' => "Perbarui waktu operasi, pos downtime, dan status pekerjaan",
+            'page_subtitle' => "Perbarui identitas lokasi, jarak, dan rentang tanggal pengerjaan sumur",
             'rig'           => $rig,
             'report'        => $report,
             'lokasiList'    => $lokasiList,
@@ -365,72 +373,63 @@ class DailyReport extends BaseController
             return redirect()->back()->with('error', 'Data tidak ditemukan.');
         }
 
-        $miruJam = (float)$this->request->getPost('miru_jam');
-        $opsJam = (float)$this->request->getPost('ops_jam');
-
-        $downtimeInputs = $this->request->getPost('dt') ?? [];
-        $totalDt = 0;
-        foreach ($downtimeInputs as $kId => $jam) {
-            $totalDt += (float)$jam;
+        $tglMulai   = $this->request->getPost('tanggal_mulai') ?: $report['tanggal_mulai'];
+        $tglSelesai = $this->request->getPost('tanggal_selesai') ?: $tglMulai;
+        if (!empty($tglMulai) && !empty($tglSelesai) && $tglSelesai < $tglMulai) {
+            $tmp = $tglMulai;
+            $tglMulai = $tglSelesai;
+            $tglSelesai = $tmp;
         }
 
-        $totalJam = $miruJam + $opsJam + $totalDt;
+        $lokasiIdInput   = (int)$this->request->getPost('lokasi_id');
+        $namaLokasiInput = (string)$this->request->getPost('nama_lokasi_input');
+        $finalLokasiId   = $this->lokasiModel->findOrCreate($namaLokasiInput, $lokasiIdInput);
+        if ($finalLokasiId <= 0) {
+            $finalLokasiId = (int)$report['lokasi_id'];
+        }
 
-        $this->dailyReportModel->update($id, [
-            'lokasi_id'       => (int)$this->request->getPost('lokasi_id'),
+        $newJarak = (float)str_replace(',', '.', (string)$this->request->getPost('jarak'));
+        $updateFields = [
+            'lokasi_id'       => $finalLokasiId,
             'no_well'         => (int)$this->request->getPost('no_well'),
-            'tanggal_mulai'   => $this->request->getPost('tanggal_mulai') ?: null,
-            'tanggal_selesai' => $this->request->getPost('tanggal_selesai') ?: null,
-            'jarak'           => (float)$this->request->getPost('jarak'),
-            'miru_jam'        => $miruJam,
-            'ops_jam'         => $opsJam,
-            'total_dt'        => $totalDt,
-            'total_jam'       => $totalJam,
-            'status_job'      => $this->request->getPost('status_job'),
-            'remark'          => $this->request->getPost('remark'),
-            'remark_unpaid'   => $this->request->getPost('remark_unpaid'),
-        ]);
+            'tanggal_mulai'   => $tglMulai ?: null,
+            'tanggal_selesai' => $tglSelesai ?: null,
+            'jarak'           => $newJarak,
+        ];
 
-        // Perbarui rincian daily_report_dt
-        $this->dailyReportDtModel->where('daily_report_id', $id)->delete();
-        $tglPakai = $this->request->getPost('tanggal_mulai') ?: sprintf('%04d-%02d-01', $report['tahun'], $report['bulan']);
-        foreach ($downtimeInputs as $kId => $jam) {
-            $jamVal = (float)$jam;
-            if ($jamVal > 0) {
-                $this->dailyReportDtModel->insert([
-                    'daily_report_id' => $id,
-                    'tanggal'         => $tglPakai,
-                    'kategori_id'     => (int)$kId,
-                    'jam'             => $jamVal,
-                ]);
-            }
+        if ($this->request->getPost('status_job')) {
+            $updateFields['status_job'] = $this->request->getPost('status_job');
         }
 
-        // AUTO-SYNC ke NPT Harian
-        $reportData = [
-            'tanggal_mulai' => $tglPakai,
-            'bulan'         => $report['bulan'],
-            'tahun'         => $report['tahun'],
-            'remark'        => $this->request->getPost('remark'),
-            'remark_unpaid' => $this->request->getPost('remark_unpaid'),
-        ];
-        $this->nptModel->syncFromDailyReportSummary($report['rig_id'], $reportData, $downtimeInputs);
+        $this->dailyReportModel->update($id, $updateFields);
+
+        // Sinkronkan jarak ke log pertama sumur agar recalcParentWell tidak menimpa jarak baru
+        $db = \Config\Database::connect();
+        $firstLog = $db->table('daily_report_log')->where('daily_report_id', $id)->orderBy('tanggal', 'ASC')->get()->getRowArray();
+        if ($firstLog) {
+            $db->table('daily_report_log')->where('id', $firstLog['id'])->update(['jarak' => $newJarak]);
+        }
+
+        // Pastikan total jam & rincian DT tetap dihitung akurat dari daily_report_log
+        $this->recalcParentWell($id);
 
         $summaryModel = new MonthlySummaryModel();
         $summaryModel->hitungDanSimpan($report['rig_id'], $report['bulan'], $report['tahun']);
 
         // Catat jejak audit aktivitas
+        $updatedReport = $this->dailyReportModel->find($id);
+        $totalJam = (float)($updatedReport['total_jam'] ?? 0);
         $rig = $this->rigModel->find($report['rig_id']);
         $rigKode = $rig['kode'] ?? "Rig #{$report['rig_id']}";
         $noWell = (int)$this->request->getPost('no_well');
         ActivityLogModel::record(
             'DAILY_REPORT',
             'UPDATE_SUMUR',
-            "Memperbarui data pekerjaan sumur No. {$noWell} pada {$rigKode} (Periode " . sprintf('%02d/%04d', $report['bulan'], $report['tahun']) . ", Total Jam: {$totalJam}j).",
+            "Memperbarui data pekerjaan sumur No. {$noWell} pada {$rigKode} (Jadwal: {$tglMulai} s/d {$tglSelesai}, Total Jam: {$totalJam}j).",
             $report['rig_id']
         );
 
-        return redirect()->to(base_url("daily-report/{$report['rig_id']}/{$report['bulan']}/{$report['tahun']}"))->with('success', 'Data pekerjaan sumur berhasil diperbarui dan disinkronkan ke NPT Harian.');
+        return redirect()->to(base_url("daily-report/{$report['rig_id']}/{$report['bulan']}/{$report['tahun']}"))->with('success', 'Data pekerjaan sumur berhasil diperbarui.');
     }
 
     public function hapus(int $id)
@@ -518,18 +517,23 @@ class DailyReport extends BaseController
             ->orderBy('drl.tanggal', 'DESC')
             ->get()->getResultArray();
 
-        // Ambil tp_breakdown dari npt_harian
+        // Ambil tp_breakdown dari npt_harian (termasuk Tanpa Perusahaan / third_party_id IS NULL sebagai key 0)
         foreach ($recentLogs as &$rl) {
+            $rl['unpaid_hrs'] = (float)($rl['dt_rig'] ?? 0) + (float)($rl['dt_tool'] ?? 0);
+            $rl['sbwc_hrs']   = max(0.0, (float)($rl['total_dt'] ?? 0) - $rl['unpaid_hrs']);
             $rl['tp_breakdown'] = [];
             if ((float)$rl['dt_3rd_party'] > 0) {
                 $tpData = $db->table('npt_harian')
                     ->where('rig_id', $rigId)
                     ->where('tanggal', $rl['tanggal'])
                     ->where('kategori_id', 10)
-                    ->where('third_party_id IS NOT NULL')
                     ->get()->getResultArray();
                 foreach ($tpData as $t) {
-                    $rl['tp_breakdown'][$t['third_party_id']] = (float)$t['jam'];
+                    $tpKey = $t['third_party_id'] !== null ? (int)$t['third_party_id'] : 0;
+                    $rl['tp_breakdown'][$tpKey] = ($rl['tp_breakdown'][$tpKey] ?? 0.0) + (float)$t['jam'];
+                }
+                if (empty($rl['tp_breakdown'])) {
+                    $rl['tp_breakdown'][0] = (float)$rl['dt_3rd_party'];
                 }
             }
         }
@@ -544,6 +548,7 @@ class DailyReport extends BaseController
             'bulan'         => $bulan,
             'tahun'         => $tahun,
             'allRigs'       => $allRigs,
+            'rigs'          => $allRigs,
             'wells'         => $wells,
             'kategoriList'  => $kategoriList,
             'lokasiList'    => $lokasiList,
@@ -570,35 +575,171 @@ class DailyReport extends BaseController
             return redirect()->back()->with('error', 'Silakan pilih sumur dan tanggal operasi.');
         }
 
-        $jarak      = (float)$this->request->getPost('jarak');
-        $miruJam    = (float)$this->request->getPost('miru_jam');
-        $opsJam     = (float)$this->request->getPost('ops_jam');
+        // Validasi Tanggal Laporan terhadap Rentang Tanggal Sumur (tanggal_mulai s/d tanggal_selesai)
+        $well = $this->dailyReportModel->find($repId);
+        if (!$well) {
+            return redirect()->back()->with('error', 'Sumur tidak ditemukan.');
+        }
+
+        $wellStart = !empty($well['tanggal_mulai']) ? $well['tanggal_mulai'] : null;
+        $wellEnd   = !empty($well['tanggal_selesai']) ? $well['tanggal_selesai'] : null;
+
+        if ($wellStart && $tanggal < $wellStart) {
+            $fmtStart = date('d/m/Y', strtotime($wellStart));
+            $fmtEnd   = $wellEnd ? date('d/m/Y', strtotime($wellEnd)) : 'Selesai';
+            $fmtInput = date('d/m/Y', strtotime($tanggal));
+            return redirect()->back()->withInput()->with('error', "Gagal menyimpan: Tanggal {$fmtInput} berada di luar jadwal Sumur #{$well['no_well']} (Jadwal terdaftar: {$fmtStart} s/d {$fmtEnd}).");
+        }
+
+        if ($wellEnd && $tanggal > $wellEnd) {
+            $fmtStart = $wellStart ? date('d/m/Y', strtotime($wellStart)) : '-';
+            $fmtEnd   = date('d/m/Y', strtotime($wellEnd));
+            $fmtInput = date('d/m/Y', strtotime($tanggal));
+            return redirect()->back()->withInput()->with('error', "Gagal menyimpan: Tanggal {$fmtInput} melewati jadwal selesai Sumur #{$well['no_well']} (Jadwal terdaftar: {$fmtStart} s/d {$fmtEnd}).");
+        }
+
+        $toDec = static fn($v): float => (float)str_replace(',', '.', (string)$v);
+
+        $jarak      = $toDec($this->request->getPost('jarak'));
+        $miruJam    = $toDec($this->request->getPost('miru_jam'));
+        $opsJam     = $toDec($this->request->getPost('ops_jam'));
 
         // Pos SBWC
-        $dtRain     = (float)$this->request->getPost('dt_rain');
-        $dtDryRoad  = (float)$this->request->getPost('dt_dry_road');
-        $dtDryPad   = (float)$this->request->getPost('dt_dry_pad');
-        $dtPhrOp    = (float)$this->request->getPost('dt_phr_op');
-        $dtTrans    = (float)$this->request->getPost('dt_trans');
-        $dtCePe     = (float)$this->request->getPost('dt_ce_pe');
-        $dt3rdParty = (float)$this->request->getPost('dt_3rd_party');
-        $dtDaylight = (float)$this->request->getPost('dt_daylight');
-        $dtPhrWell  = (float)$this->request->getPost('dt_phr_well');
-        $dtFoam     = (float)$this->request->getPost('dt_foam');
+        $dtRain     = $toDec($this->request->getPost('dt_rain'));
+        $dtDryRoad  = $toDec($this->request->getPost('dt_dry_road'));
+        $dtDryPad   = $toDec($this->request->getPost('dt_dry_pad'));
+        $dtPhrOp    = $toDec($this->request->getPost('dt_phr_op'));
+        $dtTrans    = $toDec($this->request->getPost('dt_trans'));
+        $dtCePe     = $toDec($this->request->getPost('dt_ce_pe'));
+        $dt3rdParty = $toDec($this->request->getPost('dt_3rd_party'));
+        $dtDaylight = $toDec($this->request->getPost('dt_daylight'));
+        $dtPhrWell  = $toDec($this->request->getPost('dt_phr_well'));
+        $dtFoam     = $toDec($this->request->getPost('dt_foam'));
 
         // Pos UNPAID
-        $dtRig      = (float)$this->request->getPost('dt_rig');
-        $dtTool     = (float)$this->request->getPost('dt_tool');
+        $dtRig      = $toDec($this->request->getPost('dt_rig'));
+        $dtTool     = $toDec($this->request->getPost('dt_tool'));
 
         // Shutdown
-        $dtShutdown = (float)$this->request->getPost('dt_shutdown');
+        $dtShutdown = $toDec($this->request->getPost('dt_shutdown'));
+
+        // Proses Rincian 3rd Party (Bisa Tanpa Perusahaan [id=0] maupun Pilih Perusahaan [id>0])
+        $tpCompanies = $this->request->getPost('tp_company') ?? [];
+        $tpHours     = $this->request->getPost('tp_hours') ?? [];
+        $tpJam       = [];
+        $sumTpHours  = 0.0;
+
+        if (is_array($tpCompanies) && is_array($tpHours)) {
+            foreach ($tpCompanies as $idx => $compId) {
+                $hrs = $toDec($tpHours[$idx] ?? 0);
+                if ($hrs > 0) {
+                    $cKey = (int)$compId; // 0 = Tanpa Perusahaan (NULL), >0 = ID Perusahaan
+                    $tpJam[$cKey] = ($tpJam[$cKey] ?? 0.0) + $hrs;
+                    $sumTpHours += $hrs;
+                }
+            }
+        }
+
+        // Jika ada rincian baris 3rd party, sinkronkan dt3rdParty dengan total rinciannya
+        if ($sumTpHours > 0) {
+            $dt3rdParty = $sumTpHours;
+        } elseif ($dt3rdParty > 0 && empty($tpJam)) {
+            // Jika diisi langsung angka total tanpa rincian baris, catat sebagai Tanpa Perusahaan (key 0)
+            $tpJam[0] = $dt3rdParty;
+        }
 
         $totalDt  = $dtRain + $dtDryRoad + $dtDryPad + $dtPhrOp + $dtTrans + $dtCePe + $dt3rdParty + $dtDaylight + $dtPhrWell + $dtFoam + $dtRig + $dtTool + $dtShutdown;
         $totalHrs = $miruJam + $opsJam + $totalDt;
 
-        $remarkNpt    = $this->request->getPost('remark_npt');
-        $remarkUnpaid = $this->request->getPost('remark_unpaid');
-        $tpJam        = $this->request->getPost('tp_jam') ?? [];
+        $db = \Config\Database::connect();
+
+        // Cek apakah ada sumur lain (Lokasi A) pada rig & tanggal yang sama (Transisi Pindah Sumur di Hari yang Sama)
+        $otherWellsRow = $db->table('daily_report_log drl')
+            ->select('SUM(drl.total_hrs) as other_hrs, GROUP_CONCAT(CONCAT("Well #", dr.no_well, " (", drl.total_hrs, "j)") SEPARATOR ", ") as info_wells')
+            ->join('daily_report dr', 'dr.id = drl.daily_report_id')
+            ->where('dr.rig_id', $rigId)
+            ->where('drl.tanggal', $tanggal)
+            ->where('drl.daily_report_id !=', $repId)
+            ->get()->getRowArray();
+
+        $otherWellsHrs = (float)($otherWellsRow['other_hrs'] ?? 0.0);
+
+        if ($totalHrs > 24.001) {
+            return redirect()->back()->withInput()->with('error', 'Gagal menyimpan: Total jam harian (' . number_format($totalHrs, 2) . ' Jam) tidak boleh melebihi 24.00 Jam!');
+        }
+
+        if (($otherWellsHrs + $totalHrs) > 24.001) {
+            $sisaMaks = max(0, 24.0 - $otherWellsHrs);
+            $fmtTgl   = date('d/m/Y', strtotime($tanggal));
+            return redirect()->back()->withInput()->with('error', "Gagal menyimpan: Pada tanggal {$fmtTgl} sudah tercatat {$otherWellsRow['info_wells']}. Sisa waktu maksimal untuk Sumur #{$well['no_well']} di tanggal ini adalah " . number_format($sisaMaks, 2) . " Jam (Total gabungan hari ini tidak boleh lewat 24.00 Jam)!");
+        }
+
+        $remarkNpt    = trim((string)$this->request->getPost('remark_npt'));
+        $remarkUnpaid = trim((string)$this->request->getPost('remark_unpaid'));
+
+        // Format otomatis standar Besmindo (Contoh: "0,5 HR SWA Heavy Rain + Thunder. 5,5 HR WO Dry Road.")
+        $fmtHr = static function (float $val): string {
+            $rounded = round($val, 2);
+            return str_replace('.', ',', (string)$rounded);
+        };
+
+        $autoNptParts = [];
+        $autoUnpaidParts = [];
+
+        if ($dtRain > 0)     $autoNptParts[] = $fmtHr($dtRain) . ' HR SWA Heavy Rain + Thunder.';
+        if ($dtDryRoad > 0)  $autoNptParts[] = $fmtHr($dtDryRoad) . ' HR WO Dry Road.';
+        if ($dtDryPad > 0)   $autoNptParts[] = $fmtHr($dtDryPad) . ' HR WO Dry Well Pad.';
+        if ($dtPhrOp > 0)    $autoNptParts[] = $fmtHr($dtPhrOp) . ' HR WO PHR Operator.';
+        if ($dtTrans > 0)    $autoNptParts[] = $fmtHr($dtTrans) . ' HR WO Trans Sharing.';
+        if ($dtCePe > 0)     $autoNptParts[] = $fmtHr($dtCePe) . ' HR WO CE/PE.';
+
+        if ($dt3rdParty > 0) {
+            if (!empty($tpJam)) {
+                $tpRowsDb = $db->table('third_parties')->get()->getResultArray();
+                $tpNameMap = [];
+                foreach ($tpRowsDb as $tr) {
+                    $tpNameMap[(int)$tr['id']] = $tr['nama'];
+                }
+                foreach ($tpJam as $tpIdKey => $hrsVal) {
+                    if ($hrsVal > 0) {
+                        $tpName = $tpNameMap[(int)$tpIdKey] ?? '';
+                        if ($tpName !== '') {
+                            $autoNptParts[] = $fmtHr((float)$hrsVal) . " HR WO 3rd Party ({$tpName}).";
+                        } else {
+                            $autoNptParts[] = $fmtHr((float)$hrsVal) . ' HR WO 3rd Party.';
+                        }
+                    }
+                }
+            } else {
+                $autoNptParts[] = $fmtHr($dt3rdParty) . ' HR WO 3rd Party.';
+            }
+        }
+
+        if ($dtDaylight > 0) $autoNptParts[] = $fmtHr($dtDaylight) . ' HR WO Daylight.';
+        if ($dtPhrWell > 0)  $autoNptParts[] = $fmtHr($dtPhrWell) . ' HR WO PHR Well & Accessories.';
+        if ($dtFoam > 0)     $autoNptParts[] = $fmtHr($dtFoam) . ' HR WO Foam Unit.';
+        if ($dtShutdown > 0) $autoNptParts[] = $fmtHr($dtShutdown) . ' HR SWA Shut Down.';
+
+        if ($dtRig > 0) {
+            $p = $fmtHr($dtRig) . ' HR Repair Rig.';
+            $autoNptParts[] = $p;
+            $autoUnpaidParts[] = $p;
+        }
+        if ($dtTool > 0) {
+            $p = $fmtHr($dtTool) . ' HR WO BMS Tool.';
+            $autoNptParts[] = $p;
+            $autoUnpaidParts[] = $p;
+        }
+
+        if (($remarkNpt === '' || !preg_match('/\bHR\b/i', $remarkNpt)) && !empty($autoNptParts)) {
+            $remarkNpt = implode(' ', $autoNptParts);
+        }
+        if (($remarkUnpaid === '' || !preg_match('/\bHR\b/i', $remarkUnpaid)) && !empty($autoUnpaidParts)) {
+            $remarkUnpaid = implode(' ', $autoUnpaidParts);
+        } elseif ($dtRig <= 0 && $dtTool <= 0 && !preg_match('/\bHR\b/i', $remarkUnpaid)) {
+            // Bersihkan jika sebelumnya terisi "WO Dry Road" di kolom Unpaid padahal bukan Unpaid
+            $remarkUnpaid = '';
+        }
 
         $logData = [
             'daily_report_id' => $repId,
@@ -626,32 +767,32 @@ class DailyReport extends BaseController
             'tp_jam'          => $tpJam, // Untuk rincian 3rd party
         ];
 
-        $db = \Config\Database::connect();
-
         $dbData = $logData;
         unset($dbData['tp_jam']);
 
-        // Cari apakah sudah ada log pada tanggal ini untuk rig ini (lintas sumur jika dipindah)
-        $existing = $db->table('daily_report_log drl')
-            ->select('drl.id, drl.daily_report_id, dr.rig_id')
-            ->join('daily_report dr', 'dr.id = drl.daily_report_id')
-            ->where('dr.rig_id', $rigId)
-            ->where('drl.tanggal', $tanggal)
+        // PENTING: Cari apakah sudah ada log pada tanggal ini KHUSUS UNTUK SUMUR INI ($repId)
+        // Agar jika Lokasi A & Lokasi B dikerjakan di tanggal yang sama (misal tgl 1), Lokasi B TIDAK menimpa Lokasi A!
+        $existing = $db->table('daily_report_log')
+            ->where('daily_report_id', $repId)
+            ->where('tanggal', $tanggal)
             ->get()->getRowArray();
 
-        $oldRepId = null;
         if ($existing) {
-            $oldRepId = (int)$existing['daily_report_id'];
             $db->table('daily_report_log')->where('id', $existing['id'])->update($dbData);
         } else {
             $db->table('daily_report_log')->insert($dbData);
         }
 
         // 1. REKALKULASI TOTAL SUMUR DI daily_report
-        if ($oldRepId && $oldRepId !== $repId) {
-            $this->recalcParentWell($oldRepId);
-        }
         $this->recalcParentWell($repId);
+
+        // Update status_job sumur (mendukung JOB PROGRESS, JOB COMPLETED, dan JOB SUSPEND)
+        $postedStatus = strtoupper(trim((string)$this->request->getPost('status_job')));
+        if (in_array($postedStatus, ['JOB PROGRESS', 'JOB COMPLETED', 'JOB SUSPEND'], true)) {
+            $db->table('daily_report')->where('id', $repId)->update(['status_job' => $postedStatus]);
+        } elseif (!empty($wellEnd) && $tanggal >= $wellEnd && strtoupper((string)($well['status_job'] ?? '')) !== 'JOB SUSPEND') {
+            $db->table('daily_report')->where('id', $repId)->update(['status_job' => 'JOB COMPLETED']);
+        }
 
         // Update remark pada header sumur jika diisi
         if (!empty($remarkUnpaid)) {
@@ -661,8 +802,8 @@ class DailyReport extends BaseController
             $db->table('daily_report')->where('id', $repId)->update(['remark' => $remarkNpt]);
         }
 
-        // 2. AUTO-SYNC KE NPT HARIAN
-        $this->nptModel->syncFromDailyLog($rigId, $logData);
+        // 2. AUTO-SYNC KE NPT HARIAN (Gabungkan semua log sumur pada tanggal & rig yang sama)
+        $this->syncRigDateToNpt($rigId, $tanggal, $tpJam);
 
         // 3. AUTO-SYNC KE MONTHLY SUMMARY
         $summaryModel = new MonthlySummaryModel();
@@ -674,27 +815,139 @@ class DailyReport extends BaseController
         ActivityLogModel::record(
             'DAILY_REPORT',
             'SIMPAN_LOG_HARIAN',
-            "Mencatat log operasi harian tanggal {$tanggal} pada {$rigKode} (MIRU: {$miruJam}j, OPS: {$opsJam}j, Total DT: {$totalDt}j, Total: {$totalHrs}j).",
+            "Mencatat log operasi harian tanggal {$tanggal} pada {$rigKode} Sumur #{$well['no_well']} (MIRU: {$miruJam}j, OPS: {$opsJam}j, Total DT: {$totalDt}j, Total: {$totalHrs}j).",
             $rigId
         );
 
-        return redirect()->to(base_url("daily-report/log-harian/{$rigId}/{$bulan}/{$tahun}"))
-            ->with('success', "Log tanggal {$tanggal} berhasil disimpan, disinkronkan ke sumur dan NPT Harian.");
+        return redirect()->to(base_url("daily-report/log-harian/{$rigId}/{$bulan}/{$tahun}?well_id={$repId}"))
+            ->with('success', "Log tanggal " . date('d/m/Y', strtotime($tanggal)) . " untuk Sumur #{$well['no_well']} ({$totalHrs} Jam) berhasil disimpan!");
     }
 
     /**
-     * Helper: Hitung ulang subtotal jam di tabel parent daily_report berdasarkan semua daily_report_log miliknya
+     * Helper: Gabungkan seluruh daily_report_log pada ($rigId, $tanggal) lintas sumur lalu sinkronkan ke npt_harian
+     */
+    private function syncRigDateToNpt(int $rigId, string $tanggal, array $latestTpJam = []): void
+    {
+        $db = \Config\Database::connect();
+        $rowsOnDate = $db->table('daily_report_log drl')
+            ->select('drl.*')
+            ->join('daily_report dr', 'dr.id = drl.daily_report_id')
+            ->where('dr.rig_id', $rigId)
+            ->where('drl.tanggal', $tanggal)
+            ->get()->getResultArray();
+
+        $aggLog = [
+            'tanggal'       => $tanggal,
+            'dt_rain'       => 0.0,
+            'dt_dry_road'   => 0.0,
+            'dt_dry_pad'    => 0.0,
+            'dt_phr_op'     => 0.0,
+            'dt_trans'      => 0.0,
+            'dt_ce_pe'      => 0.0,
+            'dt_3rd_party'  => 0.0,
+            'dt_daylight'   => 0.0,
+            'dt_phr_well'   => 0.0,
+            'dt_foam'       => 0.0,
+            'dt_rig'        => 0.0,
+            'dt_tool'       => 0.0,
+            'dt_shutdown'   => 0.0,
+            'remark_npt'    => null,
+            'remark_unpaid' => null,
+            'tp_jam'        => $latestTpJam,
+        ];
+
+        $remarksNpt = [];
+        $remarksUnpaid = [];
+        foreach ($rowsOnDate as $r) {
+            $aggLog['dt_rain']      += (float)$r['dt_rain'];
+            $aggLog['dt_dry_road']  += (float)$r['dt_dry_road'];
+            $aggLog['dt_dry_pad']   += (float)$r['dt_dry_pad'];
+            $aggLog['dt_phr_op']    += (float)$r['dt_phr_op'];
+            $aggLog['dt_trans']     += (float)$r['dt_trans'];
+            $aggLog['dt_ce_pe']     += (float)$r['dt_ce_pe'];
+            $aggLog['dt_3rd_party'] += (float)$r['dt_3rd_party'];
+            $aggLog['dt_daylight']  += (float)$r['dt_daylight'];
+            $aggLog['dt_phr_well']  += (float)$r['dt_phr_well'];
+            $aggLog['dt_foam']      += (float)$r['dt_foam'];
+            $aggLog['dt_rig']       += (float)$r['dt_rig'];
+            $aggLog['dt_tool']      += (float)$r['dt_tool'];
+            $aggLog['dt_shutdown']  += (float)$r['dt_shutdown'];
+            if (!empty($r['remark_npt'])) {
+                $remarksNpt[] = $r['remark_npt'];
+            }
+            if (!empty($r['remark_unpaid'])) {
+                $remarksUnpaid[] = $r['remark_unpaid'];
+            }
+        }
+
+        if (!empty($remarksNpt)) {
+            $aggLog['remark_npt'] = implode(' | ', array_unique($remarksNpt));
+        }
+        if (!empty($remarksUnpaid)) {
+            $aggLog['remark_unpaid'] = implode(' | ', array_unique($remarksUnpaid));
+        }
+
+        $this->nptModel->syncFromDailyLog($rigId, $aggLog);
+    }
+
+    /**
+     * Helper: Hitung ulang subtotal jam di tabel parent daily_report & daily_report_dt berdasarkan semua daily_report_log miliknya
      */
     private function recalcParentWell(int $wellId): void
     {
         $db = \Config\Database::connect();
-        $allLogs = $db->table('daily_report_log')->where('daily_report_id', $wellId)->get()->getResultArray();
-        $sumMiru = 0; $sumOps = 0; $sumDt = 0; $maxJarak = 0;
+        $allLogs = $db->table('daily_report_log')
+            ->where('daily_report_id', $wellId)
+            ->orderBy('tanggal', 'ASC')
+            ->get()->getResultArray();
+
+        $sumMiru = 0.0;
+        $sumOps  = 0.0;
+        $sumDt   = 0.0;
+        $maxJarak = 0.0;
+
+        // Akumulasi per kategori_id untuk daily_report_dt
+        $katSums = [
+            1  => 0.0, // Repair Rig (UNPAID)
+            2  => 0.0, // Tool / Personnel (UNPAID)
+            3  => 0.0, // Rain
+            4  => 0.0, // Dry Road
+            5  => 0.0, // Dry Pad
+            6  => 0.0, // Daylight
+            8  => 0.0, // PHR Well
+            10 => 0.0, // 3rd Party
+            11 => 0.0, // Trans Sharing
+            12 => 0.0, // Foam
+            13 => 0.0, // PHR Operator
+            14 => 0.0, // CE/PE
+            15 => 0.0, // Shutdown
+        ];
+
+        $firstDate = null;
         foreach ($allLogs as $al) {
+            if ($firstDate === null && !empty($al['tanggal'])) {
+                $firstDate = $al['tanggal'];
+            }
             $sumMiru  += (float)$al['miru_jam'];
             $sumOps   += (float)$al['ops_jam'];
             $sumDt    += (float)$al['total_dt'];
-            if ((float)$al['jarak'] > $maxJarak) $maxJarak = (float)$al['jarak'];
+            if ((float)$al['jarak'] > $maxJarak) {
+                $maxJarak = (float)$al['jarak'];
+            }
+
+            $katSums[1]  += (float)($al['dt_rig'] ?? 0);
+            $katSums[2]  += (float)($al['dt_tool'] ?? 0);
+            $katSums[3]  += (float)($al['dt_rain'] ?? 0);
+            $katSums[4]  += (float)($al['dt_dry_road'] ?? 0);
+            $katSums[5]  += (float)($al['dt_dry_pad'] ?? 0);
+            $katSums[6]  += (float)($al['dt_daylight'] ?? 0);
+            $katSums[8]  += (float)($al['dt_phr_well'] ?? 0);
+            $katSums[10] += (float)($al['dt_3rd_party'] ?? 0);
+            $katSums[11] += (float)($al['dt_trans'] ?? 0);
+            $katSums[12] += (float)($al['dt_foam'] ?? 0);
+            $katSums[13] += (float)($al['dt_phr_op'] ?? 0);
+            $katSums[14] += (float)($al['dt_ce_pe'] ?? 0);
+            $katSums[15] += (float)($al['dt_shutdown'] ?? 0);
         }
 
         $updateParent = [
@@ -708,6 +961,20 @@ class DailyReport extends BaseController
         }
 
         $db->table('daily_report')->where('id', $wellId)->update($updateParent);
+
+        // Sinkronkan rincian daily_report_dt agar SBWC & UNPAID muncul akurat di tabel /daily-report
+        $db->table('daily_report_dt')->where('daily_report_id', $wellId)->delete();
+        $tglRef = $firstDate ?: date('Y-m-d');
+        foreach ($katSums as $kId => $jamTotal) {
+            if ($jamTotal > 0) {
+                $db->table('daily_report_dt')->insert([
+                    'daily_report_id' => $wellId,
+                    'tanggal'         => $tglRef,
+                    'kategori_id'     => (int)$kId,
+                    'jam'             => $jamTotal,
+                ]);
+            }
+        }
     }
 
     /**
@@ -739,15 +1006,8 @@ class DailyReport extends BaseController
         // 2. Rekalkulasi subtotal jam di sumur parent
         $this->recalcParentWell($wellId);
 
-        // 3. Reset sync NPT Harian untuk tanggal ini menjadi 0
-        $zeroLog = [
-            'tanggal'      => $tanggal,
-            'dt_rain'      => 0, 'dt_dry_road' => 0, 'dt_dry_pad' => 0, 'dt_phr_op' => 0,
-            'dt_trans'     => 0, 'dt_ce_pe' => 0, 'dt_3rd_party' => 0, 'dt_daylight' => 0,
-            'dt_phr_well'  => 0, 'dt_foam' => 0, 'dt_rig' => 0, 'dt_tool' => 0, 'dt_shutdown' => 0,
-            'remark_npt'   => null, 'remark_unpaid' => null,
-        ];
-        $this->nptModel->syncFromDailyLog($rigId, $zeroLog);
+        // 3. Sinkronkan ulang NPT Harian untuk tanggal ini dari sisa sumur lain (jika ada) atau reset ke 0
+        $this->syncRigDateToNpt($rigId, $tanggal);
 
         // 4. Rekalkulasi Monthly Summary
         $summaryModel = new MonthlySummaryModel();
@@ -763,34 +1023,50 @@ class DailyReport extends BaseController
             $rigId
         );
 
-        return redirect()->to(base_url("daily-report/log-harian/{$rigId}/{$bulan}/{$tahun}"))
+        return redirect()->to(base_url("daily-report/log-harian/{$rigId}/{$bulan}/{$tahun}?well_id={$wellId}"))
             ->with('success', "Log tanggal {$tanggal} berhasil dihapus. Subtotal sumur & NPT telah disinkronkan kembali.");
     }
+
     public function simpanSumurCepat()
     {
-        $rigId = (int)$this->request->getPost('rig_id');
-        $bulan = (int)$this->request->getPost('bulan');
-        $tahun = (int)$this->request->getPost('tahun');
-        $noWell = (int)$this->request->getPost('no_well');
-        $lokasiId = (int)$this->request->getPost('lokasi_id');
+        $rigId           = (int)$this->request->getPost('rig_id');
+        $bulan           = (int)$this->request->getPost('bulan');
+        $tahun           = (int)$this->request->getPost('tahun');
+        $noWell          = (int)$this->request->getPost('no_well');
+        $lokasiIdInput   = (int)$this->request->getPost('lokasi_id');
+        $namaLokasiInput = (string)$this->request->getPost('nama_lokasi_input');
+        $jarak           = (float)str_replace(',', '.', (string)$this->request->getPost('jarak'));
+        $tglMulai        = $this->request->getPost('tanggal_mulai') ?: sprintf('%04d-%02d-01', $tahun, $bulan);
+        $tglSelesai      = $this->request->getPost('tanggal_selesai') ?: $tglMulai;
 
-        if (!$rigId || !$bulan || !$tahun || !$noWell || !$lokasiId) {
-            return $this->response->setJSON(['status' => 'error', 'message' => 'Data tidak lengkap']);
+        if ($tglSelesai < $tglMulai) {
+            $tmp = $tglMulai;
+            $tglMulai = $tglSelesai;
+            $tglSelesai = $tmp;
         }
 
-        $lokasiModel = new \App\Models\LokasiModel();
-        $lokasi = $lokasiModel->find($lokasiId);
+        $lokasiModel   = new \App\Models\LokasiModel();
+        $finalLokasiId = $lokasiModel->findOrCreate($namaLokasiInput, $lokasiIdInput);
+
+        if (!$rigId || !$bulan || !$tahun || !$noWell || $finalLokasiId <= 0) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'Silakan isi No. Well dan ketik/pilih Nama Lokasi Sumur!']);
+        }
+
+        $lokasi = $lokasiModel->find($finalLokasiId);
 
         $db = \Config\Database::connect();
         
         $data = [
-            'rig_id' => $rigId,
-            'lokasi_id' => $lokasiId,
-            'no_well' => $noWell,
-            'bulan' => $bulan,
-            'tahun' => $tahun,
-            'status_job' => 'Moving',
-            'created_at' => date('Y-m-d H:i:s')
+            'rig_id'          => $rigId,
+            'lokasi_id'       => $finalLokasiId,
+            'no_well'         => $noWell,
+            'jarak'           => $jarak,
+            'tanggal_mulai'   => $tglMulai,
+            'tanggal_selesai' => $tglSelesai,
+            'bulan'           => $bulan,
+            'tahun'           => $tahun,
+            'status_job'      => 'JOB PROGRESS',
+            'created_at'      => date('Y-m-d H:i:s')
         ];
         
         try {
@@ -798,13 +1074,150 @@ class DailyReport extends BaseController
             $newId = $db->insertID();
             
             return $this->response->setJSON([
-                'status' => 'success',
-                'id' => $newId,
-                'no_well' => $noWell,
-                'nama_lokasi' => $lokasi['nama_lokasi'] ?? 'N/A'
+                'status'          => 'success',
+                'id'              => $newId,
+                'lokasi_id'       => $finalLokasiId,
+                'no_well'         => $noWell,
+                'nama_lokasi'     => $lokasi['nama_lokasi'] ?? strtoupper(trim($namaLokasiInput)),
+                'jarak'           => $jarak,
+                'tanggal_mulai'   => $tglMulai,
+                'tanggal_selesai' => $tglSelesai,
             ]);
         } catch (\Exception $e) {
             return $this->response->setJSON(['status' => 'error', 'message' => $e->getMessage()]);
         }
+    }
+
+    private function getReportMeta(int $rigId, int $bulan, int $tahun): array
+    {
+        $db = \Config\Database::connect();
+        $row = $db->table('monthly_summary')
+            ->where('rig_id', $rigId)
+            ->where('bulan', $bulan)
+            ->where('tahun', $tahun)
+            ->get()->getRowArray();
+
+        $default = [
+            'schedule_mtc' => 0.0,
+            'notes'        => [],
+        ];
+
+        if (!$row || empty($row['remark'])) {
+            return $default;
+        }
+
+        $decoded = json_decode((string)$row['remark'], true);
+        if (is_array($decoded) && (isset($decoded['notes']) || isset($decoded['schedule_mtc']))) {
+            return [
+                'schedule_mtc' => (float)($decoded['schedule_mtc'] ?? 0.0),
+                'notes'        => is_array($decoded['notes'] ?? null) ? array_values($decoded['notes']) : [],
+            ];
+        }
+
+        $plain = trim((string)$row['remark']);
+        if ($plain !== '') {
+            $default['notes'][] = [
+                'id'      => 'note_legacy_1',
+                'lokasi'  => 'CATATAN LAPORAN',
+                'tanggal' => sprintf('%02d/%04d', $bulan, $tahun),
+                'isi'     => $plain,
+                'waktu'   => '',
+            ];
+        }
+
+        return $default;
+    }
+
+    private function saveReportMeta(int $rigId, int $bulan, int $tahun, array $meta): void
+    {
+        $summaryModel = new MonthlySummaryModel();
+        $existing = $summaryModel->where('rig_id', $rigId)
+            ->where('bulan', $bulan)
+            ->where('tahun', $tahun)
+            ->first();
+
+        if (!$existing) {
+            $summaryModel->hitungDanSimpan($rigId, $bulan, $tahun);
+            $existing = $summaryModel->where('rig_id', $rigId)
+                ->where('bulan', $bulan)
+                ->where('tahun', $tahun)
+                ->first();
+        }
+
+        $jsonStr = json_encode([
+            'schedule_mtc' => (float)($meta['schedule_mtc'] ?? 0.0),
+            'notes'        => array_values($meta['notes'] ?? []),
+        ], JSON_UNESCAPED_UNICODE);
+
+        if ($existing) {
+            $summaryModel->update($existing['id'], ['remark' => $jsonStr]);
+        }
+    }
+
+    public function simpanCatatan()
+    {
+        $rigId   = (int)$this->request->getPost('rig_id');
+        $bulan   = (int)$this->request->getPost('bulan');
+        $tahun   = (int)$this->request->getPost('tahun');
+
+        if (!$rigId || !$bulan || !$tahun) {
+            return redirect()->back()->with('error', 'Parameter periode laporan tidak valid.');
+        }
+
+        $meta = $this->getReportMeta($rigId, $bulan, $tahun);
+
+        if ($this->request->getPost('schedule_mtc') !== null && $this->request->getPost('schedule_mtc') !== '') {
+            $meta['schedule_mtc'] = max(0.0, (float)str_replace(',', '.', (string)$this->request->getPost('schedule_mtc')));
+        }
+
+        $lokasi  = trim((string)$this->request->getPost('note_lokasi'));
+        $tanggal = trim((string)$this->request->getPost('note_tanggal'));
+        $isi     = trim((string)$this->request->getPost('note_isi'));
+        $waktu   = trim((string)$this->request->getPost('note_waktu'));
+        $noteId  = trim((string)$this->request->getPost('note_id'));
+
+        if ($isi !== '' || $lokasi !== '') {
+            $newNote = [
+                'id'      => $noteId !== '' ? $noteId : ('note_' . uniqid()),
+                'lokasi'  => $lokasi !== '' ? $lokasi : 'CATATAN RIG',
+                'tanggal' => $tanggal !== '' ? $tanggal : date('d-M'),
+                'isi'     => $isi,
+                'waktu'   => $waktu,
+            ];
+
+            $found = false;
+            foreach ($meta['notes'] as $idx => $n) {
+                if (($n['id'] ?? '') === $newNote['id']) {
+                    $meta['notes'][$idx] = $newNote;
+                    $found = true;
+                    break;
+                }
+            }
+            if (!$found) {
+                $meta['notes'][] = $newNote;
+            }
+        }
+
+        $this->saveReportMeta($rigId, $bulan, $tahun, $meta);
+
+        return redirect()->to(base_url("daily-report/{$rigId}/{$bulan}/{$tahun}"))
+            ->with('success', 'Catatan / Note Laporan & Schedule MTC berhasil disimpan.');
+    }
+
+    public function hapusCatatan()
+    {
+        $rigId  = (int)$this->request->getPost('rig_id');
+        $bulan  = (int)$this->request->getPost('bulan');
+        $tahun  = (int)$this->request->getPost('tahun');
+        $noteId = trim((string)$this->request->getPost('note_id'));
+
+        if ($rigId && $bulan && $tahun && $noteId !== '') {
+            $meta = $this->getReportMeta($rigId, $bulan, $tahun);
+            $meta['notes'] = array_values(array_filter($meta['notes'], static fn($n) => ($n['id'] ?? '') !== $noteId));
+            $this->saveReportMeta($rigId, $bulan, $tahun, $meta);
+        }
+
+        return redirect()->to(base_url("daily-report/{$rigId}/{$bulan}/{$tahun}"))
+            ->with('success', 'Catatan laporan berhasil dihapus.');
     }
 }

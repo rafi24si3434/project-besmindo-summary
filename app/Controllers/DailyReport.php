@@ -501,13 +501,50 @@ class DailyReport extends BaseController
     {
         $report = $this->dailyReportModel->find($id);
         if ($report) {
-            $rigId = $report['rig_id'];
-            $bulan = $report['bulan'];
-            $tahun = $report['tahun'];
+            $rigId = (int)$report['rig_id'];
+            $bulan = (int)$report['bulan'];
+            $tahun = (int)$report['tahun'];
+            $db = \Config\Database::connect();
 
+            // 1. Ambil seluruh tanggal log yang tercatat pada sumur ini
+            $logs = $db->table('daily_report_log')
+                ->select('tanggal')
+                ->where('daily_report_id', $id)
+                ->get()->getResultArray();
+            $logDates = array_unique(array_filter(array_column($logs, 'tanggal')));
+
+            // 2. Hapus seluruh baris log harian milik sumur ini
+            $db->table('daily_report_log')->where('daily_report_id', $id)->delete();
+
+            // 3. Hapus rincian daily_report_dt & header sumur
             $this->dailyReportDtModel->where('daily_report_id', $id)->delete();
             $this->dailyReportModel->delete($id);
 
+            // 4. Sinkronkan ulang NPT Harian untuk setiap tanggal terkait (hapus NPT jika tidak ada sumur lain)
+            foreach ($logDates as $tgl) {
+                $this->syncRigDateToNpt($rigId, $tgl);
+                // Pastikan jika tidak ada lagi log harian di tanggal tersebut, npt_harian bersih total
+                $remainingLogs = $db->table('daily_report_log drl')
+                    ->join('daily_report dr', 'dr.id = drl.daily_report_id')
+                    ->where('dr.rig_id', $rigId)
+                    ->where('drl.tanggal', $tgl)
+                    ->countAllResults();
+                if ($remainingLogs === 0) {
+                    $db->table('npt_harian')->where('rig_id', $rigId)->where('tanggal', $tgl)->delete();
+                }
+            }
+
+            // Jika sumur di bulan ini sudah kosong, pastikan npt_harian bulan ini juga bersih
+            $remainingWells = $this->dailyReportModel->where('rig_id', $rigId)->where('bulan', $bulan)->where('tahun', $tahun)->countAllResults();
+            if ($remainingWells === 0) {
+                $db->table('npt_harian')
+                    ->where('rig_id', $rigId)
+                    ->where('MONTH(tanggal)', $bulan)
+                    ->where('YEAR(tanggal)', $tahun)
+                    ->delete();
+            }
+
+            // 5. Rekalkulasi Monthly Summary
             $summaryModel = new MonthlySummaryModel();
             $summaryModel->hitungDanSimpan($rigId, $bulan, $tahun);
 
@@ -517,15 +554,16 @@ class DailyReport extends BaseController
             ActivityLogModel::record(
                 'DAILY_REPORT',
                 'HAPUS_SUMUR',
-                "Menghapus data pekerjaan sumur No. {$report['no_well']} pada {$rigKode} (Periode " . sprintf('%02d/%04d', $bulan, $tahun) . ").",
+                "Menghapus data pekerjaan sumur No. {$report['no_well']} pada {$rigKode} (Periode " . sprintf('%02d/%04d', $bulan, $tahun) . ") dan menyinkronkan NPT.",
                 $rigId
             );
 
-            return redirect()->to(base_url("daily-report/{$rigId}/{$bulan}/{$tahun}"))->with('success', 'Pekerjaan sumur berhasil dihapus.');
+            return redirect()->to(base_url("daily-report/{$rigId}/{$bulan}/{$tahun}"))->with('success', 'Pekerjaan sumur dan seluruh log/NPT terkait berhasil dihapus & disinkronkan.');
         }
 
         return redirect()->back()->with('error', 'Data gagal dihapus.');
     }
+
 
     public function logHarianDefault()
     {
@@ -874,10 +912,24 @@ class DailyReport extends BaseController
         // 1. REKALKULASI TOTAL SUMUR DI daily_report
         $this->recalcParentWell($repId);
 
-        // Update status_job sumur (mendukung JOB PROGRESS, JOB COMPLETED, dan JOB SUSPEND)
-        // Pengguna menentukan sendiri status pekerjaan selesai; sistem tidak memaksakan status completed sebelum waktunya
-        $postedStatus = strtoupper(trim((string)$this->request->getPost('status_job')));
-        if (in_array($postedStatus, ['JOB PROGRESS', 'JOB COMPLETED', 'JOB SUSPEND'], true)) {
+        // Update status_job dan tanggal_selesai sumur
+        $postedStatus     = strtoupper(trim((string)$this->request->getPost('status_job')));
+        $selesaikanSumur  = (string)$this->request->getPost('selesaikan_sumur');
+        $afterSaveAction  = (string)$this->request->getPost('after_save_action');
+        $isCompletingWell = ($selesaikanSumur === '1' || $afterSaveAction === 'goto_tambah_sumur');
+
+        if ($isCompletingWell) {
+            $statusToSet = (!empty($postedStatus) && in_array($postedStatus, ['JOB COMPLETED', 'JOB SUSPEND'], true)) ? $postedStatus : 'JOB COMPLETED';
+            $updateWell = [
+                'status_job' => $statusToSet,
+            ];
+            // Tetapkan tanggal selesai ke tanggal log ini jika belum ada atau log lebih baru
+            $wStart = $well['tanggal_mulai'] ?? $tanggal;
+            $updateWell['tanggal_selesai'] = ($tanggal >= $wStart) ? $tanggal : ($well['tanggal_selesai'] ?? $tanggal);
+
+            $this->dailyReportModel->update($repId, $updateWell);
+            $this->recalcParentWell($repId);
+        } elseif (in_array($postedStatus, ['JOB PROGRESS', 'JOB COMPLETED', 'JOB SUSPEND'], true)) {
             $this->dailyReportModel->update($repId, ['status_job' => $postedStatus]);
         }
 
@@ -899,17 +951,22 @@ class DailyReport extends BaseController
         // Catat jejak audit aktivitas
         $rig = $this->rigModel->find($rigId);
         $rigKode = $rig['kode'] ?? "Rig #{$rigId}";
+        $activityText = $isCompletingWell
+            ? "Mencatat log harian tanggal {$tanggal} dan MENYELESAIKAN pekerjaan sumur No. {$well['no_well']} pada {$rigKode} (" . ($statusToSet ?? 'JOB COMPLETED') . ", MIRU: {$miruJam}j, OPS: {$opsJam}j, Total DT: {$totalDt}j, Total: {$totalHrs}j)."
+            : "Mencatat log operasi harian tanggal {$tanggal} pada {$rigKode} Sumur #{$well['no_well']} (MIRU: {$miruJam}j, OPS: {$opsJam}j, Total DT: {$totalDt}j, Total: {$totalHrs}j).";
         ActivityLogModel::record(
             'DAILY_REPORT',
-            'SIMPAN_LOG_HARIAN',
-            "Mencatat log operasi harian tanggal {$tanggal} pada {$rigKode} Sumur #{$well['no_well']} (MIRU: {$miruJam}j, OPS: {$opsJam}j, Total DT: {$totalDt}j, Total: {$totalHrs}j).",
+            $isCompletingWell ? 'SELESAIKAN_SUMUR' : 'SIMPAN_LOG_HARIAN',
+            $activityText,
             $rigId
         );
 
-        $afterSaveAction = (string)$this->request->getPost('after_save_action');
-        if ($afterSaveAction === 'goto_tambah_sumur' || $afterSaveAction === 'open_new_well') {
+        if ($isCompletingWell || $afterSaveAction === 'open_new_well') {
+            $lokasi = $this->lokasiModel->find($well['lokasi_id'] ?? 0);
+            $namaLokasi = $lokasi['nama_lokasi'] ?? ('Sumur #' . $well['no_well']);
+            $finalStatus = $statusToSet ?? 'JOB COMPLETED';
             return redirect()->to(base_url("daily-report/tambah/{$rigId}/{$bulan}/{$tahun}"))
-                ->with('success', "Log tanggal " . date('d/m/Y', strtotime($tanggal)) . " untuk Sumur #{$well['no_well']} ({$totalHrs} Jam) berhasil disimpan! Silakan daftarkan Sumur Baru (Well berikutnya) di bawah ini.");
+                ->with('success', "Log tanggal " . date('d/m/Y', strtotime($tanggal)) . " ({$totalHrs} Jam) berhasil disimpan dan Sumur #{$well['no_well']} ({$namaLokasi}) resmi diselesaikan ({$finalStatus})! Silakan daftarkan Sumur Baru (Well berikutnya) di bawah ini.");
         }
 
         $queryExtra = '';
@@ -1107,9 +1164,19 @@ class DailyReport extends BaseController
         // 3. Sinkronkan ulang NPT Harian untuk tanggal ini dari sisa sumur lain (jika ada) atau reset ke 0
         $this->syncRigDateToNpt($rigId, $tanggal);
 
+        $remainingLogs = $db->table('daily_report_log drl')
+            ->join('daily_report dr', 'dr.id = drl.daily_report_id')
+            ->where('dr.rig_id', $rigId)
+            ->where('drl.tanggal', $tanggal)
+            ->countAllResults();
+        if ($remainingLogs === 0) {
+            $db->table('npt_harian')->where('rig_id', $rigId)->where('tanggal', $tanggal)->delete();
+        }
+
         // 4. Rekalkulasi Monthly Summary
         $summaryModel = new MonthlySummaryModel();
         $summaryModel->hitungDanSimpan($rigId, $bulan, $tahun);
+
 
         // 5. Catat jejak audit aktivitas
         $rig = $this->rigModel->find($rigId);
@@ -1237,7 +1304,10 @@ class DailyReport extends BaseController
             (int)$well['rig_id']
         );
 
-        return redirect()->back()->with('success', "Pekerjaan Sumur #{$well['no_well']} berhasil diselesaikan pada tanggal " . date('d/m/Y', strtotime($tglSelesai)) . ".");
+        $lokasi = $this->lokasiModel->find($well['lokasi_id'] ?? 0);
+        $namaLokasi = $lokasi['nama_lokasi'] ?? ('Sumur #' . $well['no_well']);
+        return redirect()->to(base_url("daily-report/tambah/{$well['rig_id']}/{$well['bulan']}/{$well['tahun']}"))
+            ->with('success', "Pekerjaan Sumur #{$well['no_well']} ({$namaLokasi}) berhasil diselesaikan ({$statusJob}) pada tanggal " . date('d/m/Y', strtotime($tglSelesai)) . "! Silakan daftarkan Sumur Baru (Well berikutnya) di bawah ini.");
     }
 
     private function getReportMeta(int $rigId, int $bulan, int $tahun): array

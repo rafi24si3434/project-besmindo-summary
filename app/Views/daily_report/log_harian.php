@@ -653,6 +653,8 @@ $nextNoWellAuto = $maxWellNo + 1;
         <input type="hidden" name="bulan" value="<?= $bulan ?>">
         <input type="hidden" name="tahun" value="<?= $tahun ?>">
         <input type="hidden" name="after_save_action" id="inputAfterSaveAction" value="">
+        <input type="hidden" name="selesaikan_sumur" id="inputSelesaikanSumur" value="0">
+        <input type="hidden" name="status_job" id="inputStatusJob" value="JOB PROGRESS">
 
         <div class="grid grid-cols-1 xl:grid-cols-12 gap-4 items-start" id="formSection">
 
@@ -1140,9 +1142,10 @@ $nextNoWellAuto = $maxWellNo + 1;
                         <!-- Action Buttons di Akhir Input -->
                         <div class="flex flex-wrap items-center gap-2 shrink-0">
                             <button type="button" onclick="submitLogAndOpenNewWell()"
-                                class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black shadow-md shadow-emerald-600/25 transition-all flex items-center gap-2 cursor-pointer active:scale-95">
-                                <i class="fa-solid fa-floppy-disk text-xs"></i>
-                                <span>Simpan &amp; Lanjut Buat Well #<span class="js-next-well-num"><?= $nextNoWellAuto ?></span> →</span>
+                                class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black shadow-md shadow-emerald-600/25 transition-all flex items-center gap-2 cursor-pointer active:scale-95"
+                                title="Simpan catatan hari ini, selesaikan status sumur (JOB COMPLETED), lalu buka form pendaftaran sumur berikutnya">
+                                <i class="fa-solid fa-flag-checkered text-xs"></i>
+                                <span>Simpan &amp; Selesaikan Sumur (Lanjut Buat Well #<span class="js-next-well-num"><?= $nextNoWellAuto ?></span>) →</span>
                             </button>
                             <a href="<?= $tambahSumurUrl ?>"
                                 class="lh-preset-btn !py-2.5 !px-3.5 !text-xs !border-emerald-500/40 hover:!border-emerald-500"
@@ -1216,21 +1219,21 @@ $nextNoWellAuto = $maxWellNo + 1;
                         </div>
                     </div>
 
-                    <!-- Tombol Simpan, Simpan & Lanjut Sumur Baru, serta Reset -->
+                    <!-- Tombol Simpan, Simpan & Selesaikan Sumur, serta Reset -->
                     <div class="space-y-2 pt-1">
                         <!-- Contextual Completion Banner for Sticky Sidebar -->
                         <div id="sidebarWellCompleteNotice" class="hidden lh-sidebar-notice space-y-1 transition-all">
-                            <div class="flex items-center gap-2 text-xs font-black tracking-tight">
+                            <div class="flex items-center gap-2 text-xs font-black tracking-tight text-emerald-400">
                                 <i class="fa-solid fa-flag-checkered"></i>
-                                <span id="sidebarNoticeTitle">Jadwal Sumur Telah Selesai</span>
+                                <span id="sidebarNoticeTitle">Hari Terakhir Well #1</span>
                             </div>
                             <p class="text-[11px] leading-snug" id="sidebarNoticeDesc">
-                                Siap lanjut? Gunakan tombol hijau di bawah untuk simpan &amp; lanjut ke Well berikutnya.
+                                Selesai input hari ini? Klik tombol hijau di bawah untuk simpan log, selesaikan status sumur (JOB COMPLETED), dan lanjut buat Well berikutnya.
                             </p>
                         </div>
 
                         <button type="submit" id="btnSubmitDaily" <?= empty($wells) ? 'disabled' : '' ?>
-                            onclick="document.getElementById('inputAfterSaveAction').value = ''"
+                            onclick="document.getElementById('inputAfterSaveAction').value = ''; document.getElementById('inputSelesaikanSumur').value = '0';"
                             class="lh-btn-submit-main">
                             <i class="fa-solid fa-floppy-disk text-xs"></i>
                             <span>SIMPAN DAILY REPORT</span>
@@ -1239,9 +1242,9 @@ $nextNoWellAuto = $maxWellNo + 1;
                         <button type="button" id="btnSaveAndNewWell" <?= empty($wells) ? 'disabled' : '' ?>
                             onclick="submitLogAndOpenNewWell()"
                             class="lh-btn-save-next"
-                            title="Simpan catatan hari ini, lalu otomatis buka formulir pembuatan Sumur Baru (Well berikutnya)">
-                            <i class="fa-solid fa-plus-circle text-xs"></i>
-                            <span>Simpan &amp; Lanjut Buat Well #<span class="js-next-well-num"><?= $nextNoWellAuto ?></span></span>
+                            title="Simpan catatan hari ini, selesaikan status sumur (JOB COMPLETED), lalu otomatis buka formulir pembuatan Sumur Baru (Well berikutnya)">
+                            <i class="fa-solid fa-flag-checkered text-xs"></i>
+                            <span id="labelBtnSaveNext">Simpan &amp; Lanjut Buat Well #<span class="js-next-well-num"><?= $nextNoWellAuto ?></span></span>
                         </button>
 
                         <button type="button" onclick="resetFormToDefault()"
@@ -1453,8 +1456,12 @@ $nextNoWellAuto = $maxWellNo + 1;
         <form id="formSelesaikanSumur" method="POST" action="">
             <?= csrf_field() ?>
             <div class="space-y-3.5">
-                <div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-300">
+                <div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-300 space-y-1">
                     <p id="selesaikanWellSummaryText">Pekerjaan sumur ini akan ditandai <strong>JOB COMPLETED</strong> dengan tanggal akhir yang Anda tentukan di bawah.</p>
+                    <p class="text-[11px] text-emerald-400/90 flex items-center gap-1.5 pt-0.5">
+                        <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                        <span>Setelah diselesaikan, sistem otomatis membuka form pendaftaran Sumur Baru (Well berikutnya).</span>
+                    </p>
                 </div>
 
                 <div>
@@ -1471,7 +1478,7 @@ $nextNoWellAuto = $maxWellNo + 1;
                 <div>
                     <label class="block text-xs font-bold lh-text-sec mb-1">Status Akhir Pekerjaan</label>
                     <select name="status_job" id="selesaikanStatusInput" class="lh-control-box w-full px-3 py-2 text-xs font-bold rounded-lg cursor-pointer">
-                        <option value="JOB COMPLETED" selected>JOB COMPLETED (Pekerjaan Selesai)</option>
+                        <option value="JOB COMPLETED" selected>JOB COMPLETED (Pekerjaan Selesai &amp; Rig Siap Pindah)</option>
                         <option value="JOB SUSPEND">JOB SUSPEND (Ditangguhkan)</option>
                     </select>
                 </div>
@@ -1483,10 +1490,97 @@ $nextNoWellAuto = $maxWellNo + 1;
                 </button>
                 <button type="submit" class="lh-submit-btn !py-2 !px-4 text-xs font-bold flex items-center gap-1.5 !bg-emerald-600 hover:!bg-emerald-500 !text-white">
                     <i class="fa-solid fa-check"></i>
-                    <span>Simpan &amp; Selesaikan Sumur</span>
+                    <span>Simpan &amp; Selesaikan Sumur →</span>
                 </button>
             </div>
         </form>
+    </div>
+</div>
+
+<!-- Modal Konfirmasi Selesaikan Sumur & Pindah ke Sumur Baru (Simpan & Lanjut) -->
+<div id="modalConfirmCompleteAndNext" class="lh-modal-backdrop" onclick="if(event.target===this) closeConfirmCompleteModal()">
+    <div class="lh-modal-dialog max-w-lg w-full p-5 sm:p-6" onclick="event.stopPropagation()">
+        <!-- Header -->
+        <div class="flex items-center justify-between pb-3.5 border-b lh-divider-b mb-4">
+            <div class="flex items-center gap-3">
+                <span class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 font-black flex items-center justify-center text-base shrink-0 shadow-inner">
+                    <i class="fa-solid fa-flag-checkered"></i>
+                </span>
+                <div>
+                    <h3 class="text-sm sm:text-base font-black lh-text-title tracking-tight" id="modalCompleteNextTitle">
+                        Selesaikan Sumur &amp; Lanjut Buat Well Baru
+                    </h3>
+                    <p class="text-[11px] lh-text-muted mt-0.5">
+                        Simpan catatan hari ini, tandai pekerjaan sumur selesai, lalu buka form pendaftaran sumur baru.
+                    </p>
+                </div>
+            </div>
+            <button type="button" onclick="closeConfirmCompleteModal()" class="lh-badge-slate w-7 h-7 rounded-lg flex items-center justify-center text-xs cursor-pointer hover:bg-slate-700/50 transition">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="space-y-3.5">
+            <!-- Ringkasan Pekerjaan Sumur yang Diselesaikan -->
+            <div class="p-3.5 rounded-xl bg-slate-900/40 border border-slate-700/50 space-y-2.5">
+                <div class="text-[11px] font-mono uppercase tracking-wider text-emerald-400 font-bold flex items-center gap-1.5">
+                    <i class="fa-solid fa-circle-check text-xs"></i>
+                    <span>Ringkasan Data Sumur yang Diselesaikan</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2.5 text-xs">
+                    <div>
+                        <span class="lh-text-muted block text-[10px] uppercase font-mono">Pekerjaan Sumur</span>
+                        <span class="font-extrabold lh-text-title" id="confirmWellName">Well #1 (Lokasi)</span>
+                    </div>
+                    <div>
+                        <span class="lh-text-muted block text-[10px] uppercase font-mono">Tanggal Selesai (End Date)</span>
+                        <span class="font-mono font-bold text-emerald-400" id="confirmEndDate">15/09/2026</span>
+                    </div>
+                    <div>
+                        <span class="lh-text-muted block text-[10px] uppercase font-mono">Log Jam Hari Ini</span>
+                        <span class="font-mono font-bold lh-text-title" id="confirmTodayHours">24.00 Jam</span>
+                    </div>
+                    <div>
+                        <span class="lh-text-muted block text-[10px] uppercase font-mono">Rincian Jam</span>
+                        <span class="font-mono text-[11px] lh-text-sec" id="confirmHoursBreakdown">MIRU: 0j | OPS: 24j | DT: 0j</span>
+                    </div>
+                </div>
+
+                <div class="pt-2 border-t border-slate-700/40">
+                    <label class="block text-[11px] font-bold lh-text-sec mb-1">Status Akhir Pekerjaan Sumur:</label>
+                    <select id="confirmStatusJobSelect" class="lh-control-box w-full px-3 py-2 text-xs font-bold rounded-lg cursor-pointer">
+                        <option value="JOB COMPLETED" selected>JOB COMPLETED (Pekerjaan Selesai &amp; Rig Siap Pindah)</option>
+                        <option value="JOB SUSPEND">JOB SUSPEND (Pekerjaan Ditangguhkan)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Transition Banner (Next Step) -->
+            <div class="p-3 rounded-xl bg-sky-500/10 border border-sky-500/25 flex items-start gap-3">
+                <div class="w-7 h-7 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center shrink-0 text-xs mt-0.5 font-mono font-bold">
+                    <i class="fa-solid fa-arrow-right"></i>
+                </div>
+                <div class="text-xs leading-relaxed">
+                    <span class="font-bold text-sky-300 block mb-0.5">Alur Kerja Berikutnya:</span>
+                    <p class="lh-text-sec text-[11px]">
+                        Setelah log tersimpan dan sumur ini ditandai selesai, sistem akan <strong>langsung mengarahkan Anda ke formulir pendaftaran Well #<span class="js-next-well-num">2</span></strong> dengan nomor dan tanggal kontinuitas yang otomatis tersinkronisasi.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tombol Aksi -->
+        <div class="flex items-center justify-end gap-2.5 pt-3.5 mt-4 border-t lh-divider-t">
+            <button type="button" onclick="closeConfirmCompleteModal()" class="lh-secondary-btn !py-2.5 !px-4 text-xs font-bold cursor-pointer">
+                Batal / Periksa Kembali
+            </button>
+            <button type="button" id="btnConfirmCompleteExecute" onclick="executeSubmitCompleteAndNext()"
+                class="lh-submit-btn !py-2.5 !px-5 text-xs font-bold flex items-center gap-2 !bg-emerald-600 hover:!bg-emerald-500 !text-white shadow-lg shadow-emerald-600/30 cursor-pointer active:scale-95 transition">
+                <i class="fa-solid fa-flag-checkered text-xs"></i>
+                <span id="btnConfirmCompleteText">Ya, Selesaikan &amp; Lanjut Buat Well Baru →</span>
+            </button>
+        </div>
     </div>
 </div>
 <?= $this->endSection() ?>
@@ -2270,6 +2364,7 @@ $nextNoWellAuto = $maxWellNo + 1;
         const sidebarTitle  = document.getElementById('sidebarNoticeTitle');
         const sidebarDesc   = document.getElementById('sidebarNoticeDesc');
         const btnSaveNew    = document.getElementById('btnSaveAndNewWell');
+        const labelBtnSaveNext = document.getElementById('labelBtnSaveNext');
 
         if (!sel || !sel.value) return;
 
@@ -2292,11 +2387,11 @@ $nextNoWellAuto = $maxWellNo + 1;
                 banner.classList.remove('hidden');
                 if (titleEl && descEl) {
                     if (isAllDatesFilled) {
-                        titleEl.innerHTML = `Jadwal Well #${wNo} (${wLok}) Lengkap (${filledCount}/${scheduleDates.length} Hari) — Siap Lanjut ke Well #${params.nextNo}?`;
-                        descEl.innerHTML  = `Seluruh log harian pada jadwal sumur ini telah tercatat. Simpan catatan hari ini dan langsung buat <strong>Well #${params.nextNo}</strong> (Mulai otomatis: <strong>${formatShortIndoDate(params.suggestedStart)}</strong>).`;
+                        titleEl.innerHTML = `Jadwal Well #${wNo} (${wLok}) Lengkap (${filledCount}/${scheduleDates.length} Hari) — Selesaikan &amp; Lanjut ke Well #${params.nextNo}?`;
+                        descEl.innerHTML  = `Seluruh log harian pada jadwal sumur ini telah tercatat. Simpan catatan hari ini, selesaikan sumur (JOB COMPLETED), dan langsung buat <strong>Well #${params.nextNo}</strong> (Mulai otomatis: <strong>${formatShortIndoDate(params.suggestedStart)}</strong>).`;
                     } else {
                         titleEl.innerHTML = `Hari Terakhir Jadwal Well #${wNo} (${wLok}: ${formatShortIndoDate(wEnd)})`;
-                        descEl.innerHTML  = `Setelah menyimpan log hari ini, Anda siap melanjutkan ke <strong>Well #${params.nextNo}</strong> (Mulai otomatis: <strong>${formatShortIndoDate(params.suggestedStart)}</strong>).`;
+                        descEl.innerHTML  = `Setelah menyimpan log hari ini, selesaikan status sumur (JOB COMPLETED) dan langsung daftarkan <strong>Well #${params.nextNo}</strong> (Mulai otomatis: <strong>${formatShortIndoDate(params.suggestedStart)}</strong>).`;
                     }
                 }
             }
@@ -2308,9 +2403,13 @@ $nextNoWellAuto = $maxWellNo + 1;
                 }
                 if (sidebarDesc) {
                     sidebarDesc.textContent = isAllDatesFilled
-                        ? `Seluruh hari kerja tercatat. Klik tombol hijau di bawah untuk simpan & lanjut buat Well #${params.nextNo}.`
-                        : `Selesai input hari ini? Klik tombol hijau di bawah untuk simpan & lanjut buat Well #${params.nextNo}.`;
+                        ? `Seluruh hari kerja tercatat. Klik tombol hijau di bawah untuk simpan log, selesaikan sumur (JOB COMPLETED), dan lanjut buat Well #${params.nextNo}.`
+                        : `Selesai input hari ini? Klik tombol hijau di bawah untuk simpan log, selesaikan sumur (JOB COMPLETED), dan lanjut buat Well #${params.nextNo}.`;
                 }
+            }
+
+            if (labelBtnSaveNext) {
+                labelBtnSaveNext.innerHTML = `Simpan &amp; Selesaikan Well #${wNo} → Buat Well #<span class="js-next-well-num">${params.nextNo}</span>`;
             }
 
             if (btnSaveNew) {
@@ -2322,6 +2421,9 @@ $nextNoWellAuto = $maxWellNo + 1;
             }
             if (sidebarNotice) {
                 sidebarNotice.classList.add('hidden');
+            }
+            if (labelBtnSaveNext) {
+                labelBtnSaveNext.innerHTML = `Simpan &amp; Selesaikan Sumur (Lanjut Buat Well #<span class="js-next-well-num">${params.nextNo}</span>)`;
             }
             if (btnSaveNew) {
                 btnSaveNew.classList.remove('is-highlighted');
@@ -2656,10 +2758,101 @@ $nextNoWellAuto = $maxWellNo + 1;
     }
 
     function submitLogAndOpenNewWell() {
+        const sel = document.getElementById('selectWell');
+        if (!sel || !sel.value) {
+            alert('Silakan pilih pekerjaan sumur terlebih dahulu sebelum menyelesaikan sumur.');
+            return;
+        }
+
+        const tglInput = document.getElementById('inputTanggal');
+        if (!tglInput || !tglInput.value) {
+            alert('Silakan tentukan tanggal operasi hari ini terlebih dahulu.');
+            return;
+        }
+
+        // Hitung total jam operasi & downtime hari ini
+        const miru = parseFloat(document.getElementById('inputMiru')?.value) || 0;
+        const ops  = parseFloat(document.getElementById('inputOps')?.value) || 0;
+        let dtSum = 0;
+        document.querySelectorAll('.dt-sbwc, .dt-unpaid').forEach(inp => {
+            dtSum += parseFloat(inp.value) || 0;
+        });
+        const grandTotal = miru + ops + dtSum;
+
+        const curWellId = sel.value;
+        const curDateStr = tglInput.value;
+        const otherInfo = getOtherWellsInfoOnDate(curWellId, curDateStr);
+        const combinedDayTotal = grandTotal + otherInfo.hours;
+
+        if (combinedDayTotal > 24.001) {
+            const lebih = (combinedDayTotal - 24.0).toFixed(2);
+            alert(`⚠️ Peringatan: Total jam pada tanggal ${formatShortIndoDate(curDateStr)} (${combinedDayTotal.toFixed(2)} Jam) melebihi batas 24.00 Jam per hari (+${lebih} Jam).\n\nHarap periksa dan sesuaikan jam MIRU, Operasi, atau Downtime terlebih dahulu sebelum menyelesaikan sumur.`);
+            return;
+        }
+
+        if (grandTotal <= 0) {
+            const confirmZero = confirm(`Perhatian: Total jam operasi yang Anda input untuk tanggal ${formatShortIndoDate(curDateStr)} adalah 0.00 Jam.\n\nApakah Anda yakin ingin menyelesaikan pekerjaan sumur ini dengan catatan 0 jam hari ini?`);
+            if (!confirmZero) return;
+        }
+
+        const opt = sel.options[sel.selectedIndex];
+        const wellNo  = opt.getAttribute('data-nowell') || '';
+        const wellLok = opt.getAttribute('data-lokasi') || '';
+        const params  = computeSmartNextWellParams();
+
+        // Isi data dinamis ke modal konfirmasi
+        const titleEl = document.getElementById('modalCompleteNextTitle');
+        const nameEl  = document.getElementById('confirmWellName');
+        const endEl   = document.getElementById('confirmEndDate');
+        const hrsEl   = document.getElementById('confirmTodayHours');
+        const brkEl   = document.getElementById('confirmHoursBreakdown');
+        const btnTxt  = document.getElementById('btnConfirmCompleteText');
+        const btnExe  = document.getElementById('btnConfirmCompleteExecute');
+
+        if (titleEl) titleEl.innerHTML = `Selesaikan Well #${wellNo} &amp; Lanjut Buat Well #${params.nextNo}`;
+        if (nameEl) nameEl.textContent = `Well #${wellNo} (${wellLok || 'Tanpa Lokasi'})`;
+        if (endEl) endEl.textContent = `${formatShortIndoDate(curDateStr)} (${curDateStr})`;
+        if (hrsEl) hrsEl.textContent = `${grandTotal.toFixed(2)} Jam (Hari Ini)`;
+        if (brkEl) brkEl.textContent = `MIRU: ${miru.toFixed(2)}j · OPS: ${ops.toFixed(2)}j · DT: ${dtSum.toFixed(2)}j`;
+        if (btnTxt) btnTxt.innerHTML = `Ya, Selesaikan &amp; Lanjut Buat Well #${params.nextNo} →`;
+        if (btnExe) {
+            btnExe.disabled = false;
+        }
+
+        updateNextWellNumberBadges(params.nextNo);
+
+        const modal = document.getElementById('modalConfirmCompleteAndNext');
+        if (modal) modal.classList.add('is-open');
+    }
+
+    function closeConfirmCompleteModal() {
+        const modal = document.getElementById('modalConfirmCompleteAndNext');
+        if (modal) modal.classList.remove('is-open');
+    }
+
+    function executeSubmitCompleteAndNext() {
         const form = document.getElementById('formDailyLog');
         const actionInput = document.getElementById('inputAfterSaveAction');
+        const selesaikanInput = document.getElementById('inputSelesaikanSumur');
+        const statusJobInput = document.getElementById('inputStatusJob');
+        const statusSelect = document.getElementById('confirmStatusJobSelect');
+        const selectStatusJob = document.getElementById('selectStatusJob');
+        const btnExecute = document.getElementById('btnConfirmCompleteExecute');
+
         if (!form) return;
+
+        const chosenStatus = statusSelect ? statusSelect.value : 'JOB COMPLETED';
+
         if (actionInput) actionInput.value = 'goto_tambah_sumur';
+        if (selesaikanInput) selesaikanInput.value = '1';
+        if (statusJobInput) statusJobInput.value = chosenStatus;
+        if (selectStatusJob) selectStatusJob.value = chosenStatus;
+
+        if (btnExecute) {
+            btnExecute.disabled = true;
+            btnExecute.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xs"></i> <span>Menyimpan &amp; Menyelesaikan Sumur...</span>';
+        }
+
         if (form.requestSubmit) {
             form.requestSubmit();
         } else {
@@ -2765,6 +2958,13 @@ $nextNoWellAuto = $maxWellNo + 1;
         if (ev.altKey && (ev.key === 'n' || ev.key === 'N')) {
             ev.preventDefault();
             window.location.href = '<?= $tambahSumurUrl ?>';
+        }
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeConfirmCompleteModal();
+            closeSelesaikanModal();
         }
     });
 

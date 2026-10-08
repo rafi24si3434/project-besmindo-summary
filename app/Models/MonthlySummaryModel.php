@@ -80,28 +80,34 @@ class MonthlySummaryModel extends Model
             }
         }
 
-        // 2. Jika data monthly_summary untuk periode ini sudah ada dan memiliki angka operasi
-        // (misalnya diimpor dari dokumen resmi SUMMARY OPERATION), jangan timpa jika belum ada log sama sekali
-        if ($existing && (float)($existing['revenue_actual'] ?? 0) > 0 && $total_well_job == 0 && $total_miru == 0 && $total_ops == 0) {
+        // 2. Proteksi ini hanya berlaku untuk bulan arsip statis historis (Jan–Ags 2026).
+        // Untuk bulan operasional live (Bulan >= 9), data harus 100% dinamis mengikuti Daily Report & NPT Harian.
+        $isHistoricalArchived = ($tahun == 2026 && $bulan < 9);
+        if ($isHistoricalArchived && $existing && (float)($existing['revenue_actual'] ?? 0) > 0 && $total_well_job == 0 && $total_miru == 0 && $total_ops == 0) {
             return $existing;
         }
 
-        // 3. FORMULA DEFINITIF OPERASIONAL EXCEL:
+        // 3. FORMULA DEFINITIF OPERASIONAL:
         // Reliability = (Total Jam - Unpaid Jam) / Total Jam
-        $reliability = $total_jam > 0 ? max(0, ($total_jam - $unpaid_jam) / $total_jam) : 0;
+        $reliability = $total_jam > 0 ? max(0, ($total_jam - $unpaid_jam) / $total_jam) : 1.0;
 
         // Availability = (Total Jam - (Unpaid Jam + Schedule MTC)) / Total Jam
-        $availability = $total_jam > 0 ? max(0, ($total_jam - ($unpaid_jam + $schedule_mtc)) / $total_jam) : 0;
+        $availability = $total_jam > 0 ? max(0, ($total_jam - ($unpaid_jam + $schedule_mtc)) / $total_jam) : 1.0;
 
-        // Utilization = (Total Jam - (SBWC Jam + Unpaid Jam + Schedule MTC)) / Total Jam
-        // atau ((Total MIRU + Total OPS) - Schedule MTC) / Total Jam
-        $utilization = $total_jam > 0 ? max(0, ($total_jam - ($sbwc_jam + $unpaid_jam + $schedule_mtc)) / $total_jam) : 0;
+        // Utilization: Jika tidak ada jam operasi & miru (rig belum/tidak kerja), utilitas wajib 0.0 (0%)
+        if ($total_ops <= 0.001 && $total_miru <= 0.001) {
+            $utilization = 0.0;
+        } else {
+            // Utilization = (Total OPS + Total MIRU) / Total Jam
+            $utilization = $total_jam > 0 ? min(1.0, max(0, ($total_ops + $total_miru) / $total_jam)) : 0;
+        }
 
-        // Average MIRU = Total MIRU / Total Well Job
+        // Average MIRU = Total MIRU / Total Well Job (0 jika belum ada sumur)
         $avg_miru = $total_well_job > 0 ? ($total_miru / $total_well_job) : 0;
 
-        // Average Cycle Time = (Total Jam - (Total Well Job - 1)) / Total Well Job
+        // Average Cycle Time = (Total Jam - (Total Well Job - 1)) / Total Well Job (0 jika belum ada sumur)
         $avg_cycle_time = $total_well_job > 0 ? max(0, ($total_jam - ($total_well_job - 1)) / $total_well_job) : 0;
+
 
         // 4. INCENTIVE TARGET (Target Revenue):
         // Target Ratio: 92% untuk BMS#01..09, BMS#16; 94% untuk BMS#10, 11, 15, 17..21

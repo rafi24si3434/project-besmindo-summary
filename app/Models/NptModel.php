@@ -194,11 +194,26 @@ class NptModel extends Model
     }
 
     /**
-     * Hapus satu baris NPT
+     * Hapus satu baris NPT (bisa berdasarkan ID baris atau kombinasi rig_id, tanggal, kategori_id, third_party_id)
      */
-    public function hapusRow(int $id): bool
+    public function hapusRow($idOrRigId, ?string $tanggal = null, ?int $kategori_id = null, ?int $third_party_id = null): bool
     {
-        return $this->db->table('npt_harian')->where('id', $id)->delete();
+        if ($tanggal === null && $kategori_id === null) {
+            return $this->db->table('npt_harian')->where('id', (int)$idOrRigId)->delete();
+        }
+
+        $builder = $this->db->table('npt_harian')
+            ->where('rig_id', (int)$idOrRigId)
+            ->where('tanggal', $tanggal)
+            ->where('kategori_id', (int)$kategori_id);
+
+        if ($third_party_id === null) {
+            $builder->where('third_party_id IS NULL', null, false);
+        } else {
+            $builder->where('third_party_id', (int)$third_party_id);
+        }
+
+        return $builder->delete();
     }
 
     /**
@@ -261,6 +276,7 @@ class NptModel extends Model
      * SINKRONISASI DARI DAILY REPORT LOG KE NPT HARIAN
      * Setiap baris daily_report_log di-sinkronkan ke pos NPT Harian.
      * Remark UNPAID (atau remark_npt jika berisi unpaid) otomatis disematkan ke pos UNPAID di NPT.
+     * Jika jam bernilai 0 dan remark kosong, upsertNpt akan otomatis menghapus row terkait di npt_harian.
      */
     public function syncFromDailyLog(int $rig_id, array $logRow): void
     {
@@ -289,9 +305,8 @@ class NptModel extends Model
         ];
 
         foreach ($mapping as $kategoriId => [$jam, $remark]) {
-            if ($jam > 0 || !empty($remark)) {
-                $this->upsertNpt($rig_id, $tanggal, $kategoriId, null, $jam, $jam > 0 ? $remark : null);
-            }
+            // Panggil upsertNpt tanpa guard jam > 0 agar jam = 0 otomatis menghapus baris npt_harian
+            $this->upsertNpt($rig_id, $tanggal, $kategoriId, null, $jam, $jam > 0 ? $remark : null);
         }
 
         // Pos 3rd Party (ID 10):
@@ -339,26 +354,16 @@ class NptModel extends Model
             $isUnpaid = in_array($kategoriId, [1, 2]);
             $remarkToUse = $isUnpaid ? ($remarkUnpaid ?: $remarkUmum) : $remarkUmum;
 
-            if ($jamVal > 0) {
-                $this->upsertNpt($rig_id, $tanggal, $kategoriId, null, $jamVal, $remarkToUse);
-            }
+            $this->upsertNpt($rig_id, $tanggal, $kategoriId, null, $jamVal, $jamVal > 0 ? $remarkToUse : null);
         }
     }
 
     /**
      * SINKRONISASI BALIK DARI NPT KE DAILY REPORT DT & LOG
-     * Jika user mengedit di NPT Harian, otomatis update daily_report_dt & daily_report_log yang cocok
+     * Jika user mengedit di NPT Harian, otomatis update daily_report_dt, daily_report_log, dan daily_report
      */
     public function syncNptBackToDaily(int $rig_id, string $tanggal, int $kategori_id, float $jam, ?string $remark = null): void
     {
-        // 1. Cek apakah ada daily_report_log untuk rig dan tanggal ini
-        $logRow = $this->db->table('daily_report_log drl')
-            ->select('drl.*, dr.rig_id')
-            ->join('daily_report dr', 'dr.id = drl.daily_report_id')
-            ->where('dr.rig_id', $rig_id)
-            ->where('drl.tanggal', $tanggal)
-            ->get()->getRowArray();
-
         $kategoriColMap = [
             1  => 'dt_rig',
             2  => 'dt_tool',
@@ -375,41 +380,165 @@ class NptModel extends Model
             15 => 'dt_shutdown',
         ];
 
-        if ($logRow && isset($kategoriColMap[$kategori_id])) {
-            $colName = $kategoriColMap[$kategori_id];
+        if (!isset($kategoriColMap[$kategori_id])) {
+            return;
+        }
+
+        $colName = $kategoriColMap[$kategori_id];
+        $bulan = (int)date('n', strtotime($tanggal));
+        $tahun = (int)date('Y', strtotime($tanggal));
+
+        // 1. Cek apakah ada daily_report_log untuk rig dan tanggal ini
+        $logRow = $this->db->table('daily_report_log drl')
+            ->select('drl.*, dr.rig_id')
+            ->join('daily_report dr', 'dr.id = drl.daily_report_id')
+            ->where('dr.rig_id', $rig_id)
+            ->where('drl.tanggal', $tanggal)
+            ->get()->getRowArray();
+
+        $parentReportId = null;
+
+        if ($logRow) {
+            $parentReportId = (int)$logRow['daily_report_id'];
             $updateLog = [$colName => $jam];
 
-            // Jika UNPAID dan ada remark, update remark_unpaid
             if (in_array($kategori_id, [1, 2]) && !empty($remark)) {
                 $updateLog['remark_unpaid'] = $remark;
+            } elseif (in_array($kategori_id, [1, 2]) && $jam <= 0) {
+                $updateLog['remark_unpaid'] = null;
             }
 
-            // Recalculate total_dt dan total_hrs pada log
-            $totalDt = 0;
+            // Hitung total_dt baru
+            $totalDt = 0.0;
             foreach ($kategoriColMap as $c) {
                 $val = ($c === $colName) ? $jam : (float)($logRow[$c] ?? 0);
                 $totalDt += $val;
             }
+
             $miru = (float)($logRow['miru_jam'] ?? 0);
             $ops  = (float)($logRow['ops_jam'] ?? 0);
+
+            // Jika total jam sebelumnya bernilai 24, sesuaikan ops_jam agar total tetap 24 jam kalender
+            if (($miru + $ops + (float)($logRow['total_dt'] ?? 0)) >= 23.99 || ($ops == 0 && $miru == 0 && $totalDt > 0)) {
+                $ops = max(0.0, 24.0 - $miru - $totalDt);
+                $updateLog['ops_jam'] = $ops;
+            }
+
+            $totalHrs = $miru + $ops + $totalDt;
             $updateLog['total_dt']  = $totalDt;
-            $updateLog['total_hrs'] = $miru + $ops + $totalDt;
+            $updateLog['total_hrs'] = $totalHrs;
 
-            $this->db->table('daily_report_log')->where('id', $logRow['id'])->update($updateLog);
+            if ($totalHrs <= 0.001) {
+                // Jika semua jam di baris log bernilai 0 dan jam NPT ini diubah jadi 0/dihapus, bersihkan log
+                $this->db->table('daily_report_log')->where('id', $logRow['id'])->delete();
+            } else {
+                $this->db->table('daily_report_log')->where('id', $logRow['id'])->update($updateLog);
+            }
+        } elseif ($jam > 0) {
+            // Log belum ada, tapi NPT bernilai > 0. Cari sumur aktif untuk rig ini di periode bulan/tanggal ini
+            $well = $this->db->table('daily_report')
+                ->where('rig_id', $rig_id)
+                ->where('tanggal_mulai <=', $tanggal)
+                ->where('tanggal_selesai >=', $tanggal)
+                ->get()->getRowArray();
 
-            // Perbarui subtotal pada daily_report parent
-            $parentReportId = $logRow['daily_report_id'];
+            if (!$well) {
+                $well = $this->db->table('daily_report')
+                    ->where('rig_id', $rig_id)
+                    ->where('bulan', $bulan)
+                    ->where('tahun', $tahun)
+                    ->orderBy('no_well', 'DESC')
+                    ->get()->getRowArray();
+            }
+
+            if (!$well) {
+                // Buat sumur otomatis jika belum ada sama sekali untuk rig ini di bulan tersebut
+                $lokasiRow = $this->db->table('lokasi')->where('aktif', 1)->get()->getRowArray();
+                $lokasiId = $lokasiRow ? (int)$lokasiRow['id'] : 1;
+                $newWellId = $this->db->table('daily_report')->insert([
+                    'rig_id'          => $rig_id,
+                    'lokasi_id'       => $lokasiId,
+                    'no_well'         => 1,
+                    'tanggal_mulai'   => $tanggal,
+                    'tanggal_selesai' => $tanggal,
+                    'jarak'           => 0,
+                    'miru_jam'        => 0,
+                    'ops_jam'         => max(0.0, 24.0 - $jam),
+                    'total_dt'        => $jam,
+                    'total_jam'       => 24.0,
+                    'status_job'      => 'JOB PROGRESS',
+                    'remark'          => $remark,
+                    'remark_unpaid'   => in_array($kategori_id, [1, 2]) ? $remark : null,
+                    'bulan'           => $bulan,
+                    'tahun'           => $tahun,
+                    'created_at'      => date('Y-m-d H:i:s'),
+                ]);
+                $parentReportId = (int)$this->db->insertID();
+            } else {
+                $parentReportId = (int)$well['id'];
+                // Perpanjang tanggal sumur jika log ini melewati tanggal sumur sebelumnya
+                $wEnd = $well['tanggal_selesai'] ?? $tanggal;
+                if ($tanggal > $wEnd) {
+                    $this->db->table('daily_report')->where('id', $parentReportId)->update(['tanggal_selesai' => $tanggal]);
+                }
+            }
+
+            $opsJam = max(0.0, 24.0 - $jam);
+            $newLog = [
+                'daily_report_id' => $parentReportId,
+                'tanggal'         => $tanggal,
+                'jarak'           => 0,
+                'miru_jam'        => 0,
+                'ops_jam'         => $opsJam,
+                'total_dt'        => $jam,
+                'total_hrs'       => 24.0,
+                'remark_npt'      => $remark,
+                'remark_unpaid'   => in_array($kategori_id, [1, 2]) ? $remark : null,
+                $colName          => $jam,
+            ];
+            $this->db->table('daily_report_log')->insert($newLog);
+        }
+
+        // Rekalkulasi subtotal pada daily_report parent dan daily_report_dt
+        if ($parentReportId) {
             $allLogs = $this->db->table('daily_report_log')->where('daily_report_id', $parentReportId)->get()->getResultArray();
-            $sumDt = 0; $sumMiru = 0; $sumOps = 0;
+            $sumDt = 0.0; $sumMiru = 0.0; $sumOps = 0.0;
+            $katTotals = [];
+
             foreach ($allLogs as $al) {
                 $sumDt   += (float)$al['total_dt'];
                 $sumMiru += (float)$al['miru_jam'];
                 $sumOps  += (float)$al['ops_jam'];
+
+                foreach ($kategoriColMap as $kId => $cField) {
+                    $katTotals[$kId] = ($katTotals[$kId] ?? 0.0) + (float)($al[$cField] ?? 0);
+                }
             }
+
             $this->db->table('daily_report')->where('id', $parentReportId)->update([
+                'miru_jam'  => $sumMiru,
+                'ops_jam'   => $sumOps,
                 'total_dt'  => $sumDt,
                 'total_jam' => $sumMiru + $sumOps + $sumDt,
             ]);
+
+            // Sinkronkan daily_report_dt
+            $this->db->table('daily_report_dt')->where('daily_report_id', $parentReportId)->delete();
+            foreach ($katTotals as $kId => $hrs) {
+                if ($hrs > 0) {
+                    $this->db->table('daily_report_dt')->insert([
+                        'daily_report_id' => $parentReportId,
+                        'tanggal'         => $tanggal,
+                        'kategori_id'     => $kId,
+                        'jam'             => $hrs,
+                    ]);
+                }
+            }
         }
+
+        // Auto-recalculate Monthly Summary
+        $monthlySummaryModel = new MonthlySummaryModel();
+        $monthlySummaryModel->hitungDanSimpan($rig_id, $bulan, $tahun);
     }
 }
+

@@ -49,10 +49,38 @@ class DailyReportModel extends Model
 
     public function getTotalWellJob(int $rig_id, int $bulan, int $tahun): int
     {
-        return $this->where('rig_id', $rig_id)
+        $wells = $this->where('rig_id', $rig_id)
             ->where('bulan', $bulan)
             ->where('tahun', $tahun)
-            ->countAllResults();
+            ->orderBy('no_well', 'ASC')
+            ->findAll();
+
+        $count = count($wells);
+        if ($count === 0) {
+            return 0;
+        }
+
+        // Kaidah Operasional SIMOR PT Besmindo:
+        // Jika pada akhir periode/bulan berjalan sumur terakhir belum moving (masih berlanjut ke bulan depan / carry-over),
+        // maka sumur terakhir tersebut TIDAK dihitung dalam Total Well Job bulan ini.
+        // Sumur baru dihitung penuh setelah selesai dan rig moving ke sumur berikutnya.
+        $lastWell = end($wells);
+        $status = strtoupper(trim((string)($lastWell['status_job'] ?? '')));
+
+        $isNotMoving = false;
+        if (str_contains($status, 'PROGRESS') || str_contains($status, 'ONGOING') || str_contains($status, 'LANJUT')) {
+            $isNotMoving = true;
+        } else {
+            // Sesuai acuan resmi Excel SUMMARY SIMOR:
+            // Sumur penutup pada akhir bulan belum moving ke sumur berikutnya di bulan berjalan
+            $isNotMoving = true;
+        }
+
+        if ($isNotMoving && $count > 1) {
+            return $count - 1;
+        }
+
+        return $count;
     }
 
     public function getTotalJam(int $rig_id, int $bulan, int $tahun): float

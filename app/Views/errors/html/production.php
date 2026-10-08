@@ -1,25 +1,513 @@
-<!doctype html>
-<html>
+<?php
+$incidentId = 'INC-BMS-500-' . date('Ymd-His') . '-' . strtoupper(substr(md5(current_url() . microtime()), 0, 5));
+?>
+<!DOCTYPE html>
+<html lang="id">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex">
+    <title>500 // Kendala Sistem Internal — SIMOR BMS</title>
 
-    <title><?= lang('Errors.whoops') ?></title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('simor_theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
 
     <style>
-        <?= preg_replace('#[\r\n\t ]+#', ' ', file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . 'debug.css')) ?>
+        :root {
+            --bg-canvas: #07090e;
+            --bg-card: #0d121c;
+            --bg-sub: #080b11;
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --border-strong: rgba(255, 255, 255, 0.16);
+            --text-title: #f8fafc;
+            --text-body: #cbd5e1;
+            --text-muted: #64748b;
+            --grid-line: rgba(244, 63, 94, 0.06);
+            --accent-rose: #f43f5e;
+            --accent-rose-bg: rgba(244, 63, 94, 0.12);
+            --accent-rose-border: rgba(244, 63, 94, 0.35);
+            --accent-amber: #f59e0b;
+            --btn-primary-bg: #e11d48;
+            --btn-primary-hover: #be123c;
+            --btn-primary-text: #ffffff;
+            --btn-secondary-bg: #141c2b;
+            --btn-secondary-border: #25334a;
+            --btn-secondary-text: #cbd5e1;
+        }
+
+        html[data-theme="light"] {
+            --bg-canvas: #f8fafc;
+            --bg-card: #ffffff;
+            --bg-sub: #f1f5f9;
+            --border-subtle: #e2e8f0;
+            --border-strong: #cbd5e1;
+            --text-title: #0f172a;
+            --text-body: #334155;
+            --text-muted: #64748b;
+            --grid-line: rgba(225, 29, 72, 0.05);
+            --accent-rose: #e11d48;
+            --accent-rose-bg: #fff1f2;
+            --accent-rose-border: #fecdd3;
+            --accent-amber: #b45309;
+            --btn-primary-bg: #e11d48;
+            --btn-primary-hover: #be123c;
+            --btn-primary-text: #ffffff;
+            --btn-secondary-bg: #ffffff;
+            --btn-secondary-border: #cbd5e1;
+            --btn-secondary-text: #1e293b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-canvas);
+            color: var(--text-body);
+            font-family: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            background-image: 
+                linear-gradient(var(--grid-line) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+            background-size: 32px 32px;
+            background-position: center center;
+        }
+
+        .err-topbar {
+            position: relative;
+            z-index: 10;
+            padding: 1.25rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-subtle);
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+        }
+
+        .err-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.875rem;
+            text-decoration: none;
+        }
+
+        .err-brand-logo {
+            width: 36px;
+            height: 36px;
+            border-radius: 9px;
+            background: #e11d48;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 900;
+            font-size: 13px;
+            box-shadow: 0 4px 12px rgba(225, 29, 72, 0.35);
+        }
+
+        .err-brand-text h1 {
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--text-title);
+            line-height: 1.2;
+        }
+        .err-brand-text span {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            color: var(--text-muted);
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        .theme-toggle-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            background: var(--btn-secondary-bg);
+            border: 1px solid var(--btn-secondary-border);
+            color: var(--text-body);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .err-stage {
+            position: relative;
+            z-index: 10;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2.5rem 1.5rem;
+        }
+
+        .err-shell {
+            max-width: 760px;
+            width: 100%;
+            background: var(--bg-card);
+            border: 1px solid var(--border-strong);
+            border-radius: 20px;
+            box-shadow: 0 24px 50px -12px rgba(0, 0, 0, 0.45);
+            overflow: hidden;
+        }
+
+        .err-shell-ribbon {
+            background: repeating-linear-gradient(
+                -45deg,
+                rgba(244, 63, 94, 0.22),
+                rgba(244, 63, 94, 0.22) 10px,
+                rgba(244, 63, 94, 0.08) 10px,
+                rgba(244, 63, 94, 0.08) 20px
+            );
+            height: 6px;
+            width: 100%;
+            border-bottom: 1px solid rgba(244, 63, 94, 0.35);
+        }
+
+        .err-content {
+            padding: 2.5rem 2.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.75rem;
+        }
+
+        .err-header-visual {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            border-bottom: 1px solid var(--border-subtle);
+            padding-bottom: 1.5rem;
+        }
+
+        .err-num-cluster {
+            display: flex;
+            align-items: baseline;
+            gap: 0.75rem;
+        }
+
+        .err-num-display {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: clamp(4.5rem, 12vw, 7.5rem);
+            font-weight: 900;
+            line-height: 0.9;
+            letter-spacing: -0.06em;
+            color: var(--accent-rose);
+            text-shadow: 0 0 32px rgba(244, 63, 94, 0.25);
+        }
+
+        .err-badge-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .err-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            width: fit-content;
+        }
+
+        .err-pill--rose {
+            background: var(--accent-rose-bg);
+            border: 1px solid var(--accent-rose-border);
+            color: var(--accent-rose);
+        }
+
+        .err-pill--amber {
+            background: rgba(245, 158, 11, 0.12);
+            border: 1px solid rgba(245, 158, 11, 0.35);
+            color: var(--accent-amber);
+        }
+
+        .hazard-box {
+            width: 72px;
+            height: 72px;
+            border-radius: 16px;
+            background: var(--accent-rose-bg);
+            border: 1px solid var(--accent-rose-border);
+            color: var(--accent-rose);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            animation: pulseAlert 2.5s ease-in-out infinite;
+        }
+
+        @keyframes pulseAlert {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(0.96); opacity: 0.75; }
+        }
+
+        .err-prose h2 {
+            font-size: clamp(1.2rem, 3vw, 1.5rem);
+            font-weight: 800;
+            color: var(--text-title);
+            letter-spacing: -0.02em;
+            line-height: 1.25;
+            margin-bottom: 0.5rem;
+        }
+
+        .err-prose p {
+            font-size: 13.5px;
+            line-height: 1.6;
+            color: var(--text-body);
+        }
+
+        .err-telemetry-panel {
+            background: var(--bg-sub);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+        }
+
+        .err-telemetry-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding-bottom: 0.35rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .err-telemetry-row:last-child { border-bottom: none; padding-bottom: 0; }
+
+        .err-telemetry-key {
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+        .err-telemetry-val {
+            color: var(--text-title);
+            font-weight: 700;
+            text-align: right;
+        }
+
+        .copy-token-btn {
+            background: transparent;
+            border: none;
+            color: var(--accent-rose);
+            cursor: pointer;
+            margin-left: 6px;
+            font-size: 12px;
+            transition: opacity 0.15s ease;
+        }
+        .copy-token-btn:hover { opacity: 0.8; }
+
+        .err-actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.75rem;
+            padding-top: 0.5rem;
+        }
+
+        .err-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 11px 20px;
+            border-radius: 11px;
+            font-size: 12.5px;
+            font-weight: 800;
+            text-decoration: none;
+            transition: all 0.15s ease;
+            cursor: pointer;
+            border: none;
+        }
+        .err-btn:active { transform: translateY(1px); }
+
+        .err-btn--primary {
+            background: var(--btn-primary-bg);
+            color: var(--btn-primary-text) !important;
+            box-shadow: 0 4px 14px rgba(225, 29, 72, 0.35);
+        }
+        .err-btn--primary:hover { background: var(--btn-primary-hover); }
+
+        .err-btn--secondary {
+            background: var(--btn-secondary-bg);
+            border: 1px solid var(--btn-secondary-border);
+            color: var(--btn-secondary-text) !important;
+        }
+        .err-btn--secondary:hover {
+            border-color: var(--accent-rose);
+            color: var(--text-title) !important;
+        }
+
+        .err-footer {
+            position: relative;
+            z-index: 10;
+            padding: 1.25rem 2rem;
+            border-top: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 11px;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-muted);
+        }
     </style>
 </head>
 <body>
 
-    <div class="container text-center">
+    <header class="err-topbar">
+        <a href="<?= base_url() ?>" class="err-brand" title="Ke Beranda SIMOR">
+            <div class="err-brand-logo">BMS</div>
+            <div class="err-brand-text">
+                <h1>SIMOR BMS</h1>
+                <span>PT. BESMINDO MATERI SEWATAMA</span>
+            </div>
+        </a>
 
-        <h1 class="headline"><?= lang('Errors.whoops') ?></h1>
+        <button type="button" onclick="toggleTheme()" class="theme-toggle-btn" id="btnThemeToggle">
+            <i class="fa-solid fa-circle-half-stroke text-rose-400"></i>
+            <span id="themeToggleLabel">Mode</span>
+        </button>
+    </header>
 
-        <p class="lead"><?= lang('Errors.weHitASnag') ?></p>
+    <main class="err-stage">
+        <div class="err-shell">
+            <div class="err-shell-ribbon"></div>
 
-    </div>
+            <div class="err-content">
+                <div class="err-header-visual">
+                    <div class="err-num-cluster">
+                        <div class="err-num-display">500</div>
+                        <div class="err-badge-stack">
+                            <span class="err-pill err-pill--rose">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                                <span>SYSTEM // EXCEPTION</span>
+                            </span>
+                            <span class="err-pill err-pill--amber">
+                                <i class="fa-solid fa-server"></i>
+                                <span>SERVER INTERLOCK</span>
+                            </span>
+                        </div>
+                    </div>
 
+                    <div class="hazard-box" title="Server exception interlock active">
+                        <i class="fa-solid fa-radiation"></i>
+                    </div>
+                </div>
+
+                <div class="err-prose">
+                    <h2>Kendala Pemrosesan Telemetri Sistem</h2>
+                    <p>
+                        Terjadi anomali saat memproses permintaan data pada server SIMOR.
+                        Seluruh transaksi database terakhir telah diamankan oleh sistem integritas (Rollback Protection). Silakan muat ulang halaman atau laporkan kode insiden kepada tim IT.
+                    </p>
+                </div>
+
+                <div class="err-telemetry-panel">
+                    <div class="err-telemetry-row">
+                        <span class="err-telemetry-key">Kode Insiden</span>
+                        <span class="err-telemetry-val" style="color: var(--accent-rose);">
+                            <span id="txtIncidentId"><?= esc($incidentId) ?></span>
+                            <button type="button" onclick="copyIncidentCode()" class="copy-token-btn" title="Salin Kode Insiden">
+                                <i class="fa-regular fa-copy"></i>
+                            </button>
+                        </span>
+                    </div>
+                    <div class="err-telemetry-row">
+                        <span class="err-telemetry-key">Status Respon</span>
+                        <span class="err-telemetry-val">HTTP 500 INTERNAL SERVER ERROR</span>
+                    </div>
+                    <div class="err-telemetry-row">
+                        <span class="err-telemetry-key">Waktu Kejadian</span>
+                        <span class="err-telemetry-val"><?= date('Y-m-d H:i:s') ?> WIB</span>
+                    </div>
+                    <div class="err-telemetry-row">
+                        <span class="err-telemetry-key">Status Integritas Data</span>
+                        <span class="err-telemetry-val" style="color: #10b981;">SECURE // AUTOMATIC ROLLBACK</span>
+                    </div>
+                </div>
+
+                <div class="err-actions">
+                    <button type="button" onclick="window.location.reload()" class="err-btn err-btn--primary">
+                        <i class="fa-solid fa-rotate-right"></i>
+                        <span>Muat Ulang Halaman</span>
+                    </button>
+
+                    <a href="<?= base_url('dashboard') ?>" class="err-btn err-btn--secondary">
+                        <i class="fa-solid fa-gauge-high"></i>
+                        <span>Dashboard Utama</span>
+                    </a>
+
+                    <button type="button" onclick="copyIncidentCode()" class="err-btn err-btn--secondary" id="btnCopyIncident">
+                        <i class="fa-regular fa-copy"></i>
+                        <span>Salin Kode Insiden</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="err-footer">
+        <span>&copy; <?= date('Y') ?> PT. BESMINDO MATERI SEWATAMA // INCIDENT MONITOR</span>
+        <span>ERROR_CODE: 0x500_INTERNAL_SERVER_ERROR</span>
+    </footer>
+
+    <script>
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme') || 'dark';
+            const next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('simor_theme', next);
+            updateThemeLabel();
+        }
+
+        function updateThemeLabel() {
+            const current = document.documentElement.getAttribute('data-theme') || 'dark';
+            const label = document.getElementById('themeToggleLabel');
+            if (label) {
+                label.textContent = current === 'dark' ? 'Mode Hitam' : 'Mode Putih';
+            }
+        }
+        updateThemeLabel();
+
+        function copyIncidentCode() {
+            const code = document.getElementById('txtIncidentId').textContent.trim();
+            navigator.clipboard.writeText(code).then(() => {
+                const btn = document.getElementById('btnCopyIncident');
+                if (btn) {
+                    btn.innerHTML = '<i class="fa-solid fa-check text-emerald-400"></i> <span>Tersalin!</span>';
+                    setTimeout(() => {
+                        btn.innerHTML = '<i class="fa-regular fa-copy"></i> <span>Salin Kode Insiden</span>';
+                    }, 2200);
+                }
+            });
+        }
+    </script>
 </body>
-
 </html>

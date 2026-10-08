@@ -1,0 +1,487 @@
+/**
+ * SIMOR BMS — EXECUTIVE TELEMETRY NOTIFICATION & ALERT ENGINE
+ * Dual-Theme System (Dark CRT Terminal & Light Precision Blueprint)
+ * PT. Besmindo Materi Sewatama
+ */
+
+:root {
+    --st-bg: #0d121c;
+    --st-border: rgba(255, 255, 255, 0.10);
+    --st-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.65), 0 4px 12px rgba(0, 0, 0, 0.4);
+    --st-text-title: #f8fafc;
+    --st-text-body: #cbd5e1;
+    --st-text-muted: #64748b;
+    --st-code-bg: rgba(255, 255, 255, 0.05);
+
+    /* Semantic Accents */
+    --st-success-accent: #10b981;
+    --st-success-bg: rgba(16, 185, 129, 0.12);
+    --st-success-border: rgba(16, 185, 129, 0.35);
+
+    --st-error-accent: #f43f5e;
+    --st-error-bg: rgba(244, 63, 94, 0.12);
+    --st-error-border: rgba(244, 63, 94, 0.35);
+
+    --st-warning-accent: #f59e0b;
+    --st-warning-bg: rgba(245, 158, 11, 0.12);
+    --st-warning-border: rgba(245, 158, 11, 0.35);
+
+    --st-info-accent: #0ea5e9;
+    --st-info-bg: rgba(14, 165, 233, 0.12);
+    --st-info-border: rgba(14, 165, 233, 0.35);
+}
+
+html[data-theme="light"] {
+    --st-bg: #ffffff;
+    --st-border: #e2e8f0;
+    --st-shadow: 0 12px 30px -6px rgba(15, 23, 42, 0.12), 0 4px 10px rgba(15, 23, 42, 0.06);
+    --st-text-title: #0f172a;
+    --st-text-body: #334155;
+    --st-text-muted: #64748b;
+    --st-code-bg: #f1f5f9;
+
+    --st-success-accent: #059669;
+    --st-success-bg: #ecfdf5;
+    --st-success-border: #a7f3d0;
+
+    --st-error-accent: #e11d48;
+    --st-error-bg: #fff1f2;
+    --st-error-border: #fecdd3;
+
+    --st-warning-accent: #d97706;
+    --st-warning-bg: #fffbeb;
+    --st-warning-border: #fde68a;
+
+    --st-info-accent: #0284c7;
+    --st-info-bg: #f0f9ff;
+    --st-info-border: #bae6fd;
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   1. TOAST CONTAINER & FLOATING CARDS
+   ════════════════════════════════════════════════════════════════════════ */
+#simor-toast-container {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 999999;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-width: 440px;
+    width: calc(100vw - 2rem);
+    pointer-events: none;
+}
+
+@media (max-width: 640px) {
+    #simor-toast-container {
+        top: 0.75rem;
+        right: 0.75rem;
+        width: calc(100vw - 1.5rem);
+    }
+}
+
+.simor-toast {
+    position: relative;
+    pointer-events: auto;
+    background: var(--st-bg);
+    border: 1px solid var(--st-border);
+    border-radius: 14px;
+    box-shadow: var(--st-shadow);
+    padding: 0.875rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    overflow: hidden;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transform: translateX(110%);
+    opacity: 0;
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+    user-select: none;
+}
+
+.simor-toast.is-visible {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.simor-toast.is-hiding {
+    transform: translateX(110%) scale(0.95);
+    opacity: 0;
+}
+
+/* Top Meta Row */
+.simor-toast__meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.simor-toast__tag-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 2px 7px;
+    border-radius: 6px;
+    line-height: 1.3;
+}
+
+.simor-toast__time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--st-text-muted);
+}
+
+.simor-toast__close-btn {
+    width: 22px;
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    background: transparent;
+    border: none;
+    color: var(--st-text-muted);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    padding: 0;
+}
+
+.simor-toast__close-btn:hover {
+    background: var(--st-code-bg);
+    color: var(--st-text-title);
+}
+
+/* Content Body */
+.simor-toast__body {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.simor-toast__icon-shell {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 13px;
+    border: 1px solid transparent;
+}
+
+.simor-toast__text {
+    flex: 1;
+    min-width: 0;
+}
+
+.simor-toast__title {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--st-text-title);
+    line-height: 1.3;
+    margin-bottom: 2px;
+    letter-spacing: -0.01em;
+}
+
+.simor-toast__message {
+    font-size: 12px;
+    color: var(--st-text-body);
+    line-height: 1.45;
+    word-break: break-word;
+}
+
+/* Animated Dismiss Progress Bar */
+.simor-toast__progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    width: 100%;
+    transform-origin: left;
+    transition: width 0.05s linear;
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   2. SEMANTIC VARIANTS (SUCCESS, ERROR, WARNING, INFO)
+   ════════════════════════════════════════════════════════════════════════ */
+/* SUCCESS */
+.simor-toast--success {
+    border-left: 4px solid var(--st-success-accent);
+}
+.simor-toast--success .simor-toast__tag-badge {
+    background: var(--st-success-bg);
+    border: 1px solid var(--st-success-border);
+    color: var(--st-success-accent);
+}
+.simor-toast--success .simor-toast__icon-shell {
+    background: var(--st-success-bg);
+    border-color: var(--st-success-border);
+    color: var(--st-success-accent);
+}
+.simor-toast--success .simor-toast__progress {
+    background: var(--st-success-accent);
+}
+
+/* ERROR */
+.simor-toast--error {
+    border-left: 4px solid var(--st-error-accent);
+}
+.simor-toast--error .simor-toast__tag-badge {
+    background: var(--st-error-bg);
+    border: 1px solid var(--st-error-border);
+    color: var(--st-error-accent);
+}
+.simor-toast--error .simor-toast__icon-shell {
+    background: var(--st-error-bg);
+    border-color: var(--st-error-border);
+    color: var(--st-error-accent);
+}
+.simor-toast--error .simor-toast__progress {
+    background: var(--st-error-accent);
+}
+
+/* WARNING */
+.simor-toast--warning {
+    border-left: 4px solid var(--st-warning-accent);
+}
+.simor-toast--warning .simor-toast__tag-badge {
+    background: var(--st-warning-bg);
+    border: 1px solid var(--st-warning-border);
+    color: var(--st-warning-accent);
+}
+.simor-toast--warning .simor-toast__icon-shell {
+    background: var(--st-warning-bg);
+    border-color: var(--st-warning-border);
+    color: var(--st-warning-accent);
+}
+.simor-toast--warning .simor-toast__progress {
+    background: var(--st-warning-accent);
+}
+
+/* INFO */
+.simor-toast--info {
+    border-left: 4px solid var(--st-info-accent);
+}
+.simor-toast--info .simor-toast__tag-badge {
+    background: var(--st-info-bg);
+    border: 1px solid var(--st-info-border);
+    color: var(--st-info-accent);
+}
+.simor-toast--info .simor-toast__icon-shell {
+    background: var(--st-info-bg);
+    border-color: var(--st-info-border);
+    color: var(--st-info-accent);
+}
+.simor-toast--info .simor-toast__progress {
+    background: var(--st-info-accent);
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   3. EXECUTIVE CONFIRMATION DIALOG (SIMOR MODAL)
+   ════════════════════════════════════════════════════════════════════════ */
+#simor-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 9999999;
+    background: rgba(5, 8, 14, 0.78);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.25rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#simor-modal-backdrop.is-open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.simor-modal-card {
+    width: 100%;
+    max-width: 480px;
+    background: var(--st-bg);
+    border: 1px solid var(--st-border);
+    border-radius: 18px;
+    box-shadow: 0 28px 60px -14px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.05);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    transform: scale(0.93) translateY(12px);
+    transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#simor-modal-backdrop.is-open .simor-modal-card {
+    transform: scale(1) translateY(0);
+}
+
+.simor-modal-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.simor-modal-icon-badge {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.simor-modal-title-group h3 {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--st-text-title);
+    letter-spacing: -0.015em;
+    margin: 0;
+}
+
+.simor-modal-title-group p {
+    font-size: 13px;
+    color: var(--st-text-body);
+    margin-top: 0.375rem;
+    line-height: 1.5;
+}
+
+.simor-modal-telemetry-box {
+    background: var(--st-code-bg);
+    border: 1px solid var(--st-border);
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--st-text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.simor-modal-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--st-border);
+}
+
+.simor-modal-btn {
+    padding: 9px 18px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.simor-modal-btn:active {
+    transform: translateY(1px);
+}
+
+.simor-modal-btn--cancel {
+    background: var(--st-code-bg);
+    border: 1px solid var(--st-border);
+    color: var(--st-text-body);
+}
+.simor-modal-btn--cancel:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--st-text-title);
+}
+
+.simor-modal-btn--danger {
+    background: #e11d48;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(225, 29, 72, 0.35);
+}
+.simor-modal-btn--danger:hover {
+    background: #be123c;
+}
+
+.simor-modal-btn--primary {
+    background: #0284c7;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
+}
+.simor-modal-btn--primary:hover {
+    background: #0369a1;
+}
+
+.simor-modal-btn--success {
+    background: #059669;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.35);
+}
+.simor-modal-btn--success:hover {
+    background: #047857;
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   4. INLINE TELEMETRY ALERTS (FOR EMBEDDING INSIDE PAGES & FORMS)
+   ════════════════════════════════════════════════════════════════════════ */
+.simor-inline-alert {
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.875rem;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.simor-inline-alert--success {
+    background: var(--st-success-bg);
+    border-color: var(--st-success-border);
+    color: var(--st-text-body);
+}
+.simor-inline-alert--success i {
+    color: var(--st-success-accent);
+}
+
+.simor-inline-alert--error {
+    background: var(--st-error-bg);
+    border-color: var(--st-error-border);
+    color: var(--st-text-body);
+}
+.simor-inline-alert--error i {
+    color: var(--st-error-accent);
+}
+
+.simor-inline-alert--warning {
+    background: var(--st-warning-bg);
+    border-color: var(--st-warning-border);
+    color: var(--st-text-body);
+}
+.simor-inline-alert--warning i {
+    color: var(--st-warning-accent);
+}
+
+.simor-inline-alert--info {
+    background: var(--st-info-bg);
+    border-color: var(--st-info-border);
+    color: var(--st-text-body);
+}
+.simor-inline-alert--info i {
+    color: var(--st-info-accent);
+}

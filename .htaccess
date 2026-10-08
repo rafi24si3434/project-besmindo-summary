@@ -1,0 +1,28 @@
+# ==============================================================================
+# SIMOR BMS - Root Directory Security & Routing Shield (Hosting Protection)
+# ==============================================================================
+Options -Indexes
+ServerSignature Off
+
+# 1. Blokir akses langsung ke file sensitif (.env, .git, composer, markdown, sql, log, json)
+<FilesMatch "^(\.env|\.env\..*|\.git.*|composer\.(json|lock)|spark|builds|phpunit\.dist\.xml|.*\.(sql|py|sh|bat|md|log|json))$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# 2. Arahkan semua trafik ke folder public/ secara otomatis jika di-upload di shared hosting
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Tolak akses langsung ke folder internal (app, system, writable, vendor, tests, .agents)
+    RewriteRule ^(app|system|writable|vendor|tests|\.git|\.agents)(/|$) - [F,L,NC]
+
+    # Arahkan semua request lain ke dalam folder public/
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/$1 [L,QSA]
+</IfModule>

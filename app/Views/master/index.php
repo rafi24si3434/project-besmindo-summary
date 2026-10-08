@@ -796,7 +796,10 @@ foreach ($lokasi as $l) {
                 </div>
                 <div>
                     <label class="dr-filter-label">Operator Daily Rate (ODR / Hari dalam Rp)</label>
-                    <input type="number" name="odr" id="inpRigOdr" class="dr-filter-select font-num" min="0" placeholder="Contoh: 26500000">
+                    <div class="relative">
+                        <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">Rp</span>
+                        <input type="text" name="odr" id="inpRigOdr" class="dr-filter-select font-num pl-10" placeholder="Contoh: 86.197.000">
+                    </div>
                 </div>
             </div>
 
@@ -948,7 +951,7 @@ foreach ($lokasi as $l) {
 
         document.getElementById('inpRigKode').value = data ? data.kode : '';
         document.getElementById('inpRigNama').value = data ? data.nama_rig : '';
-        document.getElementById('inpRigOdr').value  = data ? data.odr : 26500000;
+        document.getElementById('inpRigOdr').value  = data ? new Intl.NumberFormat('id-ID').format(data.odr) : '26.500.000';
         document.getElementById('inpSharedAktif').checked = data ? (data.aktif == 1) : true;
     }
 

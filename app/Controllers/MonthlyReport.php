@@ -52,7 +52,15 @@ class MonthlyReport extends BaseController
         $totRevActual = 0;
         $totJam = 0;
 
+        $activeRigsCount = 0;
+        $sumRel = 0;
+        $sumAvail = 0;
+        $sumUtil = 0;
+        $sumAvgMiru = 0;
+        $sumAvgCycleTime = 0;
+
         foreach ($summaries as $s) {
+            $rJam = (float)($s['total_jam'] ?? 0);
             $totMiru += (float)($s['total_miru'] ?? 0);
             $totOps += (float)($s['total_ops'] ?? 0);
             $totWell += (int)($s['total_well_job'] ?? 0);
@@ -60,15 +68,24 @@ class MonthlyReport extends BaseController
             $totUnpaid += (float)($s['unpaid_jam'] ?? 0);
             $totRevTarget += (float)($s['revenue_target'] ?? 0);
             $totRevActual += (float)($s['revenue_actual'] ?? 0);
-            $totJam += (float)($s['total_jam'] ?? 0);
+            $totJam += $rJam;
+
+            if ($rJam > 0) {
+                $activeRigsCount++;
+                $sumRel += (float)($s['reliability'] ?? 0);
+                $sumAvail += (float)($s['availability'] ?? 0);
+                $sumUtil += (float)($s['utilization'] ?? 0);
+                $sumAvgMiru += (float)($s['avg_miru'] ?? 0);
+                $sumAvgCycleTime += (float)($s['avg_cycle_time'] ?? 0);
+            }
         }
 
-        $count = count($summaries) ?: 1;
-        $avgMiruAll = $totWell > 0 ? $totMiru / $totWell : 0;
-        $avgCycleTimeAll = $totWell > 0 ? $totOps / $totWell : 0;
-        $avgReliability = $totJam > 0 ? max(0, 1 - ($totUnpaid / $totJam)) : 0;
-        $avgAvailability = $avgReliability;
-        $avgUtilization = $totJam > 0 ? ($totOps / $totJam) : 0;
+        // Formula Excel SUMMARY Row 22: AVERAGE(D5:D21), AVERAGE(E5:E21), AVERAGE(F5:F21)
+        $avgReliability = $activeRigsCount > 0 ? ($sumRel / $activeRigsCount) : 0;
+        $avgAvailability = $activeRigsCount > 0 ? ($sumAvail / $activeRigsCount) : 0;
+        $avgUtilization = $activeRigsCount > 0 ? ($sumUtil / $activeRigsCount) : 0;
+        $avgMiruAll = $totWell > 0 ? ($totMiru / $totWell) : 0;
+        $avgCycleTimeAll = $totWell > 0 ? ($totJam - ($totWell - $activeRigsCount)) / $totWell : 0;
 
         $data = [
             'title'            => "Monthly Report - Bulan {$bulan}/{$tahun}",

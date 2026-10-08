@@ -116,7 +116,9 @@ class DailyReport extends BaseController
         $totalMiru = $this->dailyReportModel->getTotalMIRU($rigId, $bulan, $tahun);
         $totalOps = $this->dailyReportModel->getTotalOPS($rigId, $bulan, $tahun);
         $totalJam = $this->dailyReportModel->getTotalJam($rigId, $bulan, $tahun);
-        $wellJobCount = count($reports);
+        $totalWellJob = $this->dailyReportModel->getTotalWellJob($rigId, $bulan, $tahun);
+        $rawWellCount = count($reports);
+        $wellJobCount = $totalWellJob;
 
         // Hitung total per pos downtime di footer
         $footerKatTotals = [];
@@ -156,6 +158,8 @@ class DailyReport extends BaseController
             'totalMiru'        => $totalMiru,
             'totalOps'         => $totalOps,
             'totalJam'         => $totalJam,
+            'totalWellJob'     => $totalWellJob,
+            'rawWellCount'     => $rawWellCount,
             'wellJobCount'     => $wellJobCount,
             'odr'              => $odr,
             'rateMiru'         => $rateMiru,
@@ -172,18 +176,79 @@ class DailyReport extends BaseController
         $lokasiList = $this->lokasiModel->getAktif();
         $kategoriList = $this->kategoriModel->getKategoriAktif();
         $nextNoWell = $this->dailyReportModel->getNextNoWell($rigId, $bulan, $tahun);
+        $existingWells = $this->dailyReportModel->getByRigBulanTahun($rigId, $bulan, $tahun);
+
+        $maxDaysPeriod = cal_days_in_month(CAL_GREGORIAN, $bulan, $tahun);
+        $minDatePeriod = sprintf('%04d-%02d-01', $tahun, $bulan);
+        $maxDatePeriod = sprintf('%04d-%02d-%02d', $tahun, $bulan, $maxDaysPeriod);
+
+        $lastWell = null;
+        $latestEndDate = '';
+        foreach ($existingWells as $ew) {
+            $ewEnd = $ew['tanggal_selesai'] ?? $ew['tanggal_mulai'] ?? '';
+            if (!$lastWell || $ewEnd >= $latestEndDate) {
+                $latestEndDate = $ewEnd;
+                $lastWell = $ew;
+            }
+        }
+
+        $smartStartDate = $minDatePeriod;
+        $sameDayOption = null;
+        $nextDayOption = null;
+
+        if ($lastWell && !empty($latestEndDate)) {
+            $db = \Config\Database::connect();
+            $rowUsed = $db->table('daily_report_log drl')
+                ->select('SUM(drl.total_hrs) as used_hrs')
+                ->join('daily_report dr', 'dr.id = drl.daily_report_id')
+                ->where('dr.rig_id', $rigId)
+                ->where('drl.tanggal', $latestEndDate)
+                ->get()->getRowArray();
+
+            $usedOnEndDay = (float)($rowUsed['used_hrs'] ?? 0.0);
+            $nextDayTs = strtotime($latestEndDate . ' +1 day');
+            $nextDayStr = date('Y-m-d', $nextDayTs);
+            if ($nextDayStr > $maxDatePeriod) {
+                $nextDayStr = $maxDatePeriod;
+            }
+            $nextDayOption = $nextDayStr;
+
+            if ($usedOnEndDay > 0 && $usedOnEndDay < 23.99) {
+                $sisaJam = max(0.0, 24.0 - $usedOnEndDay);
+                $smartStartDate = $latestEndDate;
+                $sameDayOption = [
+                    'date'     => $latestEndDate,
+                    'used_hrs' => $usedOnEndDay,
+                    'sisa_hrs' => $sisaJam,
+                ];
+            } else {
+                $smartStartDate = $nextDayStr;
+            }
+        }
+
+        $smartEndTs = strtotime($smartStartDate . ' +3 days');
+        $smartEndDate = date('Y-m-d', $smartEndTs);
+        if ($smartEndDate > $maxDatePeriod) {
+            $smartEndDate = $maxDatePeriod;
+        }
 
         $data = [
-            'title'         => "Tambah Sumur - {$rig['kode']}",
-            'page_title'    => "Pencatatan Pekerjaan Sumur Baru: {$rig['kode']}",
-            'page_subtitle' => "Input rincian operasi sumur, MIRU, OPS, dan pos downtime",
-            'rig'           => $rig,
-            'rigId'         => $rigId,
-            'bulan'         => $bulan,
-            'tahun'         => $tahun,
-            'lokasiList'    => $lokasiList,
-            'kategoriList'  => $kategoriList,
-            'nextNoWell'    => $nextNoWell,
+            'title'          => "Tambah Sumur - {$rig['kode']}",
+            'page_title'     => "Pencatatan Pekerjaan Sumur Baru: {$rig['kode']}",
+            'page_subtitle'  => "Input rincian operasi sumur, jadwal tanggal mulai/selesai, dan lokasi",
+            'rig'            => $rig,
+            'rigId'          => $rigId,
+            'bulan'          => $bulan,
+            'tahun'          => $tahun,
+            'lokasiList'     => $lokasiList,
+            'kategoriList'   => $kategoriList,
+            'nextNoWell'     => $nextNoWell,
+            'existingWells'  => $existingWells,
+            'lastWell'       => $lastWell,
+            'smartStartDate' => $smartStartDate,
+            'smartEndDate'   => $smartEndDate,
+            'sameDayOption'  => $sameDayOption,
+            'nextDayOption'  => $nextDayOption,
         ];
 
         return view('daily_report/form', $data);
@@ -586,16 +651,20 @@ class DailyReport extends BaseController
 
         if ($wellStart && $tanggal < $wellStart) {
             $fmtStart = date('d/m/Y', strtotime($wellStart));
-            $fmtEnd   = $wellEnd ? date('d/m/Y', strtotime($wellEnd)) : 'Selesai';
             $fmtInput = date('d/m/Y', strtotime($tanggal));
-            return redirect()->back()->withInput()->with('error', "Gagal menyimpan: Tanggal {$fmtInput} berada di luar jadwal Sumur #{$well['no_well']} (Jadwal terdaftar: {$fmtStart} s/d {$fmtEnd}).");
+            return redirect()->back()->withInput()->with('error', "Gagal menyimpan: Tanggal {$fmtInput} mendahului tanggal mulai Sumur #{$well['no_well']} ({$fmtStart}).");
         }
 
-        if ($wellEnd && $tanggal > $wellEnd) {
-            $fmtStart = $wellStart ? date('d/m/Y', strtotime($wellStart)) : '-';
-            $fmtEnd   = date('d/m/Y', strtotime($wellEnd));
-            $fmtInput = date('d/m/Y', strtotime($tanggal));
-            return redirect()->back()->withInput()->with('error', "Gagal menyimpan: Tanggal {$fmtInput} melewati jadwal selesai Sumur #{$well['no_well']} (Jadwal terdaftar: {$fmtStart} s/d {$fmtEnd}).");
+        // Kaidah Operasional Lapangan:
+        // Pekerjaan sumur tidak menentu kapan habisnya dan berlanjut terus hari demi hari.
+        // Jika tanggal log lebih besar dari tanggal_selesai sebelumnya (atau tanggal_selesai belum diset),
+        // otomatis perpanjang tanggal_selesai sumur agar mencakup tanggal log ini.
+        if (empty($wellEnd) || $tanggal > $wellEnd) {
+            $this->dailyReportModel->update($well['id'], [
+                'tanggal_selesai' => $tanggal,
+            ]);
+            $well['tanggal_selesai'] = $tanggal;
+            $wellEnd = $tanggal;
         }
 
         $toDec = static fn($v): float => (float)str_replace(',', '.', (string)$v);
@@ -731,13 +800,32 @@ class DailyReport extends BaseController
             $autoUnpaidParts[] = $p;
         }
 
-        if (($remarkNpt === '' || !preg_match('/\bHR\b/i', $remarkNpt)) && !empty($autoNptParts)) {
-            $remarkNpt = implode(' ', $autoNptParts);
+        $autoNptStr    = implode(' ', $autoNptParts);
+        $autoUnpaidStr = implode(' ', $autoUnpaidParts);
+
+        // 1. Jika user mengisi/mengubah Remark Unpaid secara manual (bukan template otomatis),
+        //    sedangkan Remark NPT masih berisi template otomatis, sinkronkan ke Remark NPT
+        if ($remarkUnpaid !== '' && $remarkUnpaid !== $autoUnpaidStr && ($remarkNpt === '' || $remarkNpt === $autoNptStr)) {
+            if ($autoUnpaidStr !== '' && $remarkNpt !== '' && strpos($remarkNpt, $autoUnpaidStr) !== false) {
+                $remarkNpt = str_replace($autoUnpaidStr, $remarkUnpaid, $remarkNpt);
+            } else {
+                $remarkNpt = $remarkUnpaid;
+            }
         }
-        if (($remarkUnpaid === '' || !preg_match('/\bHR\b/i', $remarkUnpaid)) && !empty($autoUnpaidParts)) {
-            $remarkUnpaid = implode(' ', $autoUnpaidParts);
-        } elseif ($dtRig <= 0 && $dtTool <= 0 && !preg_match('/\bHR\b/i', $remarkUnpaid)) {
-            // Bersihkan jika sebelumnya terisi "WO Dry Road" di kolom Unpaid padahal bukan Unpaid
+
+        // 2. Jika user mengisi/mengubah Remark NPT secara manual (bukan template otomatis),
+        //    jangan biarkan Remark Unpaid tetap menyimpan template otomatis ("1 HR Repair Rig.")
+        if ($remarkNpt !== '' && $remarkNpt !== $autoNptStr && ($remarkUnpaid === '' || $remarkUnpaid === $autoUnpaidStr)) {
+            $remarkUnpaid = ($dtRig > 0 || $dtTool > 0) ? $remarkNpt : '';
+        }
+
+        // 3. Hanya isi dengan template otomatis JIKA kolom remark benar-benar dikosongkan oleh user
+        if ($remarkNpt === '' && $autoNptStr !== '') {
+            $remarkNpt = $autoNptStr;
+        }
+        if ($remarkUnpaid === '' && $autoUnpaidStr !== '') {
+            $remarkUnpaid = $autoUnpaidStr;
+        } elseif ($dtRig <= 0 && $dtTool <= 0 && $remarkUnpaid === $autoUnpaidStr) {
             $remarkUnpaid = '';
         }
 
@@ -787,11 +875,10 @@ class DailyReport extends BaseController
         $this->recalcParentWell($repId);
 
         // Update status_job sumur (mendukung JOB PROGRESS, JOB COMPLETED, dan JOB SUSPEND)
+        // Pengguna menentukan sendiri status pekerjaan selesai; sistem tidak memaksakan status completed sebelum waktunya
         $postedStatus = strtoupper(trim((string)$this->request->getPost('status_job')));
         if (in_array($postedStatus, ['JOB PROGRESS', 'JOB COMPLETED', 'JOB SUSPEND'], true)) {
-            $db->table('daily_report')->where('id', $repId)->update(['status_job' => $postedStatus]);
-        } elseif (!empty($wellEnd) && $tanggal >= $wellEnd && strtoupper((string)($well['status_job'] ?? '')) !== 'JOB SUSPEND') {
-            $db->table('daily_report')->where('id', $repId)->update(['status_job' => 'JOB COMPLETED']);
+            $this->dailyReportModel->update($repId, ['status_job' => $postedStatus]);
         }
 
         // Update remark pada header sumur jika diisi
@@ -819,7 +906,18 @@ class DailyReport extends BaseController
             $rigId
         );
 
-        return redirect()->to(base_url("daily-report/log-harian/{$rigId}/{$bulan}/{$tahun}?well_id={$repId}"))
+        $afterSaveAction = (string)$this->request->getPost('after_save_action');
+        if ($afterSaveAction === 'goto_tambah_sumur' || $afterSaveAction === 'open_new_well') {
+            return redirect()->to(base_url("daily-report/tambah/{$rigId}/{$bulan}/{$tahun}"))
+                ->with('success', "Log tanggal " . date('d/m/Y', strtotime($tanggal)) . " untuk Sumur #{$well['no_well']} ({$totalHrs} Jam) berhasil disimpan! Silakan daftarkan Sumur Baru (Well berikutnya) di bawah ini.");
+        }
+
+        $queryExtra = '';
+        if (!empty($wellEnd) && $tanggal >= $wellEnd) {
+            $queryExtra = '&well_completed_prompt=1';
+        }
+
+        return redirect()->to(base_url("daily-report/log-harian/{$rigId}/{$bulan}/{$tahun}?well_id={$repId}{$queryExtra}"))
             ->with('success', "Log tanggal " . date('d/m/Y', strtotime($tanggal)) . " untuk Sumur #{$well['no_well']} ({$totalHrs} Jam) berhasil disimpan!");
     }
 
@@ -1071,21 +1169,75 @@ class DailyReport extends BaseController
         
         try {
             $db->table('daily_report')->insert($data);
-            $newId = $db->insertID();
-            
+            $newId = (int)$db->insertID();
+
+            // Sinkronisasi ke Monthly Summary & Activity Log
+            $summaryModel = new MonthlySummaryModel();
+            $summaryModel->hitungDanSimpan($rigId, $bulan, $tahun);
+
+            $rig = $this->rigModel->find($rigId);
+            $rigKode = $rig['kode'] ?? "Rig #{$rigId}";
+            $namaLokFinal = $lokasi['nama_lokasi'] ?? strtoupper(trim($namaLokasiInput));
+            ActivityLogModel::record(
+                'DAILY_REPORT',
+                'TAMBAH_SUMUR_CEPAT',
+                "Mendaftarkan pekerjaan sumur No. {$noWell} ({$namaLokFinal}) pada {$rigKode} (Jadwal: {$tglMulai} s/d {$tglSelesai}).",
+                $rigId
+            );
+
             return $this->response->setJSON([
                 'status'          => 'success',
                 'id'              => $newId,
                 'lokasi_id'       => $finalLokasiId,
                 'no_well'         => $noWell,
-                'nama_lokasi'     => $lokasi['nama_lokasi'] ?? strtoupper(trim($namaLokasiInput)),
+                'nama_lokasi'     => $namaLokFinal,
                 'jarak'           => $jarak,
                 'tanggal_mulai'   => $tglMulai,
                 'tanggal_selesai' => $tglSelesai,
+                'status_job'      => 'JOB PROGRESS',
+                'csrf_hash'       => csrf_hash(),
             ]);
         } catch (\Exception $e) {
-            return $this->response->setJSON(['status' => 'error', 'message' => $e->getMessage()]);
+            return $this->response->setJSON([
+                'status'    => 'error',
+                'message'   => $e->getMessage(),
+                'csrf_hash' => csrf_hash(),
+            ]);
         }
+    }
+
+    /**
+     * SELESAIKAN SUMUR (Pengguna Menentukan Sendiri Tanggal Berakhir Ketika Inputan Selesai)
+     */
+    public function selesaikanSumur(int $wellId)
+    {
+        $well = $this->dailyReportModel->find($wellId);
+        if (!$well) {
+            return redirect()->back()->with('error', 'Pekerjaan sumur tidak ditemukan.');
+        }
+
+        $tglSelesai = $this->request->getPost('tanggal_selesai') ?: date('Y-m-d');
+        $statusJob  = $this->request->getPost('status_job') ?: 'JOB COMPLETED';
+
+        $this->dailyReportModel->update($wellId, [
+            'tanggal_selesai' => $tglSelesai,
+            'status_job'      => $statusJob,
+        ]);
+
+        // Rekalkulasi Monthly Summary
+        $summaryModel = new MonthlySummaryModel();
+        $summaryModel->hitungDanSimpan((int)$well['rig_id'], (int)$well['bulan'], (int)$well['tahun']);
+
+        $rig = $this->rigModel->find($well['rig_id']);
+        $rigKode = $rig['kode'] ?? "Rig #{$well['rig_id']}";
+        ActivityLogModel::record(
+            'DAILY_REPORT',
+            'SELESAIKAN_SUMUR',
+            "Menyelesaikan pekerjaan sumur No. {$well['no_well']} pada {$rigKode} (Jadwal selesai: " . date('d/m/Y', strtotime($tglSelesai)) . ", Status: {$statusJob}).",
+            (int)$well['rig_id']
+        );
+
+        return redirect()->back()->with('success', "Pekerjaan Sumur #{$well['no_well']} berhasil diselesaikan pada tanggal " . date('d/m/Y', strtotime($tglSelesai)) . ".");
     }
 
     private function getReportMeta(int $rigId, int $bulan, int $tahun): array
@@ -1219,5 +1371,33 @@ class DailyReport extends BaseController
 
         return redirect()->to(base_url("daily-report/{$rigId}/{$bulan}/{$tahun}"))
             ->with('success', 'Catatan laporan berhasil dihapus.');
+    }
+
+    public function updateOdr()
+    {
+        $rigId = (int)$this->request->getPost('rig_id');
+        $bulan = (int)$this->request->getPost('bulan') ?: (int)date('n');
+        $tahun = (int)$this->request->getPost('tahun') ?: (int)date('Y');
+        $rawOdr = (string)$this->request->getPost('odr');
+        $cleanOdr = (int)preg_replace('/[^\d]/', '', $rawOdr);
+
+        $rig = $this->rigModel->find($rigId);
+        if (!$rig) {
+            return redirect()->back()->with('error', 'Armada rig tidak ditemukan.');
+        }
+
+        if ($cleanOdr <= 0) {
+            return redirect()->back()->with('error', 'Nilai tarif ODR harus berupa angka lebih dari 0.');
+        }
+
+        // Simpan ODR baru ke tabel rigs
+        $this->rigModel->update($rigId, ['odr' => $cleanOdr]);
+
+        // Rekalkulasi Monthly Summary seketika agar langsung sinkron
+        $summaryModel = new MonthlySummaryModel();
+        $summaryModel->hitungDanSimpan($rigId, $bulan, $tahun);
+
+        return redirect()->to(base_url("daily-report/{$rigId}/{$bulan}/{$tahun}"))
+            ->with('success', "Tarif ODR {$rig['kode']} berhasil diubah menjadi Rp " . number_format($cleanOdr, 0, ',', '.') . " dan otomatis disinkronkan ke seluruh ringkasan KPI!");
     }
 }

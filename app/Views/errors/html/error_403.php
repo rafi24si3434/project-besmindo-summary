@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex">
-    <title>400 // Permintaan Tidak Valid — SIMOR BMS</title>
+    <title>403 // Akses Ditolak — SIMOR BMS</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -28,12 +28,12 @@
             --text-title: #f8fafc;
             --text-body: #cbd5e1;
             --text-muted: #64748b;
-            --grid-line: rgba(14, 165, 233, 0.06);
-            --accent-cyan: #38bdf8;
-            --accent-cyan-bg: rgba(56, 189, 248, 0.12);
-            --accent-cyan-border: rgba(56, 189, 248, 0.35);
-            --btn-primary-bg: #0284c7;
-            --btn-primary-hover: #0369a1;
+            --grid-line: rgba(245, 158, 11, 0.06);
+            --accent-amber: #f59e0b;
+            --accent-amber-bg: rgba(245, 158, 11, 0.12);
+            --accent-amber-border: rgba(245, 158, 11, 0.35);
+            --btn-primary-bg: #d97706;
+            --btn-primary-hover: #b45309;
             --btn-primary-text: #ffffff;
             --btn-secondary-bg: #141c2b;
             --btn-secondary-border: #25334a;
@@ -49,12 +49,12 @@
             --text-title: #0f172a;
             --text-body: #334155;
             --text-muted: #64748b;
-            --grid-line: rgba(2, 132, 199, 0.05);
-            --accent-cyan: #0284c7;
-            --accent-cyan-bg: #e0f2fe;
-            --accent-cyan-border: #7dd3fc;
-            --btn-primary-bg: #0284c7;
-            --btn-primary-hover: #0369a1;
+            --grid-line: rgba(217, 119, 6, 0.05);
+            --accent-amber: #b45309;
+            --accent-amber-bg: #fffbeb;
+            --accent-amber-border: #fde68a;
+            --btn-primary-bg: #d97706;
+            --btn-primary-hover: #b45309;
             --btn-primary-text: #ffffff;
             --btn-secondary-bg: #ffffff;
             --btn-secondary-border: #cbd5e1;
@@ -102,7 +102,7 @@
             width: 36px;
             height: 36px;
             border-radius: 9px;
-            background: var(--btn-primary-bg);
+            background: #d97706;
             color: #ffffff;
             display: flex;
             align-items: center;
@@ -110,6 +110,7 @@
             font-family: 'JetBrains Mono', monospace;
             font-weight: 900;
             font-size: 13px;
+            box-shadow: 0 4px 12px rgba(217, 119, 6, 0.35);
         }
 
         .err-brand-text h1 {
@@ -165,14 +166,14 @@
         .err-shell-ribbon {
             background: repeating-linear-gradient(
                 -45deg,
-                rgba(56, 189, 248, 0.2),
-                rgba(56, 189, 248, 0.2) 10px,
-                rgba(56, 189, 248, 0.08) 10px,
-                rgba(56, 189, 248, 0.08) 20px
+                rgba(245, 158, 11, 0.25),
+                rgba(245, 158, 11, 0.25) 10px,
+                rgba(245, 158, 11, 0.08) 10px,
+                rgba(245, 158, 11, 0.08) 20px
             );
             height: 6px;
             width: 100%;
-            border-bottom: 1px solid rgba(56, 189, 248, 0.35);
+            border-bottom: 1px solid rgba(245, 158, 11, 0.35);
         }
 
         .err-content {
@@ -204,7 +205,14 @@
             font-weight: 900;
             line-height: 0.9;
             letter-spacing: -0.06em;
-            color: var(--accent-cyan);
+            color: var(--accent-amber);
+            text-shadow: 0 0 32px rgba(245, 158, 11, 0.25);
+        }
+
+        .err-badge-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
         }
 
         .err-pill {
@@ -218,12 +226,26 @@
             font-weight: 800;
             letter-spacing: 0.04em;
             text-transform: uppercase;
+            width: fit-content;
         }
 
-        .err-pill--cyan {
-            background: var(--accent-cyan-bg);
-            border: 1px solid var(--accent-cyan-border);
-            color: var(--accent-cyan);
+        .err-pill--amber {
+            background: var(--accent-amber-bg);
+            border: 1px solid var(--accent-amber-border);
+            color: var(--accent-amber);
+        }
+
+        .lock-box {
+            width: 72px;
+            height: 72px;
+            border-radius: 16px;
+            background: var(--accent-amber-bg);
+            border: 1px solid var(--accent-amber-border);
+            color: var(--accent-amber);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
         }
 
         .err-prose h2 {
@@ -301,7 +323,7 @@
         .err-btn--primary {
             background: var(--btn-primary-bg);
             color: var(--btn-primary-text) !important;
-            box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+            box-shadow: 0 4px 14px rgba(217, 119, 6, 0.35);
         }
         .err-btn--primary:hover { background: var(--btn-primary-hover); }
 
@@ -311,7 +333,7 @@
             color: var(--btn-secondary-text) !important;
         }
         .err-btn--secondary:hover {
-            border-color: var(--accent-cyan);
+            border-color: var(--accent-amber);
             color: var(--text-title) !important;
         }
 
@@ -341,7 +363,7 @@
         </a>
 
         <button type="button" onclick="toggleTheme()" class="theme-toggle-btn" id="btnThemeToggle">
-            <i class="fa-solid fa-circle-half-stroke text-sky-400"></i>
+            <i class="fa-solid fa-circle-half-stroke text-amber-500"></i>
             <span id="themeToggleLabel">Mode</span>
         </button>
     </header>
@@ -353,35 +375,48 @@
             <div class="err-content">
                 <div class="err-header-visual">
                     <div class="err-num-cluster">
-                        <div class="err-num-display">400</div>
+                        <div class="err-num-display">403</div>
                         <div class="err-badge-stack">
-                            <span class="err-pill err-pill--cyan">
-                                <i class="fa-solid fa-triangle-exclamation"></i>
-                                <span>PAYLOAD // INVALID</span>
+                            <span class="err-pill err-pill--amber">
+                                <i class="fa-solid fa-lock"></i>
+                                <span>ACCESS // RESTRICTED</span>
+                            </span>
+                            <span class="err-pill err-pill--amber">
+                                <i class="fa-solid fa-shield-halved"></i>
+                                <span>PRIVILEGE DENIED</span>
                             </span>
                         </div>
+                    </div>
+
+                    <div class="lock-box" title="Security perimeter active">
+                        <i class="fa-solid fa-shield-halved"></i>
                     </div>
                 </div>
 
                 <div class="err-prose">
-                    <h2>Permintaan Tidak Valid (Bad Request)</h2>
+                    <h2>Protokol Keamanan: Akses Modul Ditolak</h2>
                     <p>
-                        <?= !empty($message) && ENVIRONMENT !== 'production' ? esc($message) : 'Data atau parameter yang dikirimkan oleh peramban tidak dapat diproses oleh pengendali telemetri SIMOR. Pastikan parameter URL atau form telah diisi dengan format yang benar.' ?>
+                        Akun Anda saat ini tidak memiliki otorisasi yang mencukupi untuk membuka modul atau data ini.
+                        Bila sesi login Anda telah kedaluwarsa, silakan lakukan login ulang untuk memperbarui token otentikasi.
                     </p>
                 </div>
 
                 <div class="err-telemetry-panel">
                     <div class="err-telemetry-row">
-                        <span class="err-telemetry-key">Status Respon</span>
-                        <span class="err-telemetry-val" style="color: var(--accent-cyan);">HTTP 400 BAD REQUEST</span>
+                        <span class="err-telemetry-key">Status Otorisasi</span>
+                        <span class="err-telemetry-val" style="color: var(--accent-amber);">HTTP 403 FORBIDDEN</span>
                     </div>
                     <div class="err-telemetry-row">
                         <span class="err-telemetry-key">Target Rute</span>
                         <span class="err-telemetry-val"><?= esc(current_url()) ?></span>
                     </div>
                     <div class="err-telemetry-row">
-                        <span class="err-telemetry-key">Waktu Kejadian</span>
+                        <span class="err-telemetry-key">Waktu Verifikasi</span>
                         <span class="err-telemetry-val"><?= date('Y-m-d H:i:s') ?> WIB</span>
+                    </div>
+                    <div class="err-telemetry-row">
+                        <span class="err-telemetry-key">Status Firewall</span>
+                        <span class="err-telemetry-val" style="color: #10b981;">ACTIVE // STRICT ENFORCEMENT</span>
                     </div>
                 </div>
 
@@ -389,6 +424,11 @@
                     <a href="<?= base_url('dashboard') ?>" class="err-btn err-btn--primary">
                         <i class="fa-solid fa-gauge-high"></i>
                         <span>Kembali ke Dashboard Utama</span>
+                    </a>
+
+                    <a href="<?= base_url('login') ?>" class="err-btn err-btn--secondary">
+                        <i class="fa-solid fa-right-to-bracket"></i>
+                        <span>Login Ulang</span>
                     </a>
 
                     <button type="button" onclick="history.back()" class="err-btn err-btn--secondary">
@@ -401,8 +441,8 @@
     </main>
 
     <footer class="err-footer">
-        <span>&copy; <?= date('Y') ?> PT. BESMINDO MATERI SEWATAMA // BAD REQUEST MONITOR</span>
-        <span>ERROR_CODE: 0x400_BAD_REQUEST</span>
+        <span>&copy; <?= date('Y') ?> PT. BESMINDO MATERI SEWATAMA // SECURITY SYSTEM</span>
+        <span>ERROR_CODE: 0x403_FORBIDDEN_ACCESS</span>
     </footer>
 
     <script>

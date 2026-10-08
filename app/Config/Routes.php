@@ -25,6 +25,10 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
     $routes->get('/', 'Dashboard::index');
     $routes->get('dashboard', 'Dashboard::index');
 
+    // Keamanan Akun & Ubah Password
+    $routes->get('akun/password', 'Auth::ubahPassword');
+    $routes->post('akun/password', 'Auth::simpanPassword');
+
     // ---- MASTER DATA ----
     $routes->group('master', function ($routes) {
         $routes->get('/', 'Master::index');
@@ -68,7 +72,10 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
         $routes->get('(:num)/(:num)/(:num)', 'Npt::grid/$1/$2/$3');           // rig_id/bulan/tahun
         $routes->get('(:num)/(:num)', 'Npt::grid/$1/$2');                     // rig_id/bulan (auto default tahun)
         $routes->post('simpan', 'Npt::simpan');
+        $routes->post('simpan-event', 'Npt::simpanEvent');
+        $routes->post('hapus-event', 'Npt::hapusEvent');
         $routes->get('data/(:num)/(:num)/(:num)', 'Npt::getData/$1/$2/$3');   // AJAX
+        $routes->get('get-rig-sheet/(:num)/(:num)/(:num)', 'Npt::ajaxRigSheet/$1/$2/$3'); // AJAX sheet rig
         $routes->get('get-rig-wells/(:num)/(:num)/(:num)', 'Npt::getRigWells/$1/$2/$3'); // AJAX detail sumur
         $routes->get('get-rig-wells/(:num)/(:num)', 'Npt::getRigWells/$1/$2');           // AJAX detail sumur (default tahun)
     });
@@ -90,6 +97,8 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
         $routes->post('hapus/(:num)', 'DailyReport::hapus/$1');
         $routes->post('simpan-catatan', 'DailyReport::simpanCatatan');
         $routes->post('hapus-catatan', 'DailyReport::hapusCatatan');
+        $routes->post('update-odr', 'DailyReport::updateOdr');
+        $routes->post('selesaikan/(:num)', 'DailyReport::selesaikanSumur/$1');
     });
 
     // ---- MONTHLY REPORT ----
@@ -122,4 +131,18 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
 
     // ---- AUDIT TRAIL / RIWAYAT AKTIVITAS ----
     $routes->get('audit-log', 'AuditLog::index');
+
+    // ---- PUSAT DESAIN ERROR & NOTIFIKASI ----
+    $routes->group('errors', function ($routes) {
+        $routes->get('/', 'ErrorDemo::index');
+        $routes->get('notifikasi', 'ErrorDemo::index');
+    });
+});
+
+// ---- PUBLIC PREVIEW ERROR PAGES (untuk inspeksi visual langsung) ----
+$routes->group('errors/preview', function ($routes) {
+    $routes->get('404', 'ErrorDemo::show404');
+    $routes->get('500', 'ErrorDemo::show500');
+    $routes->get('403', 'ErrorDemo::show403');
+    $routes->get('400', 'ErrorDemo::show400');
 });

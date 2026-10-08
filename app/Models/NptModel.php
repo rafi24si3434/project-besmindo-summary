@@ -91,6 +91,48 @@ class NptModel extends Model
     }
 
     /**
+     * Total jam SBWC 75% (SWA Rain & Dry Road/Public Issue)
+     */
+    public function getTotalSBWC75(int $rig_id, int $bulan, int $tahun): float
+    {
+        $row = $this->db->table('npt_harian nh')
+            ->select('SUM(nh.jam) as total')
+            ->join('kategori_downtime kd', 'kd.id = nh.kategori_id')
+            ->where('nh.rig_id', $rig_id)
+            ->where('MONTH(nh.tanggal)', $bulan)
+            ->where('YEAR(nh.tanggal)', $tahun)
+            ->where('kd.tipe', 'SBWC')
+            ->groupStart()
+                ->whereIn('kd.id', [3, 4])
+                ->orLike('LOWER(kd.nama)', 'rain')
+                ->orLike('LOWER(kd.nama)', 'dry road')
+            ->groupEnd()
+            ->get()->getRowArray();
+
+        return (float) ($row['total'] ?? 0);
+    }
+
+    /**
+     * Total jam SBWC 65% (Kategori SBWC selain Rain & Dry Road)
+     */
+    public function getTotalSBWC65(int $rig_id, int $bulan, int $tahun): float
+    {
+        $row = $this->db->table('npt_harian nh')
+            ->select('SUM(nh.jam) as total')
+            ->join('kategori_downtime kd', 'kd.id = nh.kategori_id')
+            ->where('nh.rig_id', $rig_id)
+            ->where('MONTH(nh.tanggal)', $bulan)
+            ->where('YEAR(nh.tanggal)', $tahun)
+            ->where('kd.tipe', 'SBWC')
+            ->whereNotIn('kd.id', [3, 4])
+            ->notLike('LOWER(kd.nama)', 'rain')
+            ->notLike('LOWER(kd.nama)', 'dry road')
+            ->get()->getRowArray();
+
+        return (float) ($row['total'] ?? 0);
+    }
+
+    /**
      * Total downtime (UNPAID + SBWC) untuk satu rig satu bulan
      */
     public function getTotalDowntime(int $rig_id, int $bulan, int $tahun): float

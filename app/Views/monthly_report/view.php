@@ -633,6 +633,22 @@ $decodeRemarkDisplay = static function (?string $raw): string {
     <!-- TAB 4: NPT ALL RIG (MATRIKS RINCIAN 18 KATEGORI DOWNTIME)                 -->
     <!-- ════════════════════════════════════════════════════════════════════════ -->
     <div id="tabContent_nptAll" class="tab-content hidden space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-[var(--card)] border border-[var(--border)]">
+            <div>
+                <h3 class="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-[var(--foreground)]">
+                    Rekapitulasi NPT Seluruh Armada Rig BMS
+                </h3>
+                <p class="text-[11px] text-[var(--muted-foreground)]">
+                    Tabel matriks downtime 18 kategori terpadu dengan buku kerja operasional resmi.
+                </p>
+            </div>
+            <a href="<?= base_url("npt/2/{$bulan}/{$tahun}?view=summary") ?>"
+                class="px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs transition flex items-center gap-1.5 shadow-sm">
+                <i class="fa-solid fa-file-excel"></i>
+                <span>Buka Informasi NPT Persis Excel</span>
+                <i class="fa-solid fa-arrow-right text-[10px] ml-0.5"></i>
+            </a>
+        </div>
         <div class="rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl overflow-hidden">
             <div class="overflow-x-auto custom-scrollbar">
                 <table class="w-full text-left border-collapse border border-slate-700">
@@ -699,98 +715,217 @@ $decodeRemarkDisplay = static function (?string $raw): string {
     <!-- TAB 2: GRAFIK ANALISIS RESMI (NPT ALL RIG, RAU ALL RIG, AVERAGE MIRU, AVERAGE CYCLE TIME, TOTAL WELL JOB) -->
     <div id="tabContent_charts" class="tab-content hidden space-y-6">
 
-        <!-- Sub-header & Quick Jump Links -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl bg-slate-800/90 border border-slate-700 shadow">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-sky-500/20 text-sky-400 border border-sky-500/30 flex items-center justify-center flex-shrink-0">
-                    <i class="fa-solid fa-chart-column text-lg"></i>
+        <!-- Executive Header & Quick Jump Navigation Bar -->
+        <div class="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 sm:p-5 shadow-sm space-y-4">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div class="flex items-center gap-3.5">
+                    <div class="w-12 h-12 rounded-xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center flex-shrink-0 text-xl shadow-xs">
+                        <i class="fa-solid fa-chart-column"></i>
+                    </div>
+                    <div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <h4 class="text-base sm:text-lg font-black text-[var(--foreground)] tracking-tight">GRAFIK PERFORMA OPERASI RIG BMS</h4>
+                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-primary/10 text-primary border border-primary/20">
+                                <i class="fa-solid fa-chart-line text-[9px]"></i> Executive KPI Analytics
+                            </span>
+                        </div>
+                        <p class="text-xs text-[var(--muted-foreground)] mt-0.5">
+                            Visualisasi 5 Indikator Kinerja Utama Periode: <strong class="text-[var(--foreground)] font-mono font-bold"><?= $bulanList[$bulan] ?> <?= $tahun ?></strong>
+                        </p>
+                    </div>
                 </div>
-                <div>
-                    <h4 class="text-sm font-extrabold text-white uppercase tracking-wider">GRAFIK PERFORMA OPERASI RIG BMS</h4>
-                    <p class="text-xs text-slate-400">Visualisasi 5 Indikator Kinerja Utama Periode: <strong class="text-yellow-400 font-mono"><?= $bulanList[$bulan] ?> <?= $tahun ?></strong></p>
+
+                <!-- Rig View Filter Toggle (Semua Rig vs Hanya Rig Aktif) -->
+                <div class="flex items-center gap-1.5 p-1 rounded-xl bg-[var(--secondary)] border border-[var(--border)] self-start lg:self-auto">
+                    <button type="button" onclick="setChartFilter('all')" id="btnFilterChartAll"
+                        class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-xs bg-[var(--card)] text-[var(--foreground)] border border-[var(--border)]">
+                        <i class="fa-solid fa-layer-group mr-1 text-primary"></i> Semua Rig (<?= count($summaries) ?>)
+                    </button>
+                    <button type="button" onclick="setChartFilter('active')" id="btnFilterChartActive"
+                        class="px-3 py-1.5 rounded-lg text-xs font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-all">
+                        <i class="fa-solid fa-bolt mr-1 text-amber-500"></i> Hanya Rig Aktif
+                    </button>
                 </div>
             </div>
-            <div class="flex flex-wrap items-center gap-2 text-xs">
-                <a href="#cardChartNpt" class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:text-white hover:border-amber-400 transition flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+
+            <!-- Quick Jump Anchors -->
+            <div class="pt-3 border-t border-[var(--border)] flex flex-wrap items-center gap-2 text-xs">
+                <span class="text-[11px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider mr-1">Lompat Ke:</span>
+                <a href="#cardChartNpt" class="px-3 py-1.5 rounded-xl border border-[var(--border)] bg-[var(--card-elevated)] text-[var(--foreground)] hover:border-rose-500 hover:text-rose-500 transition font-medium flex items-center gap-1.5 shadow-2xs">
+                    <span class="w-2 h-2 rounded-full bg-rose-500"></span>
                     <span>1. NPT All Rig</span>
                 </a>
-                <a href="#cardChartRau" class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:text-white hover:border-sky-400 transition flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-sky-400"></span>
+                <a href="#cardChartRau" class="px-3 py-1.5 rounded-xl border border-[var(--border)] bg-[var(--card-elevated)] text-[var(--foreground)] hover:border-emerald-500 hover:text-emerald-500 transition font-medium flex items-center gap-1.5 shadow-2xs">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
                     <span>2. RAU All Rig</span>
                 </a>
-                <a href="#cardChartMiru" class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:text-white hover:border-blue-500 transition flex items-center gap-1.5">
+                <a href="#cardChartMiru" class="px-3 py-1.5 rounded-xl border border-[var(--border)] bg-[var(--card-elevated)] text-[var(--foreground)] hover:border-blue-500 hover:text-blue-500 transition font-medium flex items-center gap-1.5 shadow-2xs">
                     <span class="w-2 h-2 rounded-full bg-blue-500"></span>
                     <span>3. Avg MIRU</span>
                 </a>
-                <a href="#cardChartCt" class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:text-white hover:border-emerald-500 transition flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                <a href="#cardChartCt" class="px-3 py-1.5 rounded-xl border border-[var(--border)] bg-[var(--card-elevated)] text-[var(--foreground)] hover:border-teal-500 hover:text-teal-500 transition font-medium flex items-center gap-1.5 shadow-2xs">
+                    <span class="w-2 h-2 rounded-full bg-teal-500"></span>
                     <span>4. Avg Cycle Time</span>
                 </a>
-                <a href="#cardChartWell" class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:text-white hover:border-indigo-500 transition flex items-center gap-1.5">
+                <a href="#cardChartWell" class="px-3 py-1.5 rounded-xl border border-[var(--border)] bg-[var(--card-elevated)] text-[var(--foreground)] hover:border-indigo-500 hover:text-indigo-500 transition font-medium flex items-center gap-1.5 shadow-2xs">
                     <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
-                    <span>5. Total Well Job</span>
+                    <span>5. Total Well</span>
                 </a>
             </div>
         </div>
 
+        <!-- Executive KPI Summary Ribbon (5 Ringkasan Indikator Cepat) -->
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5">
+            <!-- 1. Reliability -->
+            <div class="p-3.5 rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-xs flex flex-col justify-between">
+                <div class="flex items-center justify-between text-xs text-[var(--muted-foreground)] mb-1">
+                    <span class="font-bold uppercase tracking-wider text-[10px]">Fleet Reliability</span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                </div>
+                <div class="text-xl font-black text-emerald-600 dark:text-emerald-400 font-mono tracking-tight">
+                    <?= number_format($avgReliability * 100, 2) ?>%
+                </div>
+                <span class="text-[10px] text-[var(--muted-foreground)] mt-1">Rata-rata Keandalan Rig</span>
+            </div>
+
+            <!-- 2. Availability -->
+            <div class="p-3.5 rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-xs flex flex-col justify-between">
+                <div class="flex items-center justify-between text-xs text-[var(--muted-foreground)] mb-1">
+                    <span class="font-bold uppercase tracking-wider text-[10px]">Fleet Availability</span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span>
+                </div>
+                <div class="text-xl font-black text-sky-600 dark:text-sky-400 font-mono tracking-tight">
+                    <?= number_format($avgAvailability * 100, 2) ?>%
+                </div>
+                <span class="text-[10px] text-[var(--muted-foreground)] mt-1">Rata-rata Kesiapan Kerja</span>
+            </div>
+
+            <!-- 3. Utilization -->
+            <div class="p-3.5 rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-xs flex flex-col justify-between">
+                <div class="flex items-center justify-between text-xs text-[var(--muted-foreground)] mb-1">
+                    <span class="font-bold uppercase tracking-wider text-[10px]">Fleet Utilization</span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
+                </div>
+                <div class="text-xl font-black text-indigo-600 dark:text-indigo-400 font-mono tracking-tight">
+                    <?= number_format($avgUtilization * 100, 2) ?>%
+                </div>
+                <span class="text-[10px] text-[var(--muted-foreground)] mt-1">Tingkat Utilisasi Operasi</span>
+            </div>
+
+            <!-- 4. Total NPT -->
+            <div class="p-3.5 rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-xs flex flex-col justify-between">
+                <div class="flex items-center justify-between text-xs text-[var(--muted-foreground)] mb-1">
+                    <span class="font-bold uppercase tracking-wider text-[10px]">Total NPT (Downtime)</span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                </div>
+                <div class="text-xl font-black text-rose-600 dark:text-rose-400 font-mono tracking-tight">
+                    <?= number_format($totSbwc + $totUnpaid, 2) ?> <span class="text-xs font-semibold">Jam</span>
+                </div>
+                <div class="flex items-center gap-1.5 text-[10px] text-[var(--muted-foreground)] mt-1">
+                    <span class="text-rose-500 font-semibold font-mono">Unpaid: <?= number_format($totUnpaid, 1) ?>h</span>
+                    <span>&bull;</span>
+                    <span class="text-amber-500 font-semibold font-mono">SBWC: <?= number_format($totSbwc, 1) ?>h</span>
+                </div>
+            </div>
+
+            <!-- 5. Total Well Job -->
+            <div class="p-3.5 rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-xs flex flex-col justify-between col-span-2 sm:col-span-1">
+                <div class="flex items-center justify-between text-xs text-[var(--muted-foreground)] mb-1">
+                    <span class="font-bold uppercase tracking-wider text-[10px]">Total Well Job</span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span>
+                </div>
+                <div class="text-xl font-black text-purple-600 dark:text-purple-400 font-mono tracking-tight">
+                    <?= number_format($totWell, 0, ',', '.') ?> <span class="text-xs font-semibold">Sumur</span>
+                </div>
+                <span class="text-[10px] text-[var(--muted-foreground)] mt-1">Total Sumur Selesai</span>
+            </div>
+        </div>
+
         <!-- GRAFIK 1: NPT ALL RIG (SBWC & UNPAID DOWNTIME PER RIG) -->
-        <div id="cardChartNpt" class="rounded-2xl bg-slate-900 border border-slate-700 shadow-xl overflow-hidden scroll-mt-6">
-            <div class="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 p-4 border-b border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div class="flex items-center gap-3">
-                    <div class="p-2 rounded-lg bg-rose-500/20 text-rose-400 border border-rose-500/30">
-                        <i class="fa-solid fa-clock-rotate-left text-sm"></i>
+        <div id="cardChartNpt" class="rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-sm overflow-hidden scroll-mt-6">
+            <div class="p-4 sm:p-5 border-b border-[var(--border)] bg-[var(--card-elevated)]/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex items-center gap-3.5">
+                    <div class="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 flex items-center justify-center flex-shrink-0">
+                        <i class="fa-solid fa-clock-rotate-left text-base"></i>
                     </div>
                     <div>
-                        <h5 class="text-sm font-black text-white uppercase tracking-wider">NPT ALL RIG BMS — PERIODE <?= strtoupper($bulanList[$bulan]) ?> <?= $tahun ?></h5>
-                        <p class="text-xs text-slate-400">Total Downtime Jam SBWC (Stand By With Crew) &amp; UNPAID per Armada Rig</p>
+                        <div class="flex items-center gap-2">
+                            <h5 class="text-sm sm:text-base font-extrabold text-[var(--foreground)] tracking-tight">NPT ALL RIG BMS — PERIODE <?= strtoupper($bulanList[$bulan]) ?> <?= $tahun ?></h5>
+                            <?php if (($totSbwc + $totUnpaid) == 0): ?>
+                                <span class="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                    <i class="fa-solid fa-circle-check"></i> Zero Downtime
+                                </span>
+                            <?php endif; ?>
+                        </div>
+                        <p class="text-xs text-[var(--muted-foreground)]">Total Downtime Jam SBWC (Stand By With Crew) &amp; UNPAID per Armada Rig</p>
                     </div>
                 </div>
-                <div class="flex items-center gap-2">
-                    <span class="px-2.5 py-1 rounded-lg bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-mono font-bold">
+                <div class="flex flex-wrap items-center gap-2">
+                    <!-- Segmented Mode Toggle: Kombinasi / Batang / Garis -->
+                    <div class="inline-flex items-center p-0.5 rounded-lg bg-[var(--secondary)] border border-[var(--border)] text-xs">
+                        <button type="button" onclick="setChartDisplayMode('npt', 'combo')" id="btnMode_npt_combo" class="px-2 py-0.5 rounded font-bold bg-[var(--card)] text-primary shadow-2xs border border-[var(--border)]">Kombinasi</button>
+                        <button type="button" onclick="setChartDisplayMode('npt', 'bar')" id="btnMode_npt_bar" class="px-2 py-0.5 rounded text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition">Batang</button>
+                        <button type="button" onclick="setChartDisplayMode('npt', 'line')" id="btnMode_npt_line" class="px-2 py-0.5 rounded text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition">Garis</button>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-xs font-mono font-bold">
                         Unpaid: <?= number_format($totUnpaid, 2) ?> Jam
                     </span>
-                    <span class="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-mono font-bold">
+                    <span class="px-2.5 py-1 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-xs font-mono font-bold">
                         SBWC: <?= number_format($totSbwc, 2) ?> Jam
                     </span>
-                    <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-200 border border-slate-700 text-xs font-mono font-black">
+                    <span class="px-2.5 py-1 rounded-xl bg-[var(--secondary)] text-[var(--foreground)] border border-[var(--border)] text-xs font-mono font-black">
                         Total: <?= number_format($totSbwc + $totUnpaid, 2) ?> Jam
                     </span>
                 </div>
             </div>
-            <div class="p-5">
-                <div class="h-80 w-full">
+            <div class="p-4 sm:p-6 bg-[var(--card)]">
+                <?php if (($totSbwc + $totUnpaid) == 0): ?>
+                    <div class="mb-4 p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/20 flex items-center justify-between text-xs text-emerald-700 dark:text-emerald-300">
+                        <span class="flex items-center gap-2 font-medium">
+                            <i class="fa-solid fa-circle-check text-emerald-500"></i>
+                            Tidak ada catatan downtime (NPT) pada periode ini. Seluruh armada beroperasi optimal tanpa kehilangan waktu kerja.
+                        </span>
+                        <span class="font-mono font-bold">NPT: 0.00 Jam</span>
+                    </div>
+                <?php endif; ?>
+                <div class="h-80 sm:h-96 w-full relative">
                     <canvas id="chartNptAllRig"></canvas>
                 </div>
             </div>
         </div>
 
         <!-- GRAFIK 2: RAU ALL RIG (RELIABILITY & AVAILABILITY DENGAN UTILIZATION) -->
-        <div id="cardChartRau" class="rounded-2xl bg-slate-900 border border-slate-700 shadow-xl overflow-hidden scroll-mt-6">
-            <div class="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 p-4 border-b border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div class="flex items-center gap-3">
-                    <div class="p-2 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30">
-                        <i class="fa-solid fa-gauge-high text-sm"></i>
+        <div id="cardChartRau" class="rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-sm overflow-hidden scroll-mt-6">
+            <div class="p-4 sm:p-5 border-b border-[var(--border)] bg-[var(--card-elevated)]/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex items-center gap-3.5">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                        <i class="fa-solid fa-gauge-high text-base"></i>
                     </div>
                     <div>
-                        <h5 class="text-sm font-black text-white uppercase tracking-wider">RAU ALL RIG BMS — PERIODE <?= strtoupper($bulanList[$bulan]) ?> <?= $tahun ?></h5>
-                        <p class="text-xs text-slate-400">Indikator Reliabilitas (%), Availability (%), &amp; Utilitas (%) Seluruh Rig</p>
+                        <h5 class="text-sm sm:text-base font-extrabold text-[var(--foreground)] tracking-tight">RAU ALL RIG BMS — PERIODE <?= strtoupper($bulanList[$bulan]) ?> <?= $tahun ?></h5>
+                        <p class="text-xs text-[var(--muted-foreground)]">Indikator Reliabilitas (%), Availability (%), &amp; Utilitas (%) Seluruh Rig</p>
                     </div>
                 </div>
-                <div class="flex items-center gap-2">
-                    <span class="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-mono font-bold">
+                <div class="flex flex-wrap items-center gap-2">
+                    <!-- Segmented Mode Toggle: Kombinasi / Batang / Garis -->
+                    <div class="inline-flex items-center p-0.5 rounded-lg bg-[var(--secondary)] border border-[var(--border)] text-xs">
+                        <button type="button" onclick="setChartDisplayMode('rau', 'combo')" id="btnMode_rau_combo" class="px-2 py-0.5 rounded font-bold bg-[var(--card)] text-primary shadow-2xs border border-[var(--border)]">Kombinasi</button>
+                        <button type="button" onclick="setChartDisplayMode('rau', 'bar')" id="btnMode_rau_bar" class="px-2 py-0.5 rounded text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition">Batang</button>
+                        <button type="button" onclick="setChartDisplayMode('rau', 'line')" id="btnMode_rau_line" class="px-2 py-0.5 rounded text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition">Garis</button>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-mono font-bold">
                         Avg Rel: <?= number_format($avgReliability * 100, 2) ?>%
                     </span>
-                    <span class="px-2.5 py-1 rounded-lg bg-sky-500/20 text-sky-300 border border-sky-500/30 text-xs font-mono font-bold">
+                    <span class="px-2.5 py-1 rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20 text-xs font-mono font-bold">
                         Avg Avail: <?= number_format($avgAvailability * 100, 2) ?>%
                     </span>
-                    <span class="px-2.5 py-1 rounded-lg bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-xs font-mono font-bold">
+                    <span class="px-2.5 py-1 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 text-xs font-mono font-bold">
                         Avg Util: <?= number_format($avgUtilization * 100, 2) ?>%
                     </span>
                 </div>
             </div>
-            <div class="p-5">
-                <div class="h-80 w-full">
+            <div class="p-4 sm:p-6 bg-[var(--card)]">
+                <div class="h-80 sm:h-96 w-full relative">
                     <canvas id="chartRauAllRig"></canvas>
                 </div>
             </div>
@@ -800,46 +935,60 @@ $decodeRemarkDisplay = static function (?string $raw): string {
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
             <!-- GRAFIK 3: AVERAGE MIRU (HRS) -->
-            <div id="cardChartMiru" class="rounded-2xl bg-slate-900 border border-slate-700 shadow-xl overflow-hidden scroll-mt-6">
-                <div class="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 p-4 border-b border-slate-700 flex items-center justify-between gap-2">
+            <div id="cardChartMiru" class="rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-sm overflow-hidden scroll-mt-6">
+                <div class="p-4 sm:p-5 border-b border-[var(--border)] bg-[var(--card-elevated)]/60 flex items-center justify-between gap-3">
                     <div class="flex items-center gap-3">
-                        <div class="p-2 rounded-lg bg-blue-500/20 text-blue-400 border border-blue-500/30">
-                            <i class="fa-solid fa-truck-moving text-sm"></i>
+                        <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 flex items-center justify-center flex-shrink-0">
+                            <i class="fa-solid fa-truck-moving text-base"></i>
                         </div>
                         <div>
-                            <h5 class="text-sm font-black text-white uppercase tracking-wider">AVERAGE MIRU RIG BMS</h5>
-                            <p class="text-xs text-slate-400">Rata-rata Durasi MIRU (Jam / Sumur) Periode <?= $bulanList[$bulan] ?> <?= $tahun ?></p>
+                            <h5 class="text-sm sm:text-base font-extrabold text-[var(--foreground)] tracking-tight">AVERAGE MIRU RIG BMS</h5>
+                            <p class="text-xs text-[var(--muted-foreground)]">Durasi Moving In Rig Up (Jam/Sumur) Periode <?= $bulanList[$bulan] ?> <?= $tahun ?></p>
                         </div>
                     </div>
-                    <span class="px-2.5 py-1 rounded-lg bg-blue-600/20 text-blue-300 border border-blue-500/30 text-xs font-mono font-black">
-                        Avg: <?= number_format($avgMiruAll, 2) ?> Jam
-                    </span>
+                    <div class="flex items-center gap-2">
+                        <div class="inline-flex items-center p-0.5 rounded-lg bg-[var(--secondary)] border border-[var(--border)] text-xs">
+                            <button type="button" onclick="setChartDisplayMode('miru', 'combo')" id="btnMode_miru_combo" class="px-2 py-0.5 rounded font-bold bg-[var(--card)] text-primary shadow-2xs border border-[var(--border)]">Kombinasi</button>
+                            <button type="button" onclick="setChartDisplayMode('miru', 'bar')" id="btnMode_miru_bar" class="px-2 py-0.5 rounded text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition">Batang</button>
+                            <button type="button" onclick="setChartDisplayMode('miru', 'line')" id="btnMode_miru_line" class="px-2 py-0.5 rounded text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition">Garis</button>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-xs font-mono font-black">
+                            Avg: <?= number_format($avgMiruAll, 2) ?> Jam
+                        </span>
+                    </div>
                 </div>
-                <div class="p-5">
-                    <div class="h-72 w-full">
+                <div class="p-4 sm:p-6 bg-[var(--card)]">
+                    <div class="h-72 sm:h-80 w-full relative">
                         <canvas id="chartAvgMiru"></canvas>
                     </div>
                 </div>
             </div>
 
             <!-- GRAFIK 4: AVERAGE CYCLE TIME (HRS) -->
-            <div id="cardChartCt" class="rounded-2xl bg-slate-900 border border-slate-700 shadow-xl overflow-hidden scroll-mt-6">
-                <div class="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 p-4 border-b border-slate-700 flex items-center justify-between gap-2">
+            <div id="cardChartCt" class="rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-sm overflow-hidden scroll-mt-6">
+                <div class="p-4 sm:p-5 border-b border-[var(--border)] bg-[var(--card-elevated)]/60 flex items-center justify-between gap-3">
                     <div class="flex items-center gap-3">
-                        <div class="p-2 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                            <i class="fa-solid fa-arrows-spin text-sm"></i>
+                        <div class="w-10 h-10 rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20 flex items-center justify-center flex-shrink-0">
+                            <i class="fa-solid fa-arrows-spin text-base"></i>
                         </div>
                         <div>
-                            <h5 class="text-sm font-black text-white uppercase tracking-wider">AVERAGE CYCLE TIME RIG BMS</h5>
-                            <p class="text-xs text-slate-400">Rata-rata Durasi Operasi / Cycle Time (Jam / Sumur)</p>
+                            <h5 class="text-sm sm:text-base font-extrabold text-[var(--foreground)] tracking-tight">AVERAGE CYCLE TIME RIG BMS</h5>
+                            <p class="text-xs text-[var(--muted-foreground)]">Durasi Rata-rata Operasi / Turnaround (Jam/Sumur)</p>
                         </div>
                     </div>
-                    <span class="px-2.5 py-1 rounded-lg bg-emerald-600/20 text-emerald-300 border border-emerald-500/30 text-xs font-mono font-black">
-                        Avg: <?= number_format($avgCycleTimeAll, 2) ?> Jam
-                    </span>
+                    <div class="flex items-center gap-2">
+                        <div class="inline-flex items-center p-0.5 rounded-lg bg-[var(--secondary)] border border-[var(--border)] text-xs">
+                            <button type="button" onclick="setChartDisplayMode('ct', 'combo')" id="btnMode_ct_combo" class="px-2 py-0.5 rounded font-bold bg-[var(--card)] text-primary shadow-2xs border border-[var(--border)]">Kombinasi</button>
+                            <button type="button" onclick="setChartDisplayMode('ct', 'bar')" id="btnMode_ct_bar" class="px-2 py-0.5 rounded text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition">Batang</button>
+                            <button type="button" onclick="setChartDisplayMode('ct', 'line')" id="btnMode_ct_line" class="px-2 py-0.5 rounded text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition">Garis</button>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20 text-xs font-mono font-black">
+                            Avg: <?= number_format($avgCycleTimeAll, 2) ?> Jam
+                        </span>
+                    </div>
                 </div>
-                <div class="p-5">
-                    <div class="h-72 w-full">
+                <div class="p-4 sm:p-6 bg-[var(--card)]">
+                    <div class="h-72 sm:h-80 w-full relative">
                         <canvas id="chartAvgCycleTime"></canvas>
                     </div>
                 </div>
@@ -848,25 +997,30 @@ $decodeRemarkDisplay = static function (?string $raw): string {
         </div>
 
         <!-- GRAFIK 5: TOTAL WELL JOB (SUMUR PER RIG) -->
-        <div id="cardChartWell" class="rounded-2xl bg-slate-900 border border-slate-700 shadow-xl overflow-hidden scroll-mt-6">
-            <div class="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 p-4 border-b border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div class="flex items-center gap-3">
-                    <div class="p-2 rounded-lg bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
-                        <i class="fa-solid fa-oil-well text-sm"></i>
+        <div id="cardChartWell" class="rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-sm overflow-hidden scroll-mt-6">
+            <div class="p-4 sm:p-5 border-b border-[var(--border)] bg-[var(--card-elevated)]/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex items-center gap-3.5">
+                    <div class="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 flex items-center justify-center flex-shrink-0">
+                        <i class="fa-solid fa-oil-well text-base"></i>
                     </div>
                     <div>
-                        <h5 class="text-sm font-black text-white uppercase tracking-wider">TOTAL WELL JOB RIG BMS — PERIODE <?= strtoupper($bulanList[$bulan]) ?> <?= $tahun ?></h5>
-                        <p class="text-xs text-slate-400">Jumlah Sumur yang Diselesaikan per Rig Periode <?= $bulanList[$bulan] ?> <?= $tahun ?></p>
+                        <h5 class="text-sm sm:text-base font-extrabold text-[var(--foreground)] tracking-tight">TOTAL WELL JOB RIG BMS — PERIODE <?= strtoupper($bulanList[$bulan]) ?> <?= $tahun ?></h5>
+                        <p class="text-xs text-[var(--muted-foreground)]">Jumlah Sumur yang Diselesaikan per Rig Periode <?= $bulanList[$bulan] ?> <?= $tahun ?></p>
                     </div>
                 </div>
                 <div class="flex items-center gap-2">
-                    <span class="px-3 py-1.5 rounded-lg bg-indigo-600/20 text-indigo-300 border border-indigo-500/30 text-xs font-mono font-black">
+                    <div class="inline-flex items-center p-0.5 rounded-lg bg-[var(--secondary)] border border-[var(--border)] text-xs">
+                        <button type="button" onclick="setChartDisplayMode('well', 'combo')" id="btnMode_well_combo" class="px-2 py-0.5 rounded font-bold bg-[var(--card)] text-primary shadow-2xs border border-[var(--border)]">Kombinasi</button>
+                        <button type="button" onclick="setChartDisplayMode('well', 'bar')" id="btnMode_well_bar" class="px-2 py-0.5 rounded text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition">Batang</button>
+                        <button type="button" onclick="setChartDisplayMode('well', 'line')" id="btnMode_well_line" class="px-2 py-0.5 rounded text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition">Garis</button>
+                    </div>
+                    <span class="px-3 py-1.5 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 text-xs font-mono font-black">
                         Grand Total: <?= number_format($totWell, 0, ',', '.') ?> Sumur
                     </span>
                 </div>
             </div>
-            <div class="p-5">
-                <div class="h-80 w-full">
+            <div class="p-4 sm:p-6 bg-[var(--card)]">
+                <div class="h-80 sm:h-96 w-full relative">
                     <canvas id="chartTotalWellJob"></canvas>
                 </div>
             </div>
@@ -1042,94 +1196,380 @@ $decodeRemarkDisplay = static function (?string $raw): string {
     // Ekstraksi Data dari PHP
     <?php
     $labelsArray = [];
-    $relArray = [];
-    $avaArray = [];
-    $utiArray = [];
-    $miruArray = [];
-    $ctArray = [];
-    $wellArray = [];
-    $sbwcArray = [];
+    $relArray    = [];
+    $avaArray    = [];
+    $utiArray    = [];
+    $miruArray   = [];
+    $ctArray     = [];
+    $wellArray   = [];
+    $sbwcArray   = [];
     $unpaidArray = [];
+    $activeFlags = [];
 
     foreach ($summaries as $s) {
         $labelsArray[] = $s['kode'];
-        $relArray[]    = round((float)($s['reliability'] ?? 0) * 100, 2);
-        $avaArray[]    = round((float)($s['availability'] ?? 0) * 100, 2);
-        $utiArray[]    = round((float)($s['utilization'] ?? 0) * 100, 2);
-        $miruArray[]   = round((float)($s['avg_miru'] ?? 0), 2);
-        $ctArray[]     = round((float)($s['avg_cycle_time'] ?? 0), 2);
-        $wellArray[]   = (int)($s['total_well_job'] ?? 0);
-        $sbwcArray[]   = round((float)($s['sbwc_jam'] ?? 0), 2);
-        $unpaidArray[] = round((float)($s['unpaid_jam'] ?? 0), 2);
+        $rRel          = round((float)($s['reliability'] ?? 0) * 100, 2);
+        $rAva          = round((float)($s['availability'] ?? 0) * 100, 2);
+        $rUti          = round((float)($s['utilization'] ?? 0) * 100, 2);
+        $rMiru         = round((float)($s['avg_miru'] ?? 0), 2);
+        $rCt           = round((float)($s['avg_cycle_time'] ?? 0), 2);
+        $rWell         = (int)($s['total_well_job'] ?? 0);
+        $rSbwc         = round((float)($s['sbwc_jam'] ?? 0), 2);
+        $rUnpaid       = round((float)($s['unpaid_jam'] ?? 0), 2);
+        $rOps          = (float)($s['total_ops'] ?? 0);
+
+        $relArray[]    = $rRel;
+        $avaArray[]    = $rAva;
+        $utiArray[]    = $rUti;
+        $miruArray[]   = $rMiru;
+        $ctArray[]     = $rCt;
+        $wellArray[]   = $rWell;
+        $sbwcArray[]   = $rSbwc;
+        $unpaidArray[] = $rUnpaid;
+
+        // Rig dianggap aktif jika menyelesaikan sumur, memiliki jam operasi, atau mengalami downtime
+        $activeFlags[] = ($rWell > 0 || $rOps > 0 || ($rSbwc + $rUnpaid) > 0);
     }
     ?>
 
-    const chartLabels = <?= json_encode($labelsArray) ?>;
-    const relData     = <?= json_encode($relArray) ?>;
-    const avaData     = <?= json_encode($avaArray) ?>;
-    const utiData     = <?= json_encode($utiArray) ?>;
-    const miruData    = <?= json_encode($miruArray) ?>;
-    const ctData      = <?= json_encode($ctArray) ?>;
-    const wellData    = <?= json_encode($wellArray) ?>;
-    const sbwcData    = <?= json_encode($sbwcArray) ?>;
-    const unpaidData  = <?= json_encode($unpaidArray) ?>;
+    const fullChartData = {
+        labels: <?= json_encode($labelsArray) ?>,
+        rel:    <?= json_encode($relArray) ?>,
+        ava:    <?= json_encode($avaArray) ?>,
+        uti:    <?= json_encode($utiArray) ?>,
+        miru:   <?= json_encode($miruArray) ?>,
+        ct:     <?= json_encode($ctArray) ?>,
+        well:   <?= json_encode($wellArray) ?>,
+        sbwc:   <?= json_encode($sbwcArray) ?>,
+        unpaid: <?= json_encode($unpaidArray) ?>,
+        active: <?= json_encode($activeFlags) ?>
+    };
 
-    const COMMON_GRID = { color: 'rgba(255, 255, 255, 0.08)' };
-    const COMMON_TICKS = { color: '#94a3b8', font: { size: 11, family: "'JetBrains Mono', monospace" } };
+    let currentChartFilter = 'all'; // 'all' or 'active'
+    let chartInstances = {};
+
+    function getChartThemeColors() {
+        const isDark = document.documentElement.classList.contains('dark') ||
+                       document.documentElement.getAttribute('data-theme') === 'dark';
+        return {
+            isDark:         isDark,
+            grid:           isDark ? 'rgba(255, 255, 255, 0.07)' : 'rgba(15, 23, 42, 0.06)',
+            ticks:          isDark ? '#94a3b8' : '#475569',
+            legend:         isDark ? '#f1f5f9' : '#0f172a',
+            tooltipBg:      isDark ? '#090d16' : '#0f172a',
+            tooltipBorder:  isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.10)',
+            tooltipTitle:   '#ffffff',
+            tooltipBody:    '#e2e8f0',
+            fontSans:       "'Geist', -apple-system, BlinkMacSystemFont, sans-serif",
+            fontMono:       "'JetBrains Mono', monospace"
+        };
+    }
+
+    function getFilteredData() {
+        if (currentChartFilter === 'all') {
+            return fullChartData;
+        }
+        const activeIndices = [];
+        fullChartData.active.forEach((isActive, idx) => {
+            if (isActive) activeIndices.push(idx);
+        });
+
+        // Jika tidak ada rig aktif sama sekali pada periode ini, fallback tampilkan semua
+        if (activeIndices.length === 0) {
+            return fullChartData;
+        }
+
+        return {
+            labels: activeIndices.map(i => fullChartData.labels[i]),
+            rel:    activeIndices.map(i => fullChartData.rel[i]),
+            ava:    activeIndices.map(i => fullChartData.ava[i]),
+            uti:    activeIndices.map(i => fullChartData.uti[i]),
+            miru:   activeIndices.map(i => fullChartData.miru[i]),
+            ct:     activeIndices.map(i => fullChartData.ct[i]),
+            well:   activeIndices.map(i => fullChartData.well[i]),
+            sbwc:   activeIndices.map(i => fullChartData.sbwc[i]),
+            unpaid: activeIndices.map(i => fullChartData.unpaid[i]),
+            active: activeIndices.map(i => fullChartData.active[i])
+        };
+    }
+
+    function setChartFilter(mode) {
+        currentChartFilter = mode;
+        const btnAll    = document.getElementById('btnFilterChartAll');
+        const btnActive = document.getElementById('btnFilterChartActive');
+
+        if (btnAll && btnActive) {
+            if (mode === 'all') {
+                btnAll.className    = 'px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-xs bg-[var(--card)] text-[var(--foreground)] border border-[var(--border)]';
+                btnActive.className = 'px-3 py-1.5 rounded-lg text-xs font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-all';
+            } else {
+                btnActive.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-xs bg-[var(--card)] text-[var(--foreground)] border border-[var(--border)]';
+                btnAll.className    = 'px-3 py-1.5 rounded-lg text-xs font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-all';
+            }
+        }
+
+        updateAllChartsData();
+    }
+
+    function computeChartLines(d) {
+        const totalNpt = d.unpaid.map((u, i) => Number(((u || 0) + (d.sbwc[i] || 0)).toFixed(2)));
+        const sumNpt = totalNpt.reduce((a, b) => a + b, 0);
+        const avgNpt = totalNpt.length ? Number((sumNpt / totalNpt.length).toFixed(2)) : 0;
+
+        const sumMiru = d.miru.reduce((a, b) => a + b, 0);
+        const avgMiru = d.miru.length ? Number((sumMiru / d.miru.length).toFixed(2)) : 0;
+
+        const sumCt = d.ct.reduce((a, b) => a + b, 0);
+        const avgCt = d.ct.length ? Number((sumCt / d.ct.length).toFixed(2)) : 0;
+
+        const sumWell = d.well.reduce((a, b) => a + b, 0);
+        const avgWell = d.well.length ? Number((sumWell / d.well.length).toFixed(1)) : 0;
+
+        return {
+            totalNpt,
+            avgNpt,
+            avgNptLine: Array(d.labels.length).fill(avgNpt),
+            avgMiru,
+            avgMiruLine: Array(d.labels.length).fill(avgMiru),
+            avgCt,
+            avgCtLine: Array(d.labels.length).fill(avgCt),
+            avgWell,
+            avgWellLine: Array(d.labels.length).fill(avgWell),
+            targetKpiLine: Array(d.labels.length).fill(95.0)
+        };
+    }
+
+    let chartDisplayModes = {
+        npt: 'combo',
+        rau: 'combo',
+        miru: 'combo',
+        ct: 'combo',
+        well: 'combo'
+    };
+
+    function setChartDisplayMode(chartKey, mode) {
+        chartDisplayModes[chartKey] = mode;
+        const chart = chartInstances[chartKey];
+
+        ['combo', 'bar', 'line'].forEach(m => {
+            const btn = document.getElementById(`btnMode_${chartKey}_${m}`);
+            if (btn) {
+                if (m === mode) {
+                    btn.className = 'px-2 py-0.5 rounded font-bold bg-[var(--card)] text-primary shadow-2xs border border-[var(--border)]';
+                } else {
+                    btn.className = 'px-2 py-0.5 rounded text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition';
+                }
+            }
+        });
+
+        if (!chart) return;
+
+        chart.data.datasets.forEach(ds => {
+            const isLine = ds.type === 'line';
+            if (mode === 'combo') {
+                ds.hidden = false;
+            } else if (mode === 'bar') {
+                ds.hidden = isLine;
+            } else if (mode === 'line') {
+                ds.hidden = !isLine;
+            }
+        });
+        chart.update();
+    }
+
+    function updateAllChartsData() {
+        if (!chartsInitialized) return;
+        const d = getFilteredData();
+        const lines = computeChartLines(d);
+
+        if (chartInstances.npt) {
+            chartInstances.npt.data.labels = d.labels;
+            chartInstances.npt.data.datasets[0].data = d.unpaid;
+            chartInstances.npt.data.datasets[1].data = d.sbwc;
+            chartInstances.npt.data.datasets[2].data = lines.totalNpt;
+            chartInstances.npt.data.datasets[3].data = lines.avgNptLine;
+            chartInstances.npt.data.datasets[3].label = `Rata-rata Armada (${lines.avgNpt} Jam)`;
+            chartInstances.npt.update();
+            setChartDisplayMode('npt', chartDisplayModes.npt);
+        }
+
+        if (chartInstances.rau) {
+            chartInstances.rau.data.labels = d.labels;
+            chartInstances.rau.data.datasets[0].data = d.rel;
+            chartInstances.rau.data.datasets[1].data = d.ava;
+            chartInstances.rau.data.datasets[2].data = d.uti;
+            chartInstances.rau.data.datasets[3].data = d.uti;
+            chartInstances.rau.data.datasets[4].data = lines.targetKpiLine;
+            chartInstances.rau.update();
+            setChartDisplayMode('rau', chartDisplayModes.rau);
+        }
+
+        if (chartInstances.miru) {
+            chartInstances.miru.data.labels = d.labels;
+            chartInstances.miru.data.datasets[0].data = d.miru;
+            chartInstances.miru.data.datasets[1].data = d.miru;
+            chartInstances.miru.data.datasets[2].data = lines.avgMiruLine;
+            chartInstances.miru.data.datasets[2].label = `Rata-rata Armada (${lines.avgMiru} Jam)`;
+            chartInstances.miru.update();
+            setChartDisplayMode('miru', chartDisplayModes.miru);
+        }
+
+        if (chartInstances.ct) {
+            chartInstances.ct.data.labels = d.labels;
+            chartInstances.ct.data.datasets[0].data = d.ct;
+            chartInstances.ct.data.datasets[1].data = d.ct;
+            chartInstances.ct.data.datasets[2].data = lines.avgCtLine;
+            chartInstances.ct.data.datasets[2].label = `Rata-rata Armada (${lines.avgCt} Jam)`;
+            chartInstances.ct.update();
+            setChartDisplayMode('ct', chartDisplayModes.ct);
+        }
+
+        if (chartInstances.well) {
+            chartInstances.well.data.labels = d.labels;
+            chartInstances.well.data.datasets[0].data = d.well;
+            chartInstances.well.data.datasets[1].data = d.well;
+            chartInstances.well.data.datasets[2].data = lines.avgWellLine;
+            chartInstances.well.data.datasets[2].label = `Rata-rata Armada (${lines.avgWell} Sumur)`;
+            chartInstances.well.update();
+            setChartDisplayMode('well', chartDisplayModes.well);
+        }
+    }
 
     function initMonthlyCharts() {
-        // 1. CHART NPT ALL RIG (Stacked / Grouped Bar: SBWC & UNPAID)
+        const tc = getChartThemeColors();
+        const d  = getFilteredData();
+        const lines = computeChartLines(d);
+
+        const commonTooltipConfig = {
+            backgroundColor: tc.tooltipBg,
+            titleColor:      tc.tooltipTitle,
+            bodyColor:       tc.tooltipBody,
+            borderColor:     tc.tooltipBorder,
+            borderWidth:     1,
+            padding:         12,
+            cornerRadius:    10,
+            boxPadding:      6,
+            usePointStyle:   true,
+            titleFont:       { family: tc.fontSans, size: 12, weight: 'bold' },
+            bodyFont:        { family: tc.fontMono, size: 12 },
+            footerFont:      { family: tc.fontMono, size: 11, weight: 'bold' }
+        };
+
+        const commonScaleTicks = {
+            color: tc.ticks,
+            font:  { size: 11, family: tc.fontMono }
+        };
+
+        const commonGrid = {
+            color: tc.grid
+        };
+
+        // ══════════════════════════════════════════════════════════════════════
+        // 1. CHART NPT ALL RIG (Combo Stacked Bar + Trendline & Fleet Average Line)
+        // ══════════════════════════════════════════════════════════════════════
         const ctxNpt = document.getElementById('chartNptAllRig');
         if (ctxNpt) {
-            new Chart(ctxNpt, {
-                type: 'bar',
+            chartInstances.npt = new Chart(ctxNpt, {
                 data: {
-                    labels: chartLabels,
+                    labels: d.labels,
                     datasets: [
                         {
+                            type: 'bar',
                             label: 'UNPAID (Jam)',
-                            data: unpaidData,
-                            backgroundColor: '#ef4444', // Red accent
-                            borderRadius: 4,
-                            stack: 'Stack 0'
+                            data: d.unpaid,
+                            backgroundColor: 'rgba(244, 63, 94, 0.90)', // Crimson Rose
+                            borderColor: '#e11d48',
+                            borderWidth: 1.5,
+                            borderRadius: 6,
+                            stack: 'Stack 0',
+                            order: 2
                         },
                         {
+                            type: 'bar',
                             label: 'SBWC (Jam)',
-                            data: sbwcData,
-                            backgroundColor: '#f59e0b', // Amber/Yellow accent
-                            borderRadius: 4,
-                            stack: 'Stack 0'
+                            data: d.sbwc,
+                            backgroundColor: 'rgba(245, 158, 11, 0.90)', // Warm Amber Honey
+                            borderColor: '#d97706',
+                            borderWidth: 1.5,
+                            borderRadius: 6,
+                            stack: 'Stack 0',
+                            order: 2
+                        },
+                        {
+                            type: 'line',
+                            label: 'Garis Tren Total NPT (Jam)',
+                            data: lines.totalNpt,
+                            borderColor: '#e11d48',
+                            backgroundColor: 'rgba(225, 29, 72, 0.08)',
+                            borderWidth: 2.5,
+                            pointRadius: 4.5,
+                            pointHoverRadius: 7,
+                            pointBackgroundColor: '#ffffff',
+                            pointBorderColor: '#e11d48',
+                            pointBorderWidth: 2,
+                            tension: 0.35,
+                            fill: false,
+                            order: 0
+                        },
+                        {
+                            type: 'line',
+                            label: `Rata-rata Armada (${lines.avgNpt} Jam)`,
+                            data: lines.avgNptLine,
+                            borderColor: '#fb7185',
+                            borderWidth: 1.8,
+                            borderDash: [5, 4],
+                            pointRadius: 0,
+                            fill: false,
+                            order: 1
                         }
                     ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
                     plugins: {
                         legend: {
                             position: 'top',
-                            labels: { color: '#e2e8f0', font: { size: 12, weight: 'bold' } }
+                            labels: {
+                                color: tc.legend,
+                                font: { size: 12, weight: 'bold', family: tc.fontSans },
+                                usePointStyle: true,
+                                pointStyle: 'rectRounded',
+                                padding: 16
+                            }
                         },
                         tooltip: {
-                            mode: 'index',
-                            intersect: false,
+                            ...commonTooltipConfig,
                             callbacks: {
                                 footer: function(items) {
+                                    const nptItem = items.find(it => it.dataset.type === 'line' && it.dataset.label.includes('Tren'));
+                                    if (nptItem) {
+                                        return `Total NPT: ${Number(nptItem.raw).toFixed(2)} Jam`;
+                                    }
                                     let sum = 0;
-                                    items.forEach(it => sum += it.parsed.y);
+                                    items.filter(it => it.dataset.type === 'bar').forEach(it => sum += it.parsed.y);
                                     return 'Total NPT: ' + sum.toFixed(2) + ' Jam';
                                 }
                             }
                         }
                     },
                     scales: {
-                        x: { grid: { display: false }, ticks: COMMON_TICKS },
+                        x: {
+                            grid: { display: false },
+                            ticks: commonScaleTicks
+                        },
                         y: {
-                            stacked: true,
+                            stacked: false,
                             beginAtZero: true,
-                            grid: COMMON_GRID,
+                            suggestedMax: 10,
+                            grid: commonGrid,
                             ticks: {
-                                ...COMMON_TICKS,
+                                ...commonScaleTicks,
+                                precision: 0,
                                 callback: function(val) { return val + ' Jam'; }
                             }
                         }
@@ -1138,62 +1578,119 @@ $decodeRemarkDisplay = static function (?string $raw): string {
             });
         }
 
-        // 2. CHART RAU ALL RIG (Grouped Bar: Reliability, Availability, Utilization %)
+        // ══════════════════════════════════════════════════════════════════════
+        // 2. CHART RAU ALL RIG (Combo Bar: Rel, Ava + Line: Utilisasi & Target 95%)
+        // ══════════════════════════════════════════════════════════════════════
         const ctxRau = document.getElementById('chartRauAllRig');
         if (ctxRau) {
-            new Chart(ctxRau, {
-                type: 'bar',
+            chartInstances.rau = new Chart(ctxRau, {
                 data: {
-                    labels: chartLabels,
+                    labels: d.labels,
                     datasets: [
                         {
+                            type: 'bar',
                             label: 'RELIABILITY (%)',
-                            data: relData,
-                            backgroundColor: '#f59e0b', // Excel: FFC000 kuning emas
-                            borderRadius: 4,
+                            data: d.rel,
+                            backgroundColor: 'rgba(16, 185, 129, 0.90)', // Vibrant Emerald
+                            borderColor: '#059669',
+                            borderWidth: 1,
+                            borderRadius: { topLeft: 5, topRight: 5, bottomLeft: 0, bottomRight: 0 },
                             barPercentage: 0.85,
-                            categoryPercentage: 0.8
+                            categoryPercentage: 0.82,
+                            order: 2
                         },
                         {
+                            type: 'bar',
                             label: 'AVAILABILITY (%)',
-                            data: avaData,
-                            backgroundColor: '#64748b', // Excel: tx2 abu-abu slate
-                            borderRadius: 4,
+                            data: d.ava,
+                            backgroundColor: 'rgba(14, 165, 233, 0.90)', // Radiant Sky Blue
+                            borderColor: '#0284c7',
+                            borderWidth: 1,
+                            borderRadius: { topLeft: 5, topRight: 5, bottomLeft: 0, bottomRight: 0 },
                             barPercentage: 0.85,
-                            categoryPercentage: 0.8
+                            categoryPercentage: 0.82,
+                            order: 2
                         },
                         {
+                            type: 'bar',
                             label: 'UTILIZATION (%)',
-                            data: utiData,
-                            backgroundColor: '#0284c7', // Sky blue untuk komplementer
-                            borderRadius: 4,
+                            data: d.uti,
+                            backgroundColor: 'rgba(99, 102, 241, 0.80)', // Royal Indigo
+                            borderColor: '#4f46e5',
+                            borderWidth: 1,
+                            borderRadius: { topLeft: 5, topRight: 5, bottomLeft: 0, bottomRight: 0 },
                             barPercentage: 0.85,
-                            categoryPercentage: 0.8
+                            categoryPercentage: 0.82,
+                            order: 2
+                        },
+                        {
+                            type: 'line',
+                            label: 'Garis Tren Utilisasi (%)',
+                            data: d.uti,
+                            borderColor: '#4f46e5',
+                            backgroundColor: 'rgba(79, 70, 229, 0.10)',
+                            borderWidth: 2.5,
+                            pointRadius: 4.5,
+                            pointHoverRadius: 7,
+                            pointBackgroundColor: '#ffffff',
+                            pointBorderColor: '#4f46e5',
+                            pointBorderWidth: 2,
+                            tension: 0.35,
+                            fill: false,
+                            order: 0
+                        },
+                        {
+                            type: 'line',
+                            label: 'Target KPI (95%)',
+                            data: lines.targetKpiLine,
+                            borderColor: '#10b981',
+                            borderWidth: 2,
+                            borderDash: [6, 4],
+                            pointRadius: 0,
+                            fill: false,
+                            order: 1
                         }
                     ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
                     plugins: {
                         legend: {
                             position: 'top',
-                            labels: { color: '#e2e8f0', font: { size: 12, weight: 'bold' } }
+                            labels: {
+                                color: tc.legend,
+                                font: { size: 12, weight: 'bold', family: tc.fontSans },
+                                usePointStyle: true,
+                                pointStyle: 'rectRounded',
+                                padding: 16
+                            }
                         },
                         tooltip: {
+                            ...commonTooltipConfig,
                             callbacks: {
-                                label: function(c) { return ` ${c.dataset.label}: ${c.raw.toFixed(1)}%`; }
+                                label: function(c) {
+                                    return ` ${c.dataset.label}: ${Number(c.raw).toFixed(1)}%`;
+                                }
                             }
                         }
                     },
                     scales: {
-                        x: { grid: { display: false }, ticks: COMMON_TICKS },
+                        x: {
+                            grid: { display: false },
+                            ticks: commonScaleTicks
+                        },
                         y: {
                             beginAtZero: true,
+                            min: 0,
                             max: 105,
-                            grid: COMMON_GRID,
+                            grid: commonGrid,
                             ticks: {
-                                ...COMMON_TICKS,
+                                ...commonScaleTicks,
                                 callback: function(val) { return val + '%'; }
                             }
                         }
@@ -1202,43 +1699,91 @@ $decodeRemarkDisplay = static function (?string $raw): string {
             });
         }
 
-        // 3. CHART AVERAGE MIRU (HRS)
+        // ══════════════════════════════════════════════════════════════════════
+        // 3. CHART AVERAGE MIRU (Combo Bar + Line Trend & Fleet Average)
+        // ══════════════════════════════════════════════════════════════════════
         const ctxMiru = document.getElementById('chartAvgMiru');
         if (ctxMiru) {
-            new Chart(ctxMiru, {
-                type: 'bar',
+            chartInstances.miru = new Chart(ctxMiru, {
                 data: {
-                    labels: chartLabels,
+                    labels: d.labels,
                     datasets: [
                         {
+                            type: 'bar',
                             label: 'AVERAGE MIRU (HRS)',
-                            data: miruData,
-                            backgroundColor: '#0070c0', // Warna persis Excel: 0070C0 Blue
-                            borderRadius: 4,
+                            data: d.miru,
+                            backgroundColor: 'rgba(37, 99, 235, 0.88)', // Cobalt Azure
+                            borderColor: '#1d4ed8',
+                            borderWidth: 1.5,
+                            borderRadius: { topLeft: 6, topRight: 6, bottomLeft: 0, bottomRight: 0 },
+                            order: 2
+                        },
+                        {
+                            type: 'line',
+                            label: 'Garis Tren MIRU',
+                            data: d.miru,
+                            borderColor: '#1d4ed8',
+                            borderWidth: 2.5,
+                            pointRadius: 4.5,
+                            pointHoverRadius: 7,
+                            pointBackgroundColor: '#ffffff',
+                            pointBorderColor: '#1d4ed8',
+                            pointBorderWidth: 2,
+                            tension: 0.35,
+                            fill: false,
+                            order: 0
+                        },
+                        {
+                            type: 'line',
+                            label: `Rata-rata Armada (${lines.avgMiru} Jam)`,
+                            data: lines.avgMiruLine,
+                            borderColor: '#60a5fa',
+                            borderWidth: 1.8,
+                            borderDash: [5, 4],
+                            pointRadius: 0,
+                            fill: false,
+                            order: 1
                         }
                     ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
                     plugins: {
                         legend: {
                             position: 'top',
-                            labels: { color: '#e2e8f0', font: { size: 12, weight: 'bold' } }
+                            labels: {
+                                color: tc.legend,
+                                font: { size: 12, weight: 'bold', family: tc.fontSans },
+                                usePointStyle: true,
+                                pointStyle: 'rectRounded'
+                            }
                         },
                         tooltip: {
+                            ...commonTooltipConfig,
                             callbacks: {
-                                label: function(c) { return ` Avg MIRU: ${c.raw.toFixed(2)} Jam/Sumur`; }
+                                label: function(c) {
+                                    return ` ${c.dataset.label}: ${Number(c.raw).toFixed(2)} Jam/Sumur`;
+                                }
                             }
                         }
                     },
                     scales: {
-                        x: { grid: { display: false }, ticks: COMMON_TICKS },
+                        x: {
+                            grid: { display: false },
+                            ticks: commonScaleTicks
+                        },
                         y: {
                             beginAtZero: true,
-                            grid: COMMON_GRID,
+                            suggestedMax: 10,
+                            grid: commonGrid,
                             ticks: {
-                                ...COMMON_TICKS,
+                                ...commonScaleTicks,
+                                precision: 0,
                                 callback: function(val) { return val + ' Jam'; }
                             }
                         }
@@ -1247,43 +1792,91 @@ $decodeRemarkDisplay = static function (?string $raw): string {
             });
         }
 
-        // 4. CHART AVERAGE CYCLE TIME (HRS)
+        // ══════════════════════════════════════════════════════════════════════
+        // 4. CHART AVERAGE CYCLE TIME (Combo Bar + Line Trend & Fleet Average)
+        // ══════════════════════════════════════════════════════════════════════
         const ctxCt = document.getElementById('chartAvgCycleTime');
         if (ctxCt) {
-            new Chart(ctxCt, {
-                type: 'bar',
+            chartInstances.ct = new Chart(ctxCt, {
                 data: {
-                    labels: chartLabels,
+                    labels: d.labels,
                     datasets: [
                         {
+                            type: 'bar',
                             label: 'AVERAGE CYCLE TIME (HRS)',
-                            data: ctData,
-                            backgroundColor: '#00b050', // Warna persis Excel: 00B050 Green
-                            borderRadius: 4,
+                            data: d.ct,
+                            backgroundColor: 'rgba(13, 148, 136, 0.88)', // Forest Teal
+                            borderColor: '#0f766e',
+                            borderWidth: 1.5,
+                            borderRadius: { topLeft: 6, topRight: 6, bottomLeft: 0, bottomRight: 0 },
+                            order: 2
+                        },
+                        {
+                            type: 'line',
+                            label: 'Garis Tren Cycle Time',
+                            data: d.ct,
+                            borderColor: '#0f766e',
+                            borderWidth: 2.5,
+                            pointRadius: 4.5,
+                            pointHoverRadius: 7,
+                            pointBackgroundColor: '#ffffff',
+                            pointBorderColor: '#0f766e',
+                            pointBorderWidth: 2,
+                            tension: 0.35,
+                            fill: false,
+                            order: 0
+                        },
+                        {
+                            type: 'line',
+                            label: `Rata-rata Armada (${lines.avgCt} Jam)`,
+                            data: lines.avgCtLine,
+                            borderColor: '#2dd4bf',
+                            borderWidth: 1.8,
+                            borderDash: [5, 4],
+                            pointRadius: 0,
+                            fill: false,
+                            order: 1
                         }
                     ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
                     plugins: {
                         legend: {
                             position: 'top',
-                            labels: { color: '#e2e8f0', font: { size: 12, weight: 'bold' } }
+                            labels: {
+                                color: tc.legend,
+                                font: { size: 12, weight: 'bold', family: tc.fontSans },
+                                usePointStyle: true,
+                                pointStyle: 'rectRounded'
+                            }
                         },
                         tooltip: {
+                            ...commonTooltipConfig,
                             callbacks: {
-                                label: function(c) { return ` Avg Cycle Time: ${c.raw.toFixed(2)} Jam/Sumur`; }
+                                label: function(c) {
+                                    return ` ${c.dataset.label}: ${Number(c.raw).toFixed(2)} Jam/Sumur`;
+                                }
                             }
                         }
                     },
                     scales: {
-                        x: { grid: { display: false }, ticks: COMMON_TICKS },
+                        x: {
+                            grid: { display: false },
+                            ticks: commonScaleTicks
+                        },
                         y: {
                             beginAtZero: true,
-                            grid: COMMON_GRID,
+                            suggestedMax: 24,
+                            grid: commonGrid,
                             ticks: {
-                                ...COMMON_TICKS,
+                                ...commonScaleTicks,
+                                precision: 0,
                                 callback: function(val) { return val + ' Jam'; }
                             }
                         }
@@ -1292,44 +1885,92 @@ $decodeRemarkDisplay = static function (?string $raw): string {
             });
         }
 
-        // 5. CHART TOTAL WELL JOB
+        // ══════════════════════════════════════════════════════════════════════
+        // 5. CHART TOTAL WELL JOB (Combo Bar + Line Trend & Fleet Average)
+        // ══════════════════════════════════════════════════════════════════════
         const ctxWell = document.getElementById('chartTotalWellJob');
         if (ctxWell) {
-            new Chart(ctxWell, {
-                type: 'bar',
+            chartInstances.well = new Chart(ctxWell, {
                 data: {
-                    labels: chartLabels,
+                    labels: d.labels,
                     datasets: [
                         {
+                            type: 'bar',
                             label: 'TOTAL WELL JOB',
-                            data: wellData,
-                            backgroundColor: '#0070c0', // Warna persis Excel: 0070C0 Blue
-                            borderRadius: 4,
+                            data: d.well,
+                            backgroundColor: 'rgba(124, 58, 237, 0.88)', // Royal Purple
+                            borderColor: '#6d28d9',
+                            borderWidth: 1.5,
+                            borderRadius: { topLeft: 6, topRight: 6, bottomLeft: 0, bottomRight: 0 },
+                            order: 2
+                        },
+                        {
+                            type: 'line',
+                            label: 'Garis Tren Sumur',
+                            data: d.well,
+                            borderColor: '#6d28d9',
+                            borderWidth: 2.5,
+                            pointRadius: 4.5,
+                            pointHoverRadius: 7,
+                            pointBackgroundColor: '#ffffff',
+                            pointBorderColor: '#6d28d9',
+                            pointBorderWidth: 2,
+                            tension: 0.35,
+                            fill: false,
+                            order: 0
+                        },
+                        {
+                            type: 'line',
+                            label: `Rata-rata Armada (${lines.avgWell} Sumur)`,
+                            data: lines.avgWellLine,
+                            borderColor: '#a78bfa',
+                            borderWidth: 1.8,
+                            borderDash: [5, 4],
+                            pointRadius: 0,
+                            fill: false,
+                            order: 1
                         }
                     ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
                     plugins: {
                         legend: {
                             position: 'top',
-                            labels: { color: '#e2e8f0', font: { size: 12, weight: 'bold' } }
+                            labels: {
+                                color: tc.legend,
+                                font: { size: 12, weight: 'bold', family: tc.fontSans },
+                                usePointStyle: true,
+                                pointStyle: 'rectRounded'
+                            }
                         },
                         tooltip: {
+                            ...commonTooltipConfig,
                             callbacks: {
-                                label: function(c) { return ` Total Well Job: ${c.raw} Sumur`; }
+                                label: function(c) {
+                                    return ` ${c.dataset.label}: ${c.raw} Sumur`;
+                                }
                             }
                         }
                     },
                     scales: {
-                        x: { grid: { display: false }, ticks: COMMON_TICKS },
+                        x: {
+                            grid: { display: false },
+                            ticks: commonScaleTicks
+                        },
                         y: {
                             beginAtZero: true,
-                            grid: COMMON_GRID,
+                            suggestedMax: 5,
+                            grid: commonGrid,
                             ticks: {
-                                ...COMMON_TICKS,
+                                ...commonScaleTicks,
                                 precision: 0,
+                                stepSize: 1,
                                 callback: function(val) { return val + ' Sumur'; }
                             }
                         }
@@ -1338,6 +1979,41 @@ $decodeRemarkDisplay = static function (?string $raw): string {
             });
         }
     }
+
+    // Sinkronisasi otomatis Chart.js saat user mengganti tema Light / Dark
+    const chartThemeObserver = new MutationObserver(() => {
+        if (!chartsInitialized) return;
+        const tc = getChartThemeColors();
+
+        Object.values(chartInstances).forEach(chart => {
+            if (!chart || !chart.options) return;
+
+            if (chart.options.scales) {
+                Object.values(chart.options.scales).forEach(scale => {
+                    if (scale.ticks) scale.ticks.color = tc.ticks;
+                    if (scale.grid)  scale.grid.color  = tc.grid;
+                });
+            }
+
+            if (chart.options.plugins?.legend?.labels) {
+                chart.options.plugins.legend.labels.color = tc.legend;
+            }
+
+            if (chart.options.plugins?.tooltip) {
+                chart.options.plugins.tooltip.backgroundColor = tc.tooltipBg;
+                chart.options.plugins.tooltip.borderColor     = tc.tooltipBorder;
+                chart.options.plugins.tooltip.titleColor       = tc.tooltipTitle;
+                chart.options.plugins.tooltip.bodyColor        = tc.tooltipBody;
+            }
+
+            chart.update('none');
+        });
+    });
+
+    chartThemeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['data-theme', 'class']
+    });
 
     // Auto buka tab grafik jika ada hash #tabContent_charts atau query parameter ?tab=charts
     window.addEventListener('DOMContentLoaded', () => {

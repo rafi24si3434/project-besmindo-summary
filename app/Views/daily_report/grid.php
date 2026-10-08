@@ -66,26 +66,26 @@
         $dtShare = $totalHoursAll > 0 ? round(((float)$grandTotalDt / $totalHoursAll) * 100) : 0;
     ?>
     <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
-        <!-- Card 1: Total Sumur & Progress -->
+        <!-- Card 1: Total Sumur & Progress (Kaidah SIMOR Besmindo) -->
         <div class="dr-surface-card p-4 rounded-xl flex flex-col justify-between">
             <div class="flex items-center justify-between">
-                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Total Sumur</span>
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Total Well Job</span>
                 <div class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center justify-center text-xs">
                     <i class="fa-solid fa-oil-well"></i>
                 </div>
             </div>
             <div class="mt-2 flex items-baseline gap-1.5">
                 <span class="text-2xl sm:text-3xl font-extrabold font-num text-white"><?= $wellJobCount ?></span>
-                <span class="text-xs text-slate-400 font-semibold">Sumur</span>
+                <span class="text-xs text-slate-400 font-semibold">Job Terhitung</span>
             </div>
             <div class="mt-3 pt-2.5 border-t border-slate-800/80">
                 <div class="flex items-center justify-between text-xs font-bold mb-1.5">
-                    <span class="text-emerald-400"><?= $completedCount ?> Selesai</span>
-                    <span class="text-amber-400"><?= $progressCount ?> Berjalan</span>
+                    <span class="text-emerald-400"><?= $wellJobCount ?> Selesai</span>
+                    <span class="text-amber-400" title="Sumur penutup bulan belum moving / berlanjut ke bulan depan"><?= max(0, count($reports) - $wellJobCount) ?> Berjalan</span>
                 </div>
                 <div class="w-full bg-slate-950 rounded-full h-2 overflow-hidden flex border border-slate-800">
-                    <div class="bg-emerald-500 h-full transition-all duration-500" style="width: <?= $completionPct ?>%"></div>
-                    <div class="bg-amber-500 h-full transition-all duration-500" style="width: <?= 100 - $completionPct ?>%"></div>
+                    <div class="bg-emerald-500 h-full transition-all duration-500" style="width: <?= count($reports) > 0 ? round(($wellJobCount / count($reports)) * 100) : 100 ?>%"></div>
+                    <div class="bg-amber-500 h-full transition-all duration-500" style="width: <?= count($reports) > 0 ? round((max(0, count($reports) - $wellJobCount) / count($reports)) * 100) : 0 ?>%"></div>
                 </div>
             </div>
         </div>
@@ -148,13 +148,20 @@
         <div class="dr-surface-card p-4 rounded-xl flex flex-col justify-between col-span-2 sm:col-span-1">
             <div class="flex items-center justify-between">
                 <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Tarif ODR Kontrak</span>
-                <div class="w-8 h-8 rounded-lg bg-white/[0.05] text-slate-300 border border-slate-700 flex items-center justify-center text-xs">
-                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                <div class="flex items-center gap-1.5">
+                    <button type="button" onclick="openEditOdrModal()" class="px-2 py-0.5 rounded-lg bg-blue-500/15 hover:bg-blue-600 text-blue-400 hover:text-white border border-blue-500/30 flex items-center gap-1 text-[11px] font-bold transition cursor-pointer" title="Ubah Nilai Tarif ODR Armada">
+                        <i class="fa-solid fa-pen-to-square text-[10px]"></i>
+                        <span>Ubah</span>
+                    </button>
+                    <div class="w-8 h-8 rounded-lg bg-white/[0.05] text-slate-300 border border-slate-700 flex items-center justify-center text-xs">
+                        <i class="fa-solid fa-file-invoice-dollar"></i>
+                    </div>
                 </div>
             </div>
-            <div class="mt-2 flex items-baseline gap-1">
-                <span class="text-xs text-slate-400 font-bold">Rp</span>
-                <span class="text-xl font-extrabold font-num text-white"><?= number_format($odr, 0, ',', '.') ?></span>
+            <div class="mt-2 flex items-baseline gap-1 cursor-pointer group" onclick="openEditOdrModal()" title="Klik untuk ubah Tarif ODR Armada">
+                <span class="text-xs text-slate-400 font-bold group-hover:text-blue-400 transition">Rp</span>
+                <span class="text-xl font-extrabold font-num text-white group-hover:text-blue-400 transition"><?= number_format($odr, 0, ',', '.') ?></span>
+                <i class="fa-solid fa-pencil text-[10px] text-slate-500 group-hover:text-blue-400 opacity-0 group-hover:opacity-100 transition ml-1"></i>
             </div>
             <div class="mt-3 pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
                 <span>Operating Day Rate</span>
@@ -967,6 +974,16 @@
         $rateOps  = $rateOdr > 0 ? round($rateOdr / 24) : 0;
         $rateMiru = $rateOdr > 0 ? round(($rateOdr / 24) * 0.75) : 0;
         $rateSbwc = $rateOdr > 0 ? round(($rateOdr / 24) * 0.65) : 0;
+
+        $cleanRigCode   = str_replace(['#', ' '], '', strtoupper(trim((string)($rig['kode'] ?? ''))));
+        $target94List   = ['BMS10', 'BMS11', 'BMS15', 'BMS17', 'BMS18', 'BMS19', 'BMS20', 'BMS21'];
+        $targetRatio    = in_array($cleanRigCode, $target94List, true) ? 0.94 : 0.92;
+        $targetRatioPct = $targetRatio * 100.0;
+        $days           = 0.0;
+        $totCost        = 0;
+        $incentiveTarget= 0;
+        $targetUtilizaPct = 0.0;
+
         $fmtRpExcel = static fn($v) => $v > 0 ? number_format((float)$v, 0, ',', '.') : '-';
         $fmtNumComma = static fn($v) => number_format((float)$v, 2, ',', '.');
         $fmtBlankOrComma = static fn($v) => (float)$v > 0 ? number_format((float)$v, 2, ',', '.') : '';
@@ -1099,10 +1116,11 @@
                         <tr class="bg-white">
                             <th class="bg-white"></th>
                             <th class="bg-white"></th>
-                            <th class="bg-white xl-text-red text-right whitespace-nowrap font-mono text-[11px]">
+                            <th class="bg-white xl-text-red text-right whitespace-nowrap font-mono text-[11px] cursor-pointer hover:bg-amber-100/70 group transition" onclick="openEditOdrModal()" title="Klik untuk ubah Tarif ODR Armada">
                                 <div class="flex items-center justify-between gap-1">
                                     <span>Rp</span>
-                                    <span><?= $fmtRpExcel($rateOdr) ?></span>
+                                    <span class="group-hover:underline"><?= $fmtRpExcel($rateOdr) ?></span>
+                                    <i class="fa-solid fa-pen text-[9px] text-slate-400 group-hover:text-blue-600 opacity-60 group-hover:opacity-100 transition"></i>
                                 </div>
                             </th>
                             <th class="bg-white"></th>
@@ -1247,11 +1265,27 @@
                                     $wSum['total_dt'] += $vTotDt;
                                     $wSum['total_hrs']+= $vTotHrs;
 
-                                    $remParts = [];
-                                    if (!empty($dRow['remark_npt']))    $remParts[] = trim($dRow['remark_npt']);
-                                    if (!empty($dRow['remark_unpaid'])) $remParts[] = trim($dRow['remark_unpaid']);
-                                    $remText = implode(' | ', array_unique($remParts));
-                                    $hasUnpaidDay = ($vRig > 0 || $vTool > 0 || !empty($dRow['remark_unpaid']));
+                                    $rNpt = trim((string)($dRow['remark_npt'] ?? ''));
+                                    $rUnp = trim((string)($dRow['remark_unpaid'] ?? ''));
+                                    $isUnpTemplate = (bool)preg_match('/^[\d,\.]+\s*HR\s+(Repair Rig|WO BMS Tool)\.?$/i', $rUnp);
+                                    $isNptTemplate = (bool)preg_match('/^[\d,\.]+\s*HR\s+(Repair Rig|WO BMS Tool)\.?$/i', $rNpt);
+
+                                    if ($rNpt !== '' && $rUnp !== '') {
+                                        if (stripos($rNpt, $rUnp) !== false) {
+                                            $remText = $rNpt;
+                                        } elseif (stripos($rUnp, $rNpt) !== false) {
+                                            $remText = $rUnp;
+                                        } elseif ($isUnpTemplate && !$isNptTemplate) {
+                                            $remText = $rNpt;
+                                        } elseif ($isNptTemplate && !$isUnpTemplate) {
+                                            $remText = $rUnp;
+                                        } else {
+                                            $remText = $rNpt . ' | ' . $rUnp;
+                                        }
+                                    } else {
+                                        $remText = $rNpt !== '' ? $rNpt : $rUnp;
+                                    }
+                                    $hasUnpaidDay = ($vRig > 0 || $vTool > 0 || $rUnp !== '');
                                     $editDayUrl = base_url("daily-report/log-harian/{$rigId}/{$bulan}/{$tahun}?well_id={$repId}&tanggal=" . urlencode($dRow['tanggal'] ?? ''));
                             ?>
                             <tr class="xl-row-hover cursor-pointer" onclick="window.location.href='<?= $editDayUrl ?>'" title="Klik untuk mengedit Log Harian tanggal <?= $fmtDateExcel($dRow['tanggal'] ?? '') ?> pada <?= esc($rep['nama_lokasi'] ?? '') ?>">
@@ -1371,8 +1405,8 @@
 
                                 $revMiru       = round($gtMiru * ($rateOdr / 24.0 * 0.75));
                                 $revOps        = round($gtOps * ($rateOdr / 24.0));
-                                $revWeatherRd  = round($sumWeatherRd * ($rateOdr / 24.0 * 0.65));
-                                $revOtherSbwc  = round($sumOtherSbwc * ($rateOdr / 24.0 * 0.65));
+                                $revWeatherRd  = round($sumWeatherRd * ($rateOdr / 24.0 * 0.75)); // 75% rate untuk Weather (Rain) & Dry Road
+                                $revOtherSbwc  = round($sumOtherSbwc * ($rateOdr / 24.0 * 0.65)); // 65% rate untuk SBWC lainnya
                                 $revTotal      = $revMiru + $revOps + $revWeatherRd + $revOtherSbwc;
 
                                 $scheduleMtc   = (float)($reportMeta['schedule_mtc'] ?? 0.0);
@@ -1382,15 +1416,23 @@
                                 $kpiAvail      = $gtHrs > 0 ? max(0.0, (($gtHrs - $sumUnpaid - $scheduleMtc) / $gtHrs) * 100.0) : 0.0;
                                 $kpiUtil       = $gtHrs > 0 ? ((($gtMiru + $gtOps) / $gtHrs) * 100.0) : 0.0;
 
-                                $miruWellCnt = 0;
-                                $compWellCnt = 0;
-                                foreach ($reports as $rItem) {
-                                    if ((float)($rItem['miru_jam'] ?? 0) > 0) $miruWellCnt++;
-                                    if (strtoupper(trim((string)($rItem['status_job'] ?? ''))) === 'JOB COMPLETED') $compWellCnt++;
-                                }
-                                $kpiAvgMiru    = $miruWellCnt > 0 ? ($gtMiru / $miruWellCnt) : $gtMiru;
-                                $kpiCycleTime  = $compWellCnt > 0 ? ($gtHrs / $compWellCnt) : $gtHrs;
-                                $incentiveTarget = round(($rateOdr * ($gtHrs / 24.0)) * 0.92);
+                                // Target ratio: 0.94 untuk BMS 10, 11, 15, 17..21; 0.92 untuk BMS 01..09, 16
+                                $cleanRigCode   = str_replace(['#', ' '], '', strtoupper(trim((string)($rig['kode'] ?? ''))));
+                                $target94List   = ['BMS10', 'BMS11', 'BMS15', 'BMS17', 'BMS18', 'BMS19', 'BMS20', 'BMS21'];
+                                $targetRatio    = in_array($cleanRigCode, $target94List, true) ? 0.94 : 0.92;
+                                $targetRatioPct = $targetRatio * 100.0;
+
+                                // Sesuai sheet rig Excel asli:
+                                // AVERANGE MIRU = Total Jam MIRU (=E{$grandRow} / =F183)
+                                // CYCLE TIME = Total Jam Operasi (=U{$grandRow} / =(W183))
+                                $kpiAvgMiru     = $gtMiru;
+                                $kpiCycleTime   = $gtHrs;
+
+                                // Tabel Foto 3 Excel (ODR | DAYS | TOT COST | REVENUE | UTILIZATION & TARGET UTILIZA %)
+                                $days           = $gtHrs > 0 ? ($gtHrs / 24.0) : 0.0;
+                                $totCost        = round($rateOdr * $days);
+                                $incentiveTarget = round($totCost * $targetRatio);
+                                $targetUtilizaPct = $totCost > 0 ? ($revTotal / $totCost) * 100.0 : 0.0;
 
                                 $fmtPctComma = static fn($v) => number_format((float)$v, 2, ',', '.') . '%';
                                 $fmtRpCell   = static function($v) {
@@ -1519,15 +1561,177 @@
                                 <td colspan="19" class="!border-0 bg-white"></td>
                             </tr>
 
-                            <!-- ═══ BARIS KPI 5: CYCLE TIME ═══ -->
+                            <!-- ═══ BARIS KPI 5: CYCLE TIME + HEADER TABEL FOTO 3 (ODR | DAYS | TOT COST | REVENUE | UTILIZATION) ═══ -->
                             <tr>
                                 <td colspan="3" class="xl-bg-yellow !text-left font-semibold">CYCLE TIME</td>
                                 <td class="xl-bg-yellow text-right font-extrabold"><?= $fmtNumComma($kpiCycleTime) ?></td>
-                                <td colspan="19" class="!border-0 bg-white"></td>
+                                <td colspan="12" class="!border-0 bg-white"></td>
+                                <td class="xl-bg-yellow text-center font-extrabold text-xs">ODR</td>
+                                <td class="xl-bg-yellow text-center font-extrabold text-xs">DAYS</td>
+                                <td class="xl-bg-yellow text-center font-extrabold text-xs">TOT COST</td>
+                                <td class="xl-bg-yellow text-center font-extrabold text-xs">REVENUE</td>
+                                <td class="xl-bg-yellow text-center font-extrabold text-xs">UTILIZATION</td>
+                                <td colspan="2" class="!border-0 bg-white"></td>
+                            </tr>
+
+                            <!-- ═══ BARIS KPI 6: DATA TABEL FOTO 3 (PEACH #F8CBAD) ═══ -->
+                            <tr style="background-color: #F8CBAD !important;">
+                                <td colspan="16" class="!border-0 bg-white"></td>
+                                <td style="background-color: #F8CBAD !important;" class="text-center font-extrabold text-xs"><?= $fmtRpCell($rateOdr) ?></td>
+                                <td style="background-color: #F8CBAD !important;" class="text-center font-extrabold text-xs"><?= number_format($days, 1, ',', '.') ?></td>
+                                <td style="background-color: #F8CBAD !important;" class="text-center font-extrabold text-xs"><?= $fmtRpCell($totCost) ?></td>
+                                <td style="background-color: #F8CBAD !important;" class="text-center font-extrabold text-xs"><?= $fmtRpCell($incentiveTarget) ?></td>
+                                <td style="background-color: #F8CBAD !important;" class="text-center font-extrabold text-xs"><?= number_format($targetRatioPct, 1, ',', '.') ?>%</td>
+                                <td colspan="2" class="!border-0 bg-white"></td>
+                            </tr>
+
+                            <!-- ═══ BARIS KPI 7: TARGET UTILIZA % (HIJAU #92D050 & PEACH #F8CBAD) ═══ -->
+                            <tr>
+                                <td colspan="16" class="!border-0 bg-white"></td>
+                                <td colspan="4" class="xl-bg-green text-center font-extrabold text-xs tracking-wider">TARGET UTILIZA %</td>
+                                <td style="background-color: #F8CBAD !important;" class="text-center font-extrabold text-xs"><?= number_format($targetUtilizaPct, 2, ',', '.') ?>%</td>
+                                <td colspan="2" class="!border-0 bg-white"></td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
                 </table>
+            </div>
+
+            <?php if (!empty($reports)): ?>
+            <!-- ════════════════════════════════════════════════════════════════════════
+                 TABEL TARGET REVENUE & UTILISASI (PERSIS FOTO 3 EXCEL)
+                 ════════════════════════════════════════════════════════════════════════ -->
+            <div class="bg-slate-50 border-t border-slate-300 px-6 py-4 flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center gap-2">
+                    <span class="px-2.5 py-1 rounded bg-amber-100 text-amber-900 border border-amber-300 text-xs font-extrabold uppercase tracking-wider">
+                        <i class="fa-solid fa-chart-pie mr-1"></i> Rincian Target Utilisasi &amp; Revenue (Foto 3)
+                    </span>
+                    <span class="text-xs text-slate-600 font-semibold">
+                        Sesuai format baku kolom AA:AE di sheet Excel
+                    </span>
+                </div>
+                <div class="overflow-x-auto shadow-sm rounded border border-slate-400">
+                    <table class="border-collapse text-xs text-black" style="font-family: 'Calibri', Arial, sans-serif;">
+                        <thead>
+                            <tr style="background-color: #FFFF00 !important;">
+                                <th class="border border-slate-600 px-4 py-1.5 font-bold text-center">ODR</th>
+                                <th class="border border-slate-600 px-3 py-1.5 font-bold text-center">DAYS</th>
+                                <th class="border border-slate-600 px-4 py-1.5 font-bold text-center">TOT COST</th>
+                                <th class="border border-slate-600 px-4 py-1.5 font-bold text-center">REVENUE</th>
+                                <th class="border border-slate-600 px-3 py-1.5 font-bold text-center">UTILIZATION</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="background-color: #F8CBAD !important;">
+                                <td class="border border-slate-600 px-4 py-1.5 font-bold text-center cursor-pointer hover:bg-amber-200 transition group" onclick="openEditOdrModal()" title="Klik untuk ubah Tarif ODR Armada">
+                                    <span>Rp <?= number_format($rateOdr, 0, ',', '.') ?></span>
+                                    <i class="fa-solid fa-pen text-[9px] text-slate-500 opacity-0 group-hover:opacity-100 ml-1"></i>
+                                </td>
+                                <td class="border border-slate-600 px-3 py-1.5 font-bold text-center"><?= number_format($days, 1, ',', '.') ?></td>
+                                <td class="border border-slate-600 px-4 py-1.5 font-bold text-center">Rp <?= number_format($totCost, 0, ',', '.') ?></td>
+                                <td class="border border-slate-600 px-4 py-1.5 font-bold text-center">Rp <?= number_format($incentiveTarget, 0, ',', '.') ?></td>
+                                <td class="border border-slate-600 px-3 py-1.5 font-bold text-center"><?= number_format($targetRatioPct, 1, ',', '.') ?>%</td>
+                            </tr>
+                            <tr>
+                                <td colspan="4" style="background-color: #92D050 !important;" class="border border-slate-600 px-4 py-1.5 font-bold text-center tracking-wider">TARGET UTILIZA %</td>
+                                <td style="background-color: #F8CBAD !important;" class="border border-slate-600 px-3 py-1.5 font-bold text-center"><?= number_format($targetUtilizaPct, 2, ',', '.') ?>%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <?php endif; ?>
+
+            <!-- ════════════════════════════════════════════════════════════════════════
+                 NAVIGASI CEPAT & GANTI UNIT RIG DI BAWAH (AGAR TIDAK PERLU SCROLL KE ATAS)
+                 ════════════════════════════════════════════════════════════════════════ -->
+            <?php
+                $currentRigIndex = -1;
+                foreach ($allRigs as $idx => $r) {
+                    if ($r['id'] == $rigId) {
+                        $currentRigIndex = $idx;
+                        break;
+                    }
+                }
+                $prevRig = ($currentRigIndex > 0) ? $allRigs[$currentRigIndex - 1] : null;
+                $nextRig = ($currentRigIndex >= 0 && $currentRigIndex < count($allRigs) - 1) ? $allRigs[$currentRigIndex + 1] : null;
+            ?>
+            <div class="border-t-2 border-b border-slate-300 dark:border-slate-800 bg-[#f8fafc] dark:bg-[#0c1220] px-6 py-3.5 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs">
+                <!-- Sisi Kiri: Selector Rig & Step Prev/Next -->
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="flex items-center gap-2.5">
+                        <span class="px-2.5 py-1.5 rounded-lg bg-amber-100 dark:bg-amber-500/15 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-500/30 text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-2xs">
+                            <i class="fa-solid fa-oil-well text-amber-600 dark:text-amber-400"></i>
+                            <span>PILIH UNIT RIG:</span>
+                        </span>
+                        <span class="text-xs font-bold text-slate-700 dark:text-slate-300 hidden sm:inline">
+                            Rig Aktif: <strong class="text-slate-900 dark:text-white font-mono"><?= esc($rig['kode'] ?? '') ?></strong>
+                        </span>
+                    </div>
+
+                    <!-- Tombol Rig Sebelumnya -->
+                    <?php if ($prevRig): ?>
+                        <a href="<?= base_url("daily-report/{$prevRig['id']}/{$bulan}/{$tahun}") ?>"
+                           class="h-9 px-3 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 hover:text-amber-600 dark:hover:text-amber-400 border border-slate-300 dark:border-slate-700 hover:border-amber-500 font-extrabold text-xs flex items-center gap-1.5 transition shadow-2xs"
+                           title="Pindah ke <?= esc($prevRig['kode']) ?> (<?= esc($prevRig['nama_rig']) ?>)">
+                            <i class="fa-solid fa-chevron-left text-[10px] text-slate-400"></i>
+                            <span><?= esc($prevRig['kode']) ?></span>
+                        </a>
+                    <?php else: ?>
+                        <span class="h-9 px-3 rounded-xl bg-slate-100 dark:bg-slate-800/40 text-slate-400 dark:text-slate-600 border border-slate-200 dark:border-slate-800 font-bold text-xs flex items-center gap-1.5 cursor-not-allowed">
+                            <i class="fa-solid fa-chevron-left text-[10px]"></i>
+                            <span>Awal</span>
+                        </span>
+                    <?php endif; ?>
+
+                    <!-- Dropdown Pilih Unit Rig di Bawah -->
+                    <div class="relative min-w-[220px] sm:min-w-[280px]">
+                        <select id="selectRigBottom" onchange="navigateGridBottom()"
+                            class="w-full h-9 pl-3 pr-8 rounded-xl bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-extrabold text-xs sm:text-sm border-2 border-amber-500/80 hover:border-amber-500 focus:border-amber-600 focus:ring-2 focus:ring-amber-500/20 cursor-pointer transition shadow-2xs">
+                            <?php foreach ($allRigs as $r): ?>
+                                <option value="<?= $r['id'] ?>" <?= $r['id'] == $rigId ? 'selected' : '' ?>>
+                                    <?= esc($r['kode']) ?> — <?= esc($r['nama_rig']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <!-- Tombol Rig Berikutnya -->
+                    <?php if ($nextRig): ?>
+                        <a href="<?= base_url("daily-report/{$nextRig['id']}/{$bulan}/{$tahun}") ?>"
+                           class="h-9 px-3 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 hover:text-amber-600 dark:hover:text-amber-400 border border-slate-300 dark:border-slate-700 hover:border-amber-500 font-extrabold text-xs flex items-center gap-1.5 transition shadow-2xs"
+                           title="Pindah ke <?= esc($nextRig['kode']) ?> (<?= esc($nextRig['nama_rig']) ?>)">
+                            <span><?= esc($nextRig['kode']) ?></span>
+                            <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
+                        </a>
+                    <?php else: ?>
+                        <span class="h-9 px-3 rounded-xl bg-slate-100 dark:bg-slate-800/40 text-slate-400 dark:text-slate-600 border border-slate-200 dark:border-slate-800 font-bold text-xs flex items-center gap-1.5 cursor-not-allowed">
+                            <span>Akhir</span>
+                            <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                        </span>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Sisi Kanan: Info Periode & Shortcut Navigasi -->
+                <div class="flex flex-wrap items-center gap-2 text-xs">
+                    <span class="text-slate-500 dark:text-slate-400 font-medium hidden lg:inline mr-1">
+                        Periode: <strong class="text-slate-800 dark:text-slate-200 font-mono font-bold"><?= $bulanList[$bulan] ?> <?= $tahun ?></strong>
+                    </span>
+
+                    <a href="<?= base_url("monthly-report/{$bulan}/{$tahun}") ?>"
+                       class="h-9 px-3.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-slate-300 dark:border-slate-700 hover:border-blue-400 font-bold flex items-center gap-1.5 transition shadow-2xs"
+                       title="Lihat Rekapitulasi Summary Bulanan Seluruh Rig">
+                        <i class="fa-solid fa-table-cells text-blue-600 dark:text-blue-400"></i>
+                        <span>Summary Bulanan</span>
+                    </a>
+
+                    <button type="button" onclick="window.scrollTo({top: 0, behavior: 'smooth'})"
+                       class="h-9 px-3.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 border border-amber-500/40 font-black flex items-center gap-1.5 transition shadow-xs cursor-pointer"
+                       title="Kembali ke Bagian Paling Atas Halaman">
+                        <i class="fa-solid fa-arrow-up text-[11px]"></i>
+                        <span>Ke Atas</span>
+                    </button>
+                </div>
             </div>
 
             <!-- ════════════════════════════════════════════════════════════════════════
@@ -1667,6 +1871,31 @@
                             </button>
                         </div>
                     </form>
+                </div>
+            </div>
+
+            <!-- Footer Rig Switcher & Quick Navigation -->
+            <div class="bg-[#f8fafc] dark:bg-[#0c1220] border-t border-slate-300 dark:border-slate-800 px-6 py-3 flex flex-wrap items-center justify-between gap-3 text-xs">
+                <div class="flex items-center gap-2">
+                    <span class="px-2.5 py-1 rounded-lg bg-amber-100 dark:bg-amber-500/15 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-500/30 font-bold text-xs flex items-center gap-1.5 shadow-2xs">
+                        <i class="fa-solid fa-oil-well text-amber-600 dark:text-amber-400"></i>
+                        <span>Pilih Rig Lain:</span>
+                    </span>
+                    <select onchange="window.location.href='<?= base_url('daily-report') ?>/' + this.value + '/<?= $bulan ?>/<?= $tahun ?>'"
+                        class="h-8.5 px-3 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 font-extrabold text-xs text-slate-900 dark:text-white cursor-pointer shadow-2xs hover:border-amber-500">
+                        <?php foreach ($allRigs as $r): ?>
+                            <option value="<?= $r['id'] ?>" <?= $r['id'] == $rigId ? 'selected' : '' ?>>
+                                <?= esc($r['kode']) ?> — <?= esc($r['nama_rig']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="window.scrollTo({top: 0, behavior: 'smooth'})"
+                        class="h-8.5 px-3 rounded-lg bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 font-bold transition flex items-center gap-1.5 shadow-2xs cursor-pointer">
+                        <i class="fa-solid fa-arrow-up text-[10px]"></i>
+                        <span>Scroll ke Atas</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -1862,6 +2091,15 @@
             localStorage.setItem('dr_last_tahun', tahun);
         } catch (e) {}
         window.location.href = `<?= base_url('daily-report') ?>/${rigId}/${bulan}/${tahun}`;
+    }
+
+    function navigateGridBottom() {
+        const selBottom = document.getElementById('selectRigBottom');
+        if (!selBottom) return;
+        const rigId = selBottom.value;
+        const selTop = document.getElementById('selectRig');
+        if (selTop) selTop.value = rigId;
+        navigateGrid();
     }
 
     let activeStatusFilter = 'ALL';
@@ -2112,5 +2350,106 @@
             titleEl.textContent = 'Tambah Note Laporan Baru & Pengaturan Schedule MTC';
         }
     }
+
+    // Modal Ubah ODR Cepat
+    function openEditOdrModal() {
+        const modal = document.getElementById('modalEditOdr');
+        if (!modal) return;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        const input = document.getElementById('inpEditOdrModal');
+        if (input) {
+            setTimeout(() => {
+                input.focus();
+                input.select();
+            }, 50);
+        }
+    }
+
+    function closeEditOdrModal() {
+        const modal = document.getElementById('modalEditOdr');
+        if (!modal) return;
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+
+    function formatOdrInput(el) {
+        let val = el.value.replace(/[^\d]/g, '');
+        if (val === '') {
+            el.value = '';
+            return;
+        }
+        el.value = new Intl.NumberFormat('id-ID').format(val);
+    }
 </script>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- MODAL CEPAT UBAH TARIF ODR KONTRAK                                       -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<div id="modalEditOdr" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-150">
+    <div class="relative w-full max-w-md rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl p-6 space-y-5 text-white">
+        <!-- Header Modal -->
+        <div class="flex items-start justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-blue-500/15 text-blue-400 border border-blue-500/30 flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-extrabold text-white">Ubah Tarif ODR Kontrak</h3>
+                    <p class="text-xs text-slate-400">Armada <strong class="text-white"><?= esc($rig['kode']) ?></strong> (<?= esc($rig['nama_rig']) ?>)</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeEditOdrModal()" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition">
+                <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+        </div>
+
+        <!-- Form Ubah ODR -->
+        <form method="POST" action="<?= base_url('daily-report/update-odr') ?>" class="space-y-4">
+            <?= csrf_field() ?>
+            <input type="hidden" name="rig_id" value="<?= $rigId ?>">
+            <input type="hidden" name="bulan" value="<?= $bulan ?>">
+            <input type="hidden" name="tahun" value="<?= $tahun ?>">
+
+            <div class="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-xs text-blue-300 space-y-1">
+                <div class="flex items-center gap-1.5 font-bold">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span>Sinkronisasi Otomatis Seluruh Laporan</span>
+                </div>
+                <p class="text-[11px] leading-relaxed text-slate-300">
+                    Nilai ODR ini akan otomatis memperbarui baris tarif di lembar laporan harian, rekapitulasi revenue target, aktual, dan <strong>Laporan Bulanan (Monthly Report)</strong>.
+                </p>
+            </div>
+
+            <div>
+                <label for="inpEditOdrModal" class="block text-xs font-bold text-slate-300 mb-1.5">
+                    Tarif Operator Daily Rate Baru (Rp / 24 Jam)
+                </label>
+                <div class="relative">
+                    <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">Rp</span>
+                    <input type="text"
+                           name="odr"
+                           id="inpEditOdrModal"
+                           required
+                           value="<?= number_format($odr, 0, ',', '.') ?>"
+                           oninput="formatOdrInput(this)"
+                           class="w-full h-11 pl-11 pr-4 rounded-xl bg-slate-800/90 border border-slate-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 text-white font-mono font-bold text-base transition outline-none"
+                           placeholder="Contoh: 86.197.000">
+                </div>
+                <p class="text-[11px] text-slate-400 mt-1">Tarif saat ini: <strong class="text-slate-200">Rp <?= number_format($odr, 0, ',', '.') ?></strong></p>
+            </div>
+
+            <!-- Tombol Aksi -->
+            <div class="pt-2 flex items-center justify-end gap-2.5">
+                <button type="button" onclick="closeEditOdrModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition cursor-pointer">
+                    Batal
+                </button>
+                <button type="submit" class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs shadow-lg shadow-blue-600/30 transition flex items-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-floppy-disk"></i>
+                    <span>Simpan & Terapkan ODR</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 <?= $this->endSection() ?>

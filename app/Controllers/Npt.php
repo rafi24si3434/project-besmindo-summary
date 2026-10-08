@@ -122,8 +122,27 @@ class Npt extends BaseController
         // Rekap bulanan 18 rig (gabungan live database dan JSON historis)
         $monthlyAllRigData = $this->getMonthlyAllRigSummary($allRigs, $bulan, $tahun, $nptJson);
 
-        // Month data from JSON for detailed SYS columns if available
+        // Month data from JSON for detailed SYS columns if available; jika tidak ada di arsip JSON (seperti September, Oktober berjalan, dst), bangun otomatis dari live database!
         $monthData = $nptJson['months'][$bulan] ?? $nptJson['months'][(string)$bulan] ?? null;
+        if (empty($monthData) || empty($monthData['rows'])) {
+            $monthData = $this->buildSysMonthDataFromDb($allRigs, $bulan, $tahun);
+        }
+
+        // Akumulasi tahunan grand_total secara dinamis (gabungan arsip JSON & live DB untuk bulan-bulan baru)
+        $annualNptData = $nptJson;
+        $dynamicGrandTotal = array_fill(0, 34, 0.0);
+        for ($m = 1; $m <= 12; $m++) {
+            $mData = $nptJson['months'][$m] ?? $nptJson['months'][(string)$m] ?? null;
+            if (empty($mData) || empty($mData['totals'])) {
+                $mData = $this->buildSysMonthDataFromDb($allRigs, $m, $tahun);
+            }
+            if (!empty($mData['totals'])) {
+                for ($c = 2; $c <= 32; $c++) {
+                    $dynamicGrandTotal[$c] += (float)($mData['totals'][$c] ?? 0);
+                }
+            }
+        }
+        $annualNptData['grand_total'] = $dynamicGrandTotal;
 
         // ══════════════════════════════════════════════════════════════
         // DATA TAB 4: LOG KRONOLOGIS DOWNTIME
@@ -192,35 +211,113 @@ class Npt extends BaseController
             }
         }
 
+        // Mode Tampilan: 'summary' (Summary Month All Rig persis Excel) atau 'rig' (Lembar Kerja Rincian Rig)
+        $activeView = $this->request->getGet('view') 
+            ?: ($this->request->getGet('tab') === 'bulanan' ? 'summary' : ($this->request->getGet('tab') === 'rig' ? 'rig' : 'summary'));
+        if (!in_array($activeView, ['summary', 'rig'])) {
+            $activeView = 'summary';
+        }
+
+        // Metrik Agregat Armada Seluruh Rig
+        $fleetTotalHrs = (float)($monthData['totals'][32] ?? 0);
+        $fleetTotalRepair = (float)($monthData['totals'][2] ?? 0);
+        $fleetTotalPersonel = (float)($monthData['totals'][3] ?? 0);
+        $fleetTotalUnpaid = $fleetTotalRepair + $fleetTotalPersonel;
+        $fleetTotalSbwc = max(0, $fleetTotalHrs - $fleetTotalUnpaid);
+
+        // Data badge 18 rig untuk pill selector
+        $rigBadges = [];
+        $topRigName = '-';
+        $topRigHrs = 0;
+        foreach ($allRigs as $ar) {
+            $arId = (int)$ar['id'];
+            $arKode = $ar['kode'];
+            $cleanCode = str_replace('#', ' ', $arKode);
+
+            $foundRow = null;
+            if (!empty($monthData['rows'])) {
+                foreach ($monthData['rows'] as $mr) {
+                    if (trim($mr['rig']) === trim($cleanCode) || trim($mr['rig']) === trim($arKode)) {
+                        $foundRow = $mr;
+                        break;
+                    }
+                }
+            }
+
+            $rHrs = (float)($foundRow['vals'][32] ?? 0);
+            $rUnp = (float)($foundRow['vals'][2] ?? 0) + (float)($foundRow['vals'][3] ?? 0);
+            $rSbwc = max(0, $rHrs - $rUnp);
+            $rRem = $foundRow['vals'][33] ?? '-';
+
+            if ($rHrs > $topRigHrs) {
+                $topRigHrs = $rHrs;
+                $topRigName = $cleanCode;
+            }
+
+            $rigBadges[] = [
+                'id'        => $arId,
+                'kode'      => $arKode,
+                'clean_code'=> $cleanCode,
+                'total_hrs' => $rHrs,
+                'unpaid'    => $rUnp,
+                'sbwc'      => $rSbwc,
+                'remark'    => $rRem,
+            ];
+        }
+
+        // Rincian Lembar Kejadian Downtime untuk Rig Terpilih (Persis Sheet Individual Rig di Excel)
+        $rigSheetEvents = $this->getRigSheetEvents($rigId, $bulan, $tahun);
+        $selectedRigEventsCount = count($rigSheetEvents);
+        $selectedRigTotalHrs = array_sum(array_column($rigSheetEvents, 'total_hrs'));
+        $selectedRigUnpaid = array_sum(array_column($rigSheetEvents, 'total_unpaid'));
+        $selectedRigSbwc = array_sum(array_column($rigSheetEvents, 'total_sbwc'));
+
+        $lokasiModel = new \App\Models\LokasiModel();
+        $lokasiList = $lokasiModel->getAktif();
+
         $data = [
-            'missingLogDays'    => $missingLogDays,
-            'title'             => "NPT Center — {$rig['kode']} ({$bulan}/{$tahun})",
-            'rigWells'          => $rigWells,
-            'page_title'        => "NPT (Non-Productive Time) Center",
-            'page_subtitle'     => "Pusat Rekapitulasi & Verifikasi Downtime Armada Rig BMS (Harian, Bulanan, & Tahunan)",
-            'rig'               => $rig,
-            'rigId'             => $rigId,
-            'bulan'             => $bulan,
-            'tahun'             => $tahun,
-            'daysInMonth'       => $daysInMonth,
-            'allRigs'           => $allRigs,
-            'kategoriList'      => $kategoriList,
-            'thirdParties'      => $thirdParties,
-            'existingData'      => $existingData,
-            'totalsPerKat'      => $totalsPerKat,
-            'totalUnpaid'       => $totalUnpaid,
-            'totalSBWC'         => $totalSBWC,
-            'totalDT'           => $totalDT,
-            'dailyLogMap'       => $dailyLogMap,
-            'tpEntries'         => $tpEntries,
-            // Unified Hub datasets:
-            'activeTab'         => $activeTab,
-            'monthlyAllRigData' => $monthlyAllRigData,
-            'annualNptData'     => $nptJson,
-            'monthData'         => $monthData,
-            'rigListNames'      => $rigListNames,
-            'selectedChronoRig' => $selectedChronoRig,
-            'chronoEvents'      => $chronoEvents,
+            'missingLogDays'          => $missingLogDays,
+            'title'                   => "Informasi NPT Bulanan — {$bulan}/{$tahun}",
+            'rigWells'                => $rigWells,
+            'page_title'              => "Informasi NPT Bulanan Rig BMS",
+            'page_subtitle'           => "Format Buku Kerja Operasional Resmi (Rekap Seluruh Rig & Lembar Per Rig)",
+            'rig'                     => $rig,
+            'rigId'                   => $rigId,
+            'bulan'                   => $bulan,
+            'tahun'                   => $tahun,
+            'daysInMonth'             => $daysInMonth,
+            'allRigs'                 => $allRigs,
+            'kategoriList'            => $kategoriList,
+            'thirdParties'            => $thirdParties,
+            'existingData'            => $existingData,
+            'totalsPerKat'            => $totalsPerKat,
+            'totalUnpaid'             => $totalUnpaid,
+            'totalSBWC'               => $totalSBWC,
+            'totalDT'                 => $totalDT,
+            'dailyLogMap'             => $dailyLogMap,
+            'tpEntries'               => $tpEntries,
+            // Mode Tampilan Persis Excel:
+            'activeView'              => $activeView,
+            'fleetTotalHrs'           => $fleetTotalHrs,
+            'fleetTotalUnpaid'        => $fleetTotalUnpaid,
+            'fleetTotalSbwc'          => $fleetTotalSbwc,
+            'topRigName'              => $topRigName,
+            'topRigHrs'               => $topRigHrs,
+            'rigBadges'               => $rigBadges,
+            'rigSheetEvents'          => $rigSheetEvents,
+            'selectedRigEventsCount'  => $selectedRigEventsCount,
+            'selectedRigTotalHrs'     => $selectedRigTotalHrs,
+            'selectedRigUnpaid'       => $selectedRigUnpaid,
+            'selectedRigSbwc'         => $selectedRigSbwc,
+            'lokasiList'              => $lokasiList,
+            // Dataset Legacy & Tambahan:
+            'activeTab'               => $activeTab,
+            'monthlyAllRigData'       => $monthlyAllRigData,
+            'annualNptData'           => $nptJson,
+            'monthData'               => $monthData,
+            'rigListNames'            => $rigListNames,
+            'selectedChronoRig'       => $selectedChronoRig,
+            'chronoEvents'            => $chronoEvents,
         ];
 
         return view('npt/grid', $data);
@@ -612,4 +709,532 @@ class Npt extends BaseController
             'wells' => $wellsData
         ]);
     }
+
+    /**
+     * Membangun struktur Matriks Rinci SYS (32 Kolom) secara dinamis dari live database
+     * Digunakan ketika data arsip JSON tidak tersedia (misal: September, Oktober, atau bulan/tahun baru)
+     */
+    public function buildSysMonthDataFromDb(array $allRigs, int $bulan, int $tahun): array
+    {
+        $db = \Config\Database::connect();
+        $bulanNames = [
+            1 => 'JANUARI', 2 => 'FEBRUARI', 3 => 'MARET', 4 => 'APRIL',
+            5 => 'MEI', 6 => 'JUNI', 7 => 'JULI', 8 => 'AGUSTUS',
+            9 => 'SEPTEMBER', 10 => 'OKTOBER', 11 => 'NOVEMBER', 12 => 'DESEMBER'
+        ];
+
+        // 1. Query data downtime dari npt_harian
+        $dbRows = $db->table('npt_harian')
+            ->select('rig_id, kategori_id, third_party_id, SUM(jam) as total_jam')
+            ->where('MONTH(tanggal)', $bulan)
+            ->where('YEAR(tanggal)', $tahun)
+            ->groupBy(['rig_id', 'kategori_id', 'third_party_id'])
+            ->get()->getResultArray();
+
+        $rigKatMap = [];
+        $rigTpMap  = [];
+        foreach ($dbRows as $r) {
+            $rId = (int)$r['rig_id'];
+            $kId = (int)$r['kategori_id'];
+            $jam = (float)$r['total_jam'];
+
+            $rigKatMap[$rId][$kId] = ($rigKatMap[$rId][$kId] ?? 0.0) + $jam;
+            if (!empty($r['third_party_id'])) {
+                $tpId = (int)$r['third_party_id'];
+                $rigTpMap[$rId][$tpId] = ($rigTpMap[$rId][$tpId] ?? 0.0) + $jam;
+            }
+        }
+
+        // 2. Query Remark Unpaid per rig dari npt_harian
+        $unpaidRemRows = $db->query("
+            SELECT nh.rig_id, GROUP_CONCAT(DISTINCT nh.remark SEPARATOR '; ') as unpaid_remark
+            FROM npt_harian nh
+            WHERE MONTH(nh.tanggal) = ? AND YEAR(nh.tanggal) = ?
+              AND nh.kategori_id IN (1, 2) AND nh.remark IS NOT NULL AND nh.remark != ''
+            GROUP BY nh.rig_id
+        ", [$bulan, $tahun])->getResultArray();
+        $remUnpaid = [];
+        foreach ($unpaidRemRows as $ur) {
+            $remUnpaid[(int)$ur['rig_id']] = $ur['unpaid_remark'];
+        }
+
+        // 3. Fallback remark unpaid dari daily_report_log jika di npt_harian belum ada
+        $logRemRows = $db->query("
+            SELECT dr.rig_id, GROUP_CONCAT(DISTINCT drl.remark_unpaid SEPARATOR '; ') as log_unpaid_rem
+            FROM daily_report_log drl
+            JOIN daily_report dr ON dr.id = drl.daily_report_id
+            WHERE MONTH(drl.tanggal) = ? AND YEAR(drl.tanggal) = ?
+              AND drl.remark_unpaid IS NOT NULL AND drl.remark_unpaid != ''
+            GROUP BY dr.rig_id
+        ", [$bulan, $tahun])->getResultArray();
+        foreach ($logRemRows as $lr) {
+            $rId = (int)$lr['rig_id'];
+            if (empty($remUnpaid[$rId])) {
+                $remUnpaid[$rId] = $lr['log_unpaid_rem'];
+            }
+        }
+
+        // 4. Fallback jika masih kosong: tangkap catatan/remark apa pun (SBWC/Umum) dari npt_harian & daily_report_log
+        $generalRemRows = $db->query("
+            SELECT nh.rig_id, GROUP_CONCAT(DISTINCT nh.remark SEPARATOR '; ') as gen_rem
+            FROM npt_harian nh
+            WHERE MONTH(nh.tanggal) = ? AND YEAR(nh.tanggal) = ?
+              AND nh.remark IS NOT NULL AND nh.remark != ''
+            GROUP BY nh.rig_id
+        ", [$bulan, $tahun])->getResultArray();
+        foreach ($generalRemRows as $gr) {
+            $rId = (int)$gr['rig_id'];
+            if (empty($remUnpaid[$rId])) {
+                $remUnpaid[$rId] = $gr['gen_rem'];
+            }
+        }
+
+        $logGeneralRemRows = $db->query("
+            SELECT dr.rig_id, GROUP_CONCAT(DISTINCT drl.remark_npt SEPARATOR '; ') as log_gen_rem
+            FROM daily_report_log drl
+            JOIN daily_report dr ON dr.id = drl.daily_report_id
+            WHERE MONTH(drl.tanggal) = ? AND YEAR(drl.tanggal) = ?
+              AND drl.remark_npt IS NOT NULL AND drl.remark_npt != ''
+            GROUP BY dr.rig_id
+        ", [$bulan, $tahun])->getResultArray();
+        foreach ($logGeneralRemRows as $lgr) {
+            $rId = (int)$lgr['rig_id'];
+            if (empty($remUnpaid[$rId])) {
+                $remUnpaid[$rId] = $lgr['log_gen_rem'];
+            }
+        }
+
+        // Pemetaan ID 10 Vendor 3rd Party ke Indeks Kolom Tabel SYS (Cols 12..21)
+        $tpColMap = [
+            12 => 1,  // BHI
+            13 => 2,  // HLS
+            14 => 15, // WI
+            15 => 5,  // HALCO
+            16 => 4,  // EJP
+            17 => 6,  // SCHL
+            18 => 7,  // MGA
+            19 => 8,  // SGN
+            20 => 3,  // BUKAKA
+            21 => 9,  // PESI
+        ];
+
+        // Pastikan armada rig yang memiliki data di bulan ini (bahkan jika inactive) tetap dimasukkan
+        $rigList = $allRigs;
+        $activeRigIds = array_map('intval', array_column($rigList, 'id'));
+        foreach ($dbRows as $r) {
+            $rId = (int)$r['rig_id'];
+            if (!in_array($rId, $activeRigIds, true)) {
+                $extraRig = $this->rigModel->find($rId);
+                if ($extraRig) {
+                    $rigList[] = $extraRig;
+                    $activeRigIds[] = $rId;
+                }
+            }
+        }
+
+        $rows = [];
+        $totals = array_fill(0, 34, 0.0);
+        $totals[0] = 'TOTAL';
+        $totals[1] = '';
+
+        $no = 1;
+        foreach ($rigList as $r) {
+            $rigId = (int)$r['id'];
+            $kodeDisplay = str_replace('#', ' ', $r['kode']);
+
+            $vals = array_fill(0, 34, 0.0);
+            $vals[0] = $no;
+            $vals[1] = $kodeDisplay;
+
+            // UNPAID
+            $vals[2] = $rigKatMap[$rigId][1] ?? 0.0; // Repair Rig
+            $vals[3] = $rigKatMap[$rigId][2] ?? 0.0; // Personel
+
+            // SBWC
+            $vals[4]  = $rigKatMap[$rigId][3] ?? 0.0; // SWA Rain
+            $vals[5]  = $rigKatMap[$rigId][4] ?? 0.0; // Dry Road
+            $vals[6]  = $rigKatMap[$rigId][5] ?? 0.0; // Dry Pad
+            $vals[7]  = $rigKatMap[$rigId][6] ?? 0.0; // Daylight
+            $vals[8]  = $rigKatMap[$rigId][13] ?? 0.0; // PT CHAST / PHR Operator
+            $vals[9]  = ($rigKatMap[$rigId][14] ?? 0.0) + ($rigKatMap[$rigId][19] ?? 0.0); // WO PDC / CE/PE
+            $vals[10] = $rigKatMap[$rigId][8] ?? 0.0; // PHR Well
+            $vals[11] = $rigKatMap[$rigId][20] ?? 0.0; // ESP
+
+            // 3rd Party 10 Vendors
+            $sumTpRow = 0.0;
+            foreach ($tpColMap as $colIdx => $tpId) {
+                $tpVal = $rigTpMap[$rigId][$tpId] ?? 0.0;
+                $vals[$colIdx] = $tpVal;
+                $sumTpRow += $tpVal;
+            }
+            // Jika ada jam 3rd party yang dicatat tanpa perincian vendor spesifik
+            $totalKat10 = (float)($rigKatMap[$rigId][10] ?? 0.0);
+            if ($totalKat10 > $sumTpRow) {
+                $sisaTp = $totalKat10 - $sumTpRow;
+                $vals[12] += $sisaTp; // Alokasikan ke vendor 3rd party pertama
+            }
+
+            $vals[22] = $rigTpMap[$rigId][10] ?? 0.0; // UNISAT
+            $vals[23] = $rigKatMap[$rigId][11] ?? 0.0; // TRANS Sharing
+            $vals[24] = $rigKatMap[$rigId][12] ?? 0.0; // Foam Unit
+            $vals[25] = $rigKatMap[$rigId][18] ?? 0.0; // WO Decision from LSC
+            $vals[26] = $rigKatMap[$rigId][21] ?? 0.0; // PEMILU
+            $vals[27] = ($rigKatMap[$rigId][17] ?? 0.0) + ($rigTpMap[$rigId][14] ?? 0.0); // WO OMS
+            $vals[28] = $rigTpMap[$rigId][11] ?? 0.0; // PT PCM
+            $vals[29] = $rigTpMap[$rigId][12] ?? 0.0; // WO COSL
+            $vals[30] = 0.0; // SAFARI
+            $vals[31] = $rigKatMap[$rigId][15] ?? 0.0; // IDUL FITRI / Shutdown
+
+            // TOTAL (HRS)
+            $rowTotal = 0.0;
+            for ($c = 2; $c <= 31; $c++) {
+                $rowTotal += (float)$vals[$c];
+                $totals[$c] += (float)$vals[$c];
+            }
+            $vals[32] = $rowTotal;
+            $totals[32] += $rowTotal;
+
+            $vals[33] = !empty($remUnpaid[$rigId]) ? $remUnpaid[$rigId] : '-';
+
+            $rows[] = [
+                'no'     => $no++,
+                'rig'    => $kodeDisplay,
+                'vals'   => $vals,
+                'remark' => $vals[33]
+            ];
+        }
+
+        return [
+            'title'  => "DOWN TIME RIG BMS PERIODE " . ($bulanNames[$bulan] ?? '') . " {$tahun}",
+            'cols'   => [],
+            'rows'   => $rows,
+            'totals' => $totals
+        ];
+    }
+
+    /**
+     * Mengambil seluruh kejadian downtime pada sheet rig tertentu (persis lembar BMS 02..BMS 21 di Excel NPT SEPTEMBER 2026.xlsx)
+     */
+    public function getRigSheetEvents(int $rigId, int $bulan, int $tahun): array
+    {
+        $db = \Config\Database::connect();
+
+        $query = "
+            SELECT nh.id, nh.tanggal, nh.jam, nh.remark, nh.kategori_id, nh.third_party_id,
+                   kd.nama as nama_kategori, kd.tipe as tipe_kat,
+                   tp.nama as nama_tp,
+                   COALESCE(
+                       l_nh.nama_lokasi,
+                       (SELECT l.nama_lokasi FROM daily_report dr JOIN lokasi l ON l.id = dr.lokasi_id WHERE dr.rig_id = nh.rig_id AND nh.tanggal BETWEEN dr.tanggal_mulai AND dr.tanggal_selesai LIMIT 1),
+                       (SELECT l.nama_lokasi FROM daily_report_log drl JOIN daily_report dr ON dr.id = drl.daily_report_id JOIN lokasi l ON l.id = dr.lokasi_id WHERE dr.rig_id = nh.rig_id AND drl.tanggal = nh.tanggal LIMIT 1),
+                       '-'
+                   ) as nama_lokasi
+            FROM npt_harian nh
+            LEFT JOIN kategori_downtime kd ON kd.id = nh.kategori_id
+            LEFT JOIN third_parties tp ON tp.id = nh.third_party_id
+            LEFT JOIN lokasi l_nh ON l_nh.id = nh.lokasi_id
+            WHERE nh.rig_id = ? AND MONTH(nh.tanggal) = ? AND YEAR(nh.tanggal) = ?
+            ORDER BY nh.tanggal ASC, nh.id ASC
+        ";
+
+        $entries = $db->query($query, [$rigId, $bulan, $tahun])->getResultArray();
+
+        $datesMap = [];
+        foreach ($entries as $e) {
+            $d = $e['tanggal'];
+            if (!isset($datesMap[$d])) {
+                $datesMap[$d] = [
+                    'tanggal'           => $d,
+                    'tanggal_formatted' => date('d-M-Y', strtotime($d)),
+                    'nama_lokasi'       => $e['nama_lokasi'] ?: '-',
+                    'unpaid_rep'        => 0.0,
+                    'unpaid_per'        => 0.0,
+                    'sbwc_rain'         => 0.0,
+                    'sbwc_road'         => 0.0,
+                    'sbwc_pad'          => 0.0,
+                    'sbwc_daylight'     => 0.0,
+                    'sbwc_perfo'        => 0.0,
+                    'sbwc_phr'          => 0.0,
+                    'sbwc_cpi'          => 0.0,
+                    'sbwc_tp'           => [],
+                    'sbwc_tp_sum'       => 0.0,
+                    'sbwc_trans'        => 0.0,
+                    'sbwc_foam'         => 0.0,
+                    'sbwc_pesi'         => 0.0,
+                    'sbwc_cepe'         => 0.0,
+                    'sbwc_idul'         => 0.0,
+                    'sbwc_other'        => 0.0,
+                    'total_unpaid'      => 0.0,
+                    'total_sbwc'        => 0.0,
+                    'total_hrs'         => 0.0,
+                    'remarks'           => [],
+                    'entries_raw'       => [],
+                ];
+            }
+
+            if ($e['nama_lokasi'] !== '-' && $datesMap[$d]['nama_lokasi'] === '-') {
+                $datesMap[$d]['nama_lokasi'] = $e['nama_lokasi'];
+            }
+
+            $jam  = (float)$e['jam'];
+            $kId  = (int)$e['kategori_id'];
+            $tpId = (int)$e['third_party_id'];
+
+            if ($kId === 1) {
+                $datesMap[$d]['unpaid_rep'] += $jam;
+                $datesMap[$d]['total_unpaid'] += $jam;
+            } elseif ($kId === 2) {
+                $datesMap[$d]['unpaid_per'] += $jam;
+                $datesMap[$d]['total_unpaid'] += $jam;
+            } else {
+                $datesMap[$d]['total_sbwc'] += $jam;
+                if ($kId === 3) {
+                    $datesMap[$d]['sbwc_rain'] += $jam;
+                } elseif ($kId === 4) {
+                    $datesMap[$d]['sbwc_road'] += $jam;
+                } elseif ($kId === 5) {
+                    $datesMap[$d]['sbwc_pad'] += $jam;
+                } elseif ($kId === 6) {
+                    $datesMap[$d]['sbwc_daylight'] += $jam;
+                } elseif ($kId === 7) {
+                    $datesMap[$d]['sbwc_perfo'] += $jam;
+                } elseif ($kId === 8) {
+                    $datesMap[$d]['sbwc_phr'] += $jam;
+                } elseif ($kId === 9) {
+                    $datesMap[$d]['sbwc_cpi'] += $jam;
+                } elseif ($kId === 10) {
+                    $tpName = $e['nama_tp'] ?: '3rd Party';
+                    $datesMap[$d]['sbwc_tp'][$tpName] = ($datesMap[$d]['sbwc_tp'][$tpName] ?? 0.0) + $jam;
+                    $datesMap[$d]['sbwc_tp_sum'] += $jam;
+                    if ($tpId === 9) {
+                        $datesMap[$d]['sbwc_pesi'] += $jam;
+                    }
+                } elseif ($kId === 11) {
+                    $datesMap[$d]['sbwc_trans'] += $jam;
+                } elseif ($kId === 12) {
+                    $datesMap[$d]['sbwc_foam'] += $jam;
+                } elseif (in_array($kId, [14, 19])) {
+                    $datesMap[$d]['sbwc_cepe'] += $jam;
+                } elseif ($kId === 15) {
+                    $datesMap[$d]['sbwc_idul'] += $jam;
+                } else {
+                    $datesMap[$d]['sbwc_other'] += $jam;
+                }
+            }
+
+            $datesMap[$d]['total_hrs'] += $jam;
+            if (!empty($e['remark']) && !in_array($e['remark'], $datesMap[$d]['remarks'])) {
+                $datesMap[$d]['remarks'][] = $e['remark'];
+            }
+            $datesMap[$d]['entries_raw'][] = $e;
+        }
+
+        // Tambahan Cerdas: Tarik seluruh catatan & kejadian dari daily_report_log untuk rig ini di bulan/tahun terpilih
+        $dailyLogs = $db->table('daily_report_log drl')
+            ->select('drl.tanggal, drl.total_dt, drl.remark_npt, drl.remark_unpaid, drl.dt_rig, drl.dt_tool, l.nama_lokasi, dr.no_well')
+            ->join('daily_report dr', 'dr.id = drl.daily_report_id')
+            ->join('lokasi l', 'l.id = dr.lokasi_id', 'left')
+            ->where('dr.rig_id', $rigId)
+            ->where('MONTH(drl.tanggal)', $bulan)
+            ->where('YEAR(drl.tanggal)', $tahun)
+            ->where('(drl.total_dt > 0 OR (drl.remark_npt IS NOT NULL AND drl.remark_npt != "") OR (drl.remark_unpaid IS NOT NULL AND drl.remark_unpaid != ""))')
+            ->get()->getResultArray();
+
+        foreach ($dailyLogs as $dl) {
+            $d = $dl['tanggal'];
+            if (isset($datesMap[$d])) {
+                // Perbarui nama lokasi jika sebelumnya belum terdeteksi
+                if (($datesMap[$d]['nama_lokasi'] === '-' || empty($datesMap[$d]['nama_lokasi'])) && !empty($dl['nama_lokasi'])) {
+                    $datesMap[$d]['nama_lokasi'] = $dl['nama_lokasi'] . ($dl['no_well'] ? " (Well #{$dl['no_well']})" : '');
+                }
+                // Masukkan narasi remark dari daily report log jika belum tercantum
+                if (!empty($dl['remark_unpaid'])) {
+                    $unpTag = '[UNPAID] ' . $dl['remark_unpaid'];
+                    if (!in_array($dl['remark_unpaid'], $datesMap[$d]['remarks']) && !in_array($unpTag, $datesMap[$d]['remarks'])) {
+                        $datesMap[$d]['remarks'][] = $unpTag;
+                    }
+                }
+                if (!empty($dl['remark_npt'])) {
+                    if (!in_array($dl['remark_npt'], $datesMap[$d]['remarks'])) {
+                        $datesMap[$d]['remarks'][] = $dl['remark_npt'];
+                    }
+                }
+            } else if ((float)$dl['total_dt'] > 0) {
+                // Ada downtime di daily_report_log yang belum tercatat di npt_harian
+                $dtHrs  = (float)$dl['total_dt'];
+                $unpRep = (float)($dl['dt_rig'] ?? 0);
+                $unpPer = (float)($dl['dt_tool'] ?? 0);
+                $totUnp = $unpRep + $unpPer;
+                $totSbwc = max(0, $dtHrs - $totUnp);
+                $remList = [];
+                if (!empty($dl['remark_unpaid'])) $remList[] = '[UNPAID] ' . $dl['remark_unpaid'];
+                if (!empty($dl['remark_npt']) && !in_array($dl['remark_npt'], $remList)) $remList[] = $dl['remark_npt'];
+
+                $datesMap[$d] = [
+                    'tanggal'           => $d,
+                    'tanggal_formatted' => date('d-M-Y', strtotime($d)),
+                    'nama_lokasi'       => (!empty($dl['nama_lokasi']) ? $dl['nama_lokasi'] : '-') . ($dl['no_well'] ? " (Well #{$dl['no_well']})" : ''),
+                    'unpaid_rep'        => $unpRep,
+                    'unpaid_per'        => $unpPer,
+                    'sbwc_rain'         => 0.0,
+                    'sbwc_road'         => 0.0,
+                    'sbwc_pad'          => 0.0,
+                    'sbwc_daylight'     => 0.0,
+                    'sbwc_perfo'        => 0.0,
+                    'sbwc_phr'          => 0.0,
+                    'sbwc_cpi'          => 0.0,
+                    'sbwc_tp'           => [],
+                    'sbwc_tp_sum'       => 0.0,
+                    'sbwc_trans'        => 0.0,
+                    'sbwc_foam'         => 0.0,
+                    'sbwc_pesi'         => 0.0,
+                    'sbwc_cepe'         => 0.0,
+                    'sbwc_idul'         => 0.0,
+                    'sbwc_other'        => $totSbwc,
+                    'total_unpaid'      => $totUnp,
+                    'total_sbwc'        => $totSbwc,
+                    'total_hrs'         => $dtHrs,
+                    'remarks'           => $remList,
+                    'entries_raw'       => [],
+                ];
+            }
+        }
+
+        // Urutkan kembali berdasarkan tanggal
+        ksort($datesMap);
+
+        $result = [];
+        $no = 1;
+        foreach ($datesMap as $d => $row) {
+            $row['no'] = $no++;
+            $row['remark_str'] = !empty($row['remarks']) ? implode('; ', $row['remarks']) : '-';
+            $result[] = $row;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Endpoint AJAX untuk lembar kerja rig per bulan
+     */
+    public function ajaxRigSheet(int $rigId, int $bulan, ?int $tahun = null)
+    {
+        $tahun = $tahun ?: (int)$this->request->getGet('tahun') ?: (int)date('Y');
+        $rig = $this->rigModel->find($rigId);
+        if (!$rig) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'Rig tidak ditemukan']);
+        }
+
+        $events = $this->getRigSheetEvents($rigId, $bulan, $tahun);
+        $totalHrs = array_sum(array_column($events, 'total_hrs'));
+        $totalUnpaid = array_sum(array_column($events, 'total_unpaid'));
+        $totalSbwc = array_sum(array_column($events, 'total_sbwc'));
+
+        return $this->response->setJSON([
+            'status' => 'success',
+            'rig' => [
+                'id'       => (int)$rig['id'],
+                'kode'     => $rig['kode'],
+                'nama_rig' => $rig['nama_rig'],
+            ],
+            'periode' => [
+                'bulan' => $bulan,
+                'tahun' => $tahun,
+            ],
+            'stats' => [
+                'total_hrs'    => round($totalHrs, 2),
+                'total_unpaid' => round($totalUnpaid, 2),
+                'total_sbwc'   => round($totalSbwc, 2),
+                'events_count' => count($events),
+            ],
+            'events' => $events
+        ]);
+    }
+
+    /**
+     * Simpan Event NPT Satuan Secara Cepat (Tanpa Form 31 Hari yang Padat)
+     */
+    public function simpanEvent()
+    {
+        $rigId = (int)$this->request->getPost('rig_id');
+        $tanggal = $this->request->getPost('tanggal');
+        $kategoriId = (int)$this->request->getPost('kategori_id');
+        $thirdPartyId = $this->request->getPost('third_party_id') ? (int)$this->request->getPost('third_party_id') : null;
+        $jam = (float)$this->request->getPost('jam');
+        $remark = trim($this->request->getPost('remark') ?? '');
+        $lokasiId = $this->request->getPost('lokasi_id') ? (int)$this->request->getPost('lokasi_id') : null;
+
+        if (!$rigId || !$tanggal || !$kategoriId || $jam < 0) {
+            return redirect()->back()->with('error', 'Data input NPT tidak lengkap.');
+        }
+
+        $bulan = (int)date('n', strtotime($tanggal));
+        $tahun = (int)date('Y', strtotime($tanggal));
+
+        $this->nptModel->upsertNpt(
+            $rigId,
+            $tanggal,
+            $kategoriId,
+            $thirdPartyId,
+            $jam,
+            $remark ?: null
+        );
+
+        if ($lokasiId) {
+            $db = \Config\Database::connect();
+            $db->table('npt_harian')
+                ->where('rig_id', $rigId)
+                ->where('tanggal', $tanggal)
+                ->where('kategori_id', $kategoriId)
+                ->update(['lokasi_id' => $lokasiId]);
+        }
+
+        // Sinkronisasi ke daily report log & monthly summary
+        $this->nptModel->syncNptBackToDaily($rigId, $tanggal, $kategoriId, $jam, $remark);
+        $summaryModel = new MonthlySummaryModel();
+        $summaryModel->hitungDanSimpan($rigId, $bulan, $tahun);
+
+        $rig = $this->rigModel->find($rigId);
+        $rigKode = $rig['kode'] ?? "Rig #{$rigId}";
+        ActivityLogModel::record(
+            'NPT',
+            'SIMPAN_EVENT',
+            "Mencatat NPT {$rigKode} tanggal " . date('d/m/Y', strtotime($tanggal)) . " ({$jam} Jam).",
+            $rigId
+        );
+
+        return redirect()->to(base_url("npt/{$rigId}/{$bulan}/{$tahun}?view=rig"))->with('success', "Catatan NPT {$rigKode} tanggal " . date('d/m/Y', strtotime($tanggal)) . " berhasil disimpan.");
+    }
+
+    /**
+     * Hapus Baris Event NPT Satuan
+     */
+    public function hapusEvent()
+    {
+        $rigId = (int)$this->request->getPost('rig_id');
+        $tanggal = $this->request->getPost('tanggal');
+        $kategoriId = (int)$this->request->getPost('kategori_id');
+        $thirdPartyId = $this->request->getPost('third_party_id') ? (int)$this->request->getPost('third_party_id') : null;
+
+        $this->nptModel->hapusRow($rigId, $tanggal, $kategoriId, $thirdPartyId);
+
+        $bulan = (int)date('n', strtotime($tanggal));
+        $tahun = (int)date('Y', strtotime($tanggal));
+
+        $this->nptModel->syncNptBackToDaily($rigId, $tanggal, $kategoriId, 0, '');
+        $summaryModel = new MonthlySummaryModel();
+        $summaryModel->hitungDanSimpan($rigId, $bulan, $tahun);
+
+        $rig = $this->rigModel->find($rigId);
+        $rigKode = $rig['kode'] ?? "Rig #{$rigId}";
+        ActivityLogModel::record(
+            'NPT',
+            'HAPUS_EVENT',
+            "Menghapus catatan NPT {$rigKode} tanggal " . date('d/m/Y', strtotime($tanggal)) . ".",
+            $rigId
+        );
+
+        return redirect()->to(base_url("npt/{$rigId}/{$bulan}/{$tahun}?view=rig"))->with('success', "Catatan NPT tanggal " . date('d/m/Y', strtotime($tanggal)) . " berhasil dihapus.");
+    }
 }
+

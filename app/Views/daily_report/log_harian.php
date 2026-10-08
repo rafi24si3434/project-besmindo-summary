@@ -273,6 +273,270 @@
         border-color: #fda4af;
         color: #be123c;
     }
+
+    /* ═══ PROMINENT TACTILE "+ SUMUR BARU" CTA BUTTON (DESIGN-TASTE) ═══ */
+    .lh-btn-new-well {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 14px;
+        border-radius: 10px;
+        background: #0284c7;
+        color: #ffffff;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        box-shadow: 0 2px 8px rgba(2, 132, 199, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        font-weight: 700;
+        cursor: pointer;
+        transition: background-color 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+        text-decoration: none;
+    }
+    .lh-btn-new-well:hover {
+        background: #0369a1;
+        box-shadow: 0 4px 12px rgba(2, 132, 199, 0.38);
+    }
+    .lh-btn-new-well:active {
+        transform: translateY(1px);
+    }
+    .lh-btn-new-well-icon {
+        width: 26px;
+        height: 26px;
+        border-radius: 7px;
+        background: rgba(255, 255, 255, 0.18);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        flex-shrink: 0;
+    }
+
+    /* ═══ SMART CONTINUATION BANNER (SAAT SUMUR SELESAI / HARI TERAKHIR) ═══ */
+    .lh-next-well-banner {
+        background: rgba(16, 185, 129, 0.08);
+        border: 1px solid rgba(16, 185, 129, 0.32);
+        border-radius: 11px;
+        padding: 10px 14px;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+    }
+    :root[data-theme="light"] .lh-next-well-banner {
+        background: #ecfdf5;
+        border-color: #6ee7b7;
+    }
+
+    /* ═══ TACTILE ACTION BUTTONS (STICKY SIDEBAR COMMAND SYSTEM) ═══ */
+    .lh-btn-submit-main {
+        width: 100%;
+        padding: 12px 16px;
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        background: #0284c7;
+        color: #ffffff !important;
+        box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+    }
+    .lh-btn-submit-main * {
+        color: #ffffff !important;
+    }
+    .lh-btn-submit-main:hover {
+        background: #0369a1;
+        box-shadow: 0 6px 18px rgba(2, 132, 199, 0.45);
+    }
+    .lh-btn-submit-main:active {
+        transform: translateY(1px);
+    }
+    .lh-btn-submit-main:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+        box-shadow: none;
+    }
+    .lh-btn-submit-main.is-error {
+        background: #e11d48 !important;
+        border-color: #be123c !important;
+        box-shadow: 0 4px 14px rgba(225, 29, 72, 0.35) !important;
+    }
+    :root[data-theme="light"] .lh-btn-submit-main {
+        background: #0284c7 !important;
+        border-color: #0369a1 !important;
+        color: #ffffff !important;
+        box-shadow: 0 3px 10px rgba(2, 132, 199, 0.25);
+    }
+    :root[data-theme="light"] .lh-btn-submit-main * {
+        color: #ffffff !important;
+    }
+    :root[data-theme="light"] .lh-btn-submit-main:hover {
+        background: #0369a1 !important;
+    }
+
+    /* Tombol Lanjut Buat Sumur Baru */
+    .lh-btn-save-next {
+        width: 100%;
+        padding: 11px 14px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        background: rgba(16, 185, 129, 0.08);
+        border: 1px solid rgba(16, 185, 129, 0.35);
+        color: #34d399 !important;
+    }
+    .lh-btn-save-next * {
+        color: #34d399 !important;
+    }
+    .lh-btn-save-next:hover {
+        background: rgba(16, 185, 129, 0.16);
+        border-color: rgba(16, 185, 129, 0.5);
+        color: #6ee7b7 !important;
+    }
+    .lh-btn-save-next:hover * {
+        color: #6ee7b7 !important;
+    }
+    .lh-btn-save-next:active {
+        transform: translateY(1px);
+    }
+    .lh-btn-save-next:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    /* Light Mode Default: Soft Mint Pastel Background with High-Contrast Deep Green Text */
+    :root[data-theme="light"] .lh-btn-save-next {
+        background: #f0fdf4 !important;
+        border: 1px solid #86efac !important;
+        color: #15803d !important;
+    }
+    :root[data-theme="light"] .lh-btn-save-next * {
+        color: #15803d !important;
+    }
+    :root[data-theme="light"] .lh-btn-save-next:hover {
+        background: #dcfce7 !important;
+        border-color: #4ade80 !important;
+        color: #166534 !important;
+    }
+    :root[data-theme="light"] .lh-btn-save-next:hover * {
+        color: #166534 !important;
+    }
+
+    /* State Highlight: Saat Jadwal Sumur Selesai (Beralih jadi Solid CTA Emerald) */
+    .lh-btn-save-next.is-highlighted {
+        background: #059669 !important;
+        border: 1px solid #047857 !important;
+        color: #ffffff !important;
+        box-shadow: 0 4px 14px rgba(5, 150, 105, 0.35) !important;
+    }
+    .lh-btn-save-next.is-highlighted * {
+        color: #ffffff !important;
+    }
+    .lh-btn-save-next.is-highlighted:hover {
+        background: #047857 !important;
+    }
+    :root[data-theme="light"] .lh-btn-save-next.is-highlighted {
+        background: #059669 !important;
+        border: 1px solid #047857 !important;
+        color: #ffffff !important;
+        box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25) !important;
+    }
+    :root[data-theme="light"] .lh-btn-save-next.is-highlighted * {
+        color: #ffffff !important;
+    }
+
+    /* Reset Button */
+    .lh-btn-reset {
+        width: 100%;
+        padding: 9px 12px;
+        border-radius: 10px;
+        font-size: 11px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        background: #141c2b;
+        border: 1px solid #25334a;
+        color: #94a3b8;
+    }
+    .lh-btn-reset:hover {
+        background: #1e293b;
+        color: #f8fafc;
+        border-color: #38bdf8;
+    }
+    :root[data-theme="light"] .lh-btn-reset {
+        background: #f8fafc;
+        border: 1px solid #cbd5e1;
+        color: #475569;
+    }
+    :root[data-theme="light"] .lh-btn-reset:hover {
+        background: #f1f5f9;
+        border-color: #94a3b8;
+        color: #0f172a;
+    }
+
+    /* Contextual Sidebar Notice */
+    .lh-sidebar-notice {
+        padding: 10px 12px;
+        border-radius: 12px;
+        background: rgba(16, 185, 129, 0.08);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        color: #34d399;
+    }
+    :root[data-theme="light"] .lh-sidebar-notice {
+        background: #f0fdf4 !important;
+        border: 1px solid #86efac !important;
+        color: #15803d !important;
+    }
+    :root[data-theme="light"] .lh-sidebar-notice p {
+        color: #334155 !important;
+    }
+
+    /* ═══ IN-PAGE SMART NEW WELL MODAL ═══ */
+    .lh-modal-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 9990;
+        background: rgba(6, 10, 18, 0.78);
+        backdrop-filter: blur(6px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .lh-modal-backdrop.is-open {
+        opacity: 1;
+        pointer-events: auto;
+    }
+    .lh-modal-dialog {
+        width: 100%;
+        max-width: 560px;
+        background: var(--lh-card-bg);
+        border: 1px solid var(--lh-input-border);
+        border-radius: 16px;
+        box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.65);
+        transform: translateY(10px);
+        transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+        overflow: hidden;
+    }
+    .lh-modal-backdrop.is-open .lh-modal-dialog {
+        transform: translateY(0);
+    }
 </style>
 
 <?php
@@ -284,6 +548,13 @@ $bulanNames = [
 $totalLogsCount  = count($recentLogs ?? []);
 $totalWellsCount = count($wells ?? []);
 $tambahSumurUrl  = base_url("daily-report/tambah/{$rigId}/{$bulan}/{$tahun}");
+$maxWellNo = 0;
+foreach (($wells ?? []) as $wItem) {
+    if ((int)($wItem['no_well'] ?? 0) > $maxWellNo) {
+        $maxWellNo = (int)$wItem['no_well'];
+    }
+}
+$nextNoWellAuto = $maxWellNo + 1;
 ?>
 
 <div class="space-y-3.5 pb-12">
@@ -333,9 +604,9 @@ $tambahSumurUrl  = base_url("daily-report/tambah/{$rigId}/{$bulan}/{$tahun}");
                     <?php endfor; ?>
                 </select>
 
-                <a href="<?= $tambahSumurUrl ?>" class="lh-preset-btn !py-1 !px-2.5">
-                    <i class="fa-solid fa-plus text-amber-500"></i>
-                    <span>Sumur Baru</span>
+                <a href="<?= $tambahSumurUrl ?>" class="lh-preset-btn !py-1.5 !px-3 !border-sky-500/40">
+                    <i class="fa-solid fa-plus text-sky-400"></i>
+                    <span>Tambah Sumur (Well #<?= $nextNoWellAuto ?>)</span>
                 </a>
 
                 <a href="<?= base_url("daily-report/{$rigId}/{$bulan}/{$tahun}") ?>" class="lh-preset-btn !py-1 !px-2.5">
@@ -351,9 +622,9 @@ $tambahSumurUrl  = base_url("daily-report/tambah/{$rigId}/{$bulan}/{$tahun}");
         </div>
     </div>
 
+    <!-- ═══ PERINGATAN BELUM ADA SUMUR (JIKA MASIH KOSONG) ═══ -->
     <?php if (empty($wells)): ?>
-    <!-- ═══ PERINGATAN BELUM ADA SUMUR ═══ -->
-    <div class="lh-surface-card p-4 border-l-4 border-l-amber-500 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+    <div id="emptyWellsAlertBanner" class="lh-surface-card p-4 border-l-4 border-l-amber-500 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div class="flex items-center gap-3">
             <div class="w-9 h-9 rounded-xl lh-badge-amber flex items-center justify-center shrink-0">
                 <i class="fa-solid fa-bore-hole text-sm"></i>
@@ -363,14 +634,14 @@ $tambahSumurUrl  = base_url("daily-report/tambah/{$rigId}/{$bulan}/{$tahun}");
                     Belum Ada Pekerjaan Sumur (Well) di Bulan <?= $bulanNames[$bulan] ?> <?= $tahun ?>
                 </h3>
                 <p class="text-[11px] lh-text-muted">
-                    Tambahkan data sumur terlebih dahulu sebelum mengisi rincian jam operasi harian.
+                    Klik tombol di kanan untuk mendaftarkan <strong>Well #1</strong>, lalu kembali otomatis ke lembar kerja ini.
                 </p>
             </div>
         </div>
-        <a href="<?= $tambahSumurUrl ?>"
-            class="px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs rounded-xl shadow-sm transition flex items-center gap-1.5 shrink-0">
-            <i class="fa-solid fa-plus-circle"></i>
-            <span>+ Tambah Sumur Baru</span>
+        <a href="<?= $tambahSumurUrl ?>" class="lh-btn-new-well shrink-0">
+            <span class="lh-btn-new-well-icon"><i class="fa-solid fa-plus"></i></span>
+            <span class="text-xs sm:text-sm font-extrabold">Buat Sumur Pertama (Well #1)</span>
+            <i class="fa-solid fa-arrow-right text-xs"></i>
         </a>
     </div>
     <?php endif; ?>
@@ -381,6 +652,7 @@ $tambahSumurUrl  = base_url("daily-report/tambah/{$rigId}/{$bulan}/{$tahun}");
         <input type="hidden" name="rig_id" value="<?= $rigId ?>">
         <input type="hidden" name="bulan" value="<?= $bulan ?>">
         <input type="hidden" name="tahun" value="<?= $tahun ?>">
+        <input type="hidden" name="after_save_action" id="inputAfterSaveAction" value="">
 
         <div class="grid grid-cols-1 xl:grid-cols-12 gap-4 items-start" id="formSection">
 
@@ -390,21 +662,40 @@ $tambahSumurUrl  = base_url("daily-report/tambah/{$rigId}/{$bulan}/{$tahun}");
             <div class="xl:col-span-8 space-y-3.5">
 
                 <!-- ─── PANEL UTAMA ATAS: 01. SUMUR & TANGGAL + 02. JAM PRODUKTIF (MIRU & OPERASI) LANGSUNG TERLIHAT TANPA SCROLL ─── -->
-                <div class="lh-surface-card p-4 space-y-3.5">
+                <div class="lh-surface-card p-4 sm:p-5 space-y-3.5">
 
-                    <!-- BARIS HEADER 01: SUMUR & JADWAL -->
-                    <div class="flex flex-wrap items-center justify-between gap-2 lh-divider-b pb-2.5">
-                        <div class="flex items-center gap-2">
-                            <span class="w-5 h-5 rounded-md lh-badge-sky font-mono text-[11px] font-black flex items-center justify-center">01</span>
-                            <h3 class="text-xs font-extrabold uppercase tracking-wider lh-text-title">
-                                Sumur (Well), Tanggal Operasi &amp; Status Pekerjaan
-                            </h3>
-                            <span id="wellScheduleNotice" class="hidden sm:inline-block text-[11px] lh-text-muted ml-1"></span>
+                    <!-- BARIS HEADER 01: SUMUR & JADWAL + TOMBOL TACTILE BESAR ALIHKAN KE /daily-report/tambah -->
+                    <div class="flex flex-wrap items-center justify-between gap-3 lh-divider-b pb-3.5">
+                        <div class="flex flex-wrap items-center gap-2.5 min-w-0">
+                            <span class="w-6 h-6 rounded-md lh-badge-sky font-mono text-xs font-black flex items-center justify-center shrink-0">01</span>
+                            <div>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <h3 class="text-xs sm:text-[13px] font-extrabold uppercase tracking-wider lh-text-title">
+                                        Sumur (Well), Tanggal Operasi &amp; Status Pekerjaan
+                                    </h3>
+                                    <span id="wellScheduleNotice" class="inline-flex items-center text-[11px] lh-text-muted"></span>
+                                </div>
+                                <p class="text-[11px] lh-text-muted mt-0.5">
+                                    Selesai mengisi jadwal sumur ini? Klik tombol <strong>Tambah Sumur Baru (Well #<?= $nextNoWellAuto ?>)</strong> di kanan.
+                                </p>
+                            </div>
                         </div>
+
+                        <!-- Prominent Tactile CTA Button -> Direct to /daily-report/tambah -->
                         <a href="<?= $tambahSumurUrl ?>"
-                            class="px-2.5 py-1 rounded-lg lh-badge-amber text-[11px] font-extrabold transition flex items-center gap-1">
-                            <i class="fa-solid fa-plus text-[10px]"></i>
-                            <span>+ Sumur Baru</span>
+                            class="lh-btn-new-well shrink-0 !py-2.5 !px-4"
+                            title="Buka halaman pendaftaran Sumur Baru (Well #<?= $nextNoWellAuto ?>)">
+                            <span class="lh-btn-new-well-icon">
+                                <i class="fa-solid fa-plus"></i>
+                            </span>
+                            <span class="flex flex-col text-left leading-tight pr-1">
+                                <span class="text-xs sm:text-[13px] font-extrabold tracking-tight">
+                                    Tambah Sumur Baru (Well #<?= $nextNoWellAuto ?>)
+                                </span>
+                                <span class="text-[10px] text-sky-100/90 font-medium">
+                                    Lanjut ke sumur berikutnya →
+                                </span>
+                            </span>
                         </a>
                     </div>
 
@@ -493,18 +784,28 @@ $tambahSumurUrl  = base_url("daily-report/tambah/{$rigId}/{$bulan}/{$tahun}");
                                 </span>
                                 <div id="wellDatePillsContainer" class="flex flex-wrap gap-1.5"></div>
                             </div>
-                            <div class="flex items-center gap-2 shrink-0">
-                                <span id="wellDateRangeSummary" class="text-[11px] lh-text-muted font-mono"></span>
+                            <div class="flex flex-wrap items-center gap-1.5 shrink-0">
+                                <span id="wellDateRangeSummary" class="text-[11px] lh-text-muted font-mono mr-1"></span>
+                                <button type="button" onclick="lanjutHariBerikutnya()"
+                                    class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-sky-500/15 border border-sky-500/30 text-sky-400 hover:bg-sky-500/25 transition cursor-pointer flex items-center gap-1"
+                                    title="Lanjut input hari berikutnya untuk sumur ini">
+                                    <i class="fa-solid fa-plus text-[10px]"></i> Lanjut Hari Berikutnya
+                                </button>
                                 <button type="button" onclick="jumpToNextUnfilledDate()"
-                                    class="lh-sisa-mini-btn">
-                                    <i class="fa-solid fa-forward-step mr-0.5"></i> Tgl Kosong Berikutnya
+                                    class="lh-sisa-mini-btn" title="Lompat ke tanggal kosong berikutnya pada sumur ini">
+                                    <i class="fa-solid fa-forward-step mr-0.5"></i> Tgl Kosong
+                                </button>
+                                <button type="button" onclick="openModalSelesaikanSumur()"
+                                    class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/25 transition cursor-pointer flex items-center gap-1"
+                                    title="Pekerjaan sumur telah rampung, tetapkan tanggal berakhir dan selesaikan">
+                                    <i class="fa-solid fa-flag-checkered text-[10px]"></i> Selesaikan Sumur
                                 </button>
                             </div>
                         </div>
                     </div>
 
                     <!-- ─── BAGIAN 2 (TERINTEGRASI LANGSUNG): JAM PRODUKTIF RIG (MIRU & OPERASI) ─── -->
-                    <div class="pt-2.5 border-t" style="border-color: var(--lh-border);">
+                    <div class="pt-3 border-t lh-divider-t">
                         <div class="flex flex-wrap items-center justify-between gap-2 mb-2.5">
                             <div class="flex items-center gap-2">
                                 <span class="w-5 h-5 rounded-md lh-badge-emerald font-mono text-[11px] font-black flex items-center justify-center">02</span>
@@ -813,6 +1114,44 @@ $tambahSumurUrl  = base_url("daily-report/tambah/{$rigId}/{$bulan}/{$tahun}");
                         </div>
                     </div>
                 </div>
+
+                <!-- ─── STRATEGIC COMPLETION & TRANSITION BAR (SAAT SELESAI INPUT / HARI TERAKHIR SUMUR) ─── -->
+                <div id="wellCompleteNextBanner" class="hidden lh-surface-card p-4 sm:p-5 border-l-4 border-l-emerald-500 space-y-3 transition-all duration-300">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-3.5">
+                        <div class="flex items-start gap-3.5 min-w-0">
+                            <div class="w-10 h-10 rounded-xl lh-badge-emerald flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-flag-checkered text-base text-emerald-500"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-2">
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                                        Fase Selesai
+                                    </span>
+                                    <h4 class="text-sm font-black lh-text-title tracking-tight" id="nextWellBannerTitle">
+                                        Jadwal Sumur Aktif Selesai — Siap Pindah ke Sumur Berikutnya?
+                                    </h4>
+                                </div>
+                                <p class="text-xs lh-text-sec mt-1" id="nextWellBannerDesc">
+                                    Seluruh log harian pada jadwal sumur ini telah tercatat. Klik tombol di kanan untuk menyimpan catatan hari ini dan langsung membuat <strong>Well #<?= $nextNoWellAuto ?></strong>.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons di Akhir Input -->
+                        <div class="flex flex-wrap items-center gap-2 shrink-0">
+                            <button type="button" onclick="submitLogAndOpenNewWell()"
+                                class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black shadow-md shadow-emerald-600/25 transition-all flex items-center gap-2 cursor-pointer active:scale-95">
+                                <i class="fa-solid fa-floppy-disk text-xs"></i>
+                                <span>Simpan &amp; Lanjut Buat Well #<span class="js-next-well-num"><?= $nextNoWellAuto ?></span> →</span>
+                            </button>
+                            <a href="<?= $tambahSumurUrl ?>"
+                                class="lh-preset-btn !py-2.5 !px-3.5 !text-xs !border-emerald-500/40 hover:!border-emerald-500"
+                                title="Buka form pendaftaran sumur baru tanpa menyimpan log">
+                                <span>Buka Form Well #<span class="js-next-well-num"><?= $nextNoWellAuto ?></span> ↗</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- ══════════════════════════════════════════════════════════════════
@@ -877,15 +1216,36 @@ $tambahSumurUrl  = base_url("daily-report/tambah/{$rigId}/{$bulan}/{$tahun}");
                         </div>
                     </div>
 
-                    <!-- Tombol Simpan & Reset -->
+                    <!-- Tombol Simpan, Simpan & Lanjut Sumur Baru, serta Reset -->
                     <div class="space-y-2 pt-1">
+                        <!-- Contextual Completion Banner for Sticky Sidebar -->
+                        <div id="sidebarWellCompleteNotice" class="hidden lh-sidebar-notice space-y-1 transition-all">
+                            <div class="flex items-center gap-2 text-xs font-black tracking-tight">
+                                <i class="fa-solid fa-flag-checkered"></i>
+                                <span id="sidebarNoticeTitle">Jadwal Sumur Telah Selesai</span>
+                            </div>
+                            <p class="text-[11px] leading-snug" id="sidebarNoticeDesc">
+                                Siap lanjut? Gunakan tombol hijau di bawah untuk simpan &amp; lanjut ke Well berikutnya.
+                            </p>
+                        </div>
+
                         <button type="submit" id="btnSubmitDaily" <?= empty($wells) ? 'disabled' : '' ?>
-                            class="w-full py-3 px-4 bg-sky-600 hover:bg-sky-500 text-white font-extrabold text-xs rounded-xl shadow-md transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
-                            <i class="fa-solid fa-floppy-disk"></i>
+                            onclick="document.getElementById('inputAfterSaveAction').value = ''"
+                            class="lh-btn-submit-main">
+                            <i class="fa-solid fa-floppy-disk text-xs"></i>
                             <span>SIMPAN DAILY REPORT</span>
                         </button>
+
+                        <button type="button" id="btnSaveAndNewWell" <?= empty($wells) ? 'disabled' : '' ?>
+                            onclick="submitLogAndOpenNewWell()"
+                            class="lh-btn-save-next"
+                            title="Simpan catatan hari ini, lalu otomatis buka formulir pembuatan Sumur Baru (Well berikutnya)">
+                            <i class="fa-solid fa-plus-circle text-xs"></i>
+                            <span>Simpan &amp; Lanjut Buat Well #<span class="js-next-well-num"><?= $nextNoWellAuto ?></span></span>
+                        </button>
+
                         <button type="button" onclick="resetFormToDefault()"
-                            class="lh-preset-btn w-full justify-center py-2">
+                            class="lh-btn-reset">
                             <i class="fa-solid fa-rotate-left text-[10px]"></i>
                             <span>Reset / Bersihkan Form</span>
                         </button>
@@ -898,20 +1258,21 @@ $tambahSumurUrl  = base_url("daily-report/tambah/{$rigId}/{$bulan}/{$tahun}");
                         <div>
                             <h3 class="text-xs font-extrabold uppercase tracking-wider lh-text-title flex items-center gap-1.5">
                                 <i class="fa-solid fa-oil-well text-sky-500"></i>
-                                <span>Daftar Sumur Bulan Ini (<?= count($wells) ?> Well)</span>
+                                <span>Daftar Sumur Bulan Ini (<span id="wellCountBadge"><?= count($wells) ?></span> Well)</span>
                             </h3>
                             <p class="text-[11px] lh-text-muted mt-0.5">
                                 Klik sumur untuk memilih &amp; mengisi tanggalnya.
                             </p>
                         </div>
-                        <a href="<?= $tambahSumurUrl ?>" class="lh-preset-btn !py-1.5 !px-3">
-                            <i class="fa-solid fa-plus text-amber-500"></i>
-                            <span>Sumur Baru</span>
+                        <a href="<?= $tambahSumurUrl ?>"
+                            class="px-3.5 py-2 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-xs font-extrabold transition flex items-center gap-1.5 shrink-0 shadow-sm">
+                            <i class="fa-solid fa-plus text-[10px]"></i>
+                            <span>Tambah Well #<?= $nextNoWellAuto ?></span>
                         </a>
                     </div>
 
-                    <?php if (!empty($wells)): ?>
-                    <div class="space-y-2 max-h-72 overflow-y-auto pr-1">
+                    <div id="wellCardsContainer" class="space-y-2 max-h-72 overflow-y-auto pr-1">
+                        <?php if (!empty($wells)): ?>
                         <?php foreach ($wells as $w): ?>
                         <?php
                             $wStart = $w['tanggal_mulai'] ?? '';
@@ -947,12 +1308,12 @@ $tambahSumurUrl  = base_url("daily-report/tambah/{$rigId}/{$bulan}/{$tahun}");
                             </span>
                         </button>
                         <?php endforeach; ?>
+                        <?php else: ?>
+                        <div id="emptyWellsSidebarText" class="text-center py-5 text-xs lh-text-muted">
+                            Belum ada sumur terdaftar di bulan ini. Klik <strong>Tambah Well #1</strong> di atas.
+                        </div>
+                        <?php endif; ?>
                     </div>
-                    <?php else: ?>
-                    <div class="text-center py-5 text-xs lh-text-muted">
-                        Belum ada sumur terdaftar di bulan ini.
-                    </div>
-                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -1070,6 +1431,64 @@ $tambahSumurUrl  = base_url("daily-report/tambah/{$rigId}/{$bulan}/{$tahun}");
         </div>
     </div>
 </div>
+
+<!-- Modal Selesaikan Sumur -->
+<div id="modalSelesaikanSumur" class="lh-modal-backdrop" onclick="if(event.target===this) closeSelesaikanModal()">
+    <div class="lh-modal-dialog max-w-md w-full p-5" onclick="event.stopPropagation()">
+        <div class="flex items-center justify-between pb-3 border-b lh-divider-b mb-4">
+            <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 font-black flex items-center justify-center text-sm">
+                    <i class="fa-solid fa-flag-checkered"></i>
+                </span>
+                <div>
+                    <h3 class="text-sm font-black lh-text-title" id="modalSelesaikanTitle">Selesaikan Pekerjaan Sumur</h3>
+                    <p class="text-[11px] lh-text-muted">Tetapkan tanggal berakhir &amp; tandai sumur telah rampung</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeSelesaikanModal()" class="lh-badge-slate w-7 h-7 rounded-lg flex items-center justify-center text-xs cursor-pointer">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <form id="formSelesaikanSumur" method="POST" action="">
+            <?= csrf_field() ?>
+            <div class="space-y-3.5">
+                <div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-300">
+                    <p id="selesaikanWellSummaryText">Pekerjaan sumur ini akan ditandai <strong>JOB COMPLETED</strong> dengan tanggal akhir yang Anda tentukan di bawah.</p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold lh-text-sec mb-1">
+                        Tanggal Berakhir / Selesai <span class="text-rose-500">*</span>
+                    </label>
+                    <input type="date" name="tanggal_selesai" id="selesaikanTanggalInput" required
+                        min="<?= sprintf('%04d-%02d-01', $tahun, $bulan) ?>"
+                        max="<?= sprintf('%04d-%02d-%02d', $tahun, $bulan, cal_days_in_month(CAL_GREGORIAN, $bulan, $tahun)) ?>"
+                        class="lh-control-box w-full px-3 py-2 text-xs font-mono font-bold rounded-lg">
+                    <span class="text-[10px] lh-text-muted mt-0.5 block">Selesai pada tanggal log terakhir atau tentukan sesuai operasi di lapangan.</span>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold lh-text-sec mb-1">Status Akhir Pekerjaan</label>
+                    <select name="status_job" id="selesaikanStatusInput" class="lh-control-box w-full px-3 py-2 text-xs font-bold rounded-lg cursor-pointer">
+                        <option value="JOB COMPLETED" selected>JOB COMPLETED (Pekerjaan Selesai)</option>
+                        <option value="JOB SUSPEND">JOB SUSPEND (Ditangguhkan)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-2 pt-4 mt-4 border-t lh-divider-t">
+                <button type="button" onclick="closeSelesaikanModal()" class="lh-secondary-btn !py-2 !px-3.5 text-xs font-bold">
+                    Batal
+                </button>
+                <button type="submit" class="lh-submit-btn !py-2 !px-4 text-xs font-bold flex items-center gap-1.5 !bg-emerald-600 hover:!bg-emerald-500 !text-white">
+                    <i class="fa-solid fa-check"></i>
+                    <span>Simpan &amp; Selesaikan Sumur</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 <?= $this->endSection() ?>
 
 <?= $this->section('scripts') ?>
@@ -1154,12 +1573,29 @@ $tambahSumurUrl  = base_url("daily-report/tambah/{$rigId}/{$bulan}/{$tahun}");
     }
 
     function onManualRemarkInput(type) {
+        const nptEl = document.getElementById('remarkNpt');
+        const unpEl = document.getElementById('remarkUnpaid');
         if (type === 'npt') {
-            const val = (document.getElementById('remarkNpt')?.value || '').trim();
+            const val = (nptEl?.value || '').trim();
             isRemarkNptAuto = (val === '' || val === lastAutoRemarkNpt);
+            // Jika user mengetik remark custom di kolom utama sedangkan kolom Unpaid masih berisi template otomatis, sinkronkan
+            if (!isRemarkNptAuto && isRemarkUnpaidAuto && unpEl) {
+                const rigDt  = parseFloat(document.getElementById('dt_rig')?.value) || 0;
+                const toolDt = parseFloat(document.getElementById('dt_tool')?.value) || 0;
+                unpEl.value = (rigDt > 0 || toolDt > 0) ? val : '';
+            }
         } else if (type === 'unpaid') {
-            const val = (document.getElementById('remarkUnpaid')?.value || '').trim();
+            const val = (unpEl?.value || '').trim();
             isRemarkUnpaidAuto = (val === '' || val === lastAutoRemarkUnpaid);
+            // Jika user mengetik remark custom di kolom Unpaid sedangkan kolom NPT utama masih template otomatis, sinkronkan
+            if (!isRemarkUnpaidAuto && isRemarkNptAuto && nptEl) {
+                const { nptText, unpaidText } = buildBesmindoAutoRemark();
+                if (unpaidText && nptText.includes(unpaidText)) {
+                    nptEl.value = nptText.replace(unpaidText, val);
+                } else {
+                    nptEl.value = val;
+                }
+            }
         }
     }
 
@@ -1404,7 +1840,8 @@ $tambahSumurUrl  = base_url("daily-report/tambah/{$rigId}/{$bulan}/{$tahun}");
 
             if (btnSubmit) {
                 btnSubmit.disabled = true;
-                btnSubmit.innerHTML = `<i class="fa-solid fa-lock"></i> <span>MELEBIHI BATAS (${maxAllowedForThisWell.toFixed(2)}j)</span>`;
+                btnSubmit.classList.add('is-error');
+                btnSubmit.innerHTML = `<i class="fa-solid fa-lock text-xs"></i> <span>MELEBIHI BATAS (${maxAllowedForThisWell.toFixed(2)}j)</span>`;
             }
         } else if (Math.abs(combinedDayTotal - 24.0) <= 0.001) {
             grandEl.className = 'font-mono font-black text-2xl tracking-tight text-emerald-500';
@@ -1415,7 +1852,8 @@ $tambahSumurUrl  = base_url("daily-report/tambah/{$rigId}/{$bulan}/{$tahun}");
 
             if (btnSubmit) {
                 btnSubmit.disabled = false;
-                btnSubmit.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> <span>SIMPAN DAILY REPORT (${grandTotal.toFixed(2)}j)</span>`;
+                btnSubmit.classList.remove('is-error');
+                btnSubmit.innerHTML = `<i class="fa-solid fa-floppy-disk text-xs"></i> <span>SIMPAN DAILY REPORT (${grandTotal.toFixed(2)}j)</span>`;
             }
         } else {
             grandEl.className = 'font-mono font-black text-2xl tracking-tight text-sky-500';
@@ -1426,7 +1864,8 @@ $tambahSumurUrl  = base_url("daily-report/tambah/{$rigId}/{$bulan}/{$tahun}");
 
             if (btnSubmit) {
                 btnSubmit.disabled = false;
-                btnSubmit.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> <span>SIMPAN DAILY REPORT (${grandTotal.toFixed(2)}j)</span>`;
+                btnSubmit.classList.remove('is-error');
+                btnSubmit.innerHTML = `<i class="fa-solid fa-floppy-disk text-xs"></i> <span>SIMPAN DAILY REPORT (${grandTotal.toFixed(2)}j)</span>`;
             }
         }
 
@@ -1553,14 +1992,20 @@ $tambahSumurUrl  = base_url("daily-report/tambah/{$rigId}/{$bulan}/{$tahun}");
         const wNo    = opt.getAttribute('data-nowell') || '';
         const wLok   = opt.getAttribute('data-lokasi') || '';
 
+        const wStatus = (opt.getAttribute('data-status') || 'JOB PROGRESS').toUpperCase();
         tglInput.min = wStart;
-        tglInput.max = wEnd;
+        // Jika sumur masih dalam proses (JOB PROGRESS), tanggal bebas berlanjut sampai akhir periode bulan
+        tglInput.max = (wStatus === 'JOB COMPLETED') ? wEnd : periodMaxDate;
 
         if (noticeEl) {
-            noticeEl.innerHTML = `<i class="fa-solid fa-lock text-[10px] mr-1 text-amber-500"></i> Rentang Jadwal Well #${wNo} (${wLok}): <strong class="lh-text-title">${formatShortIndoDate(wStart)} s/d ${formatShortIndoDate(wEnd)}</strong>`;
+            if (wStatus === 'JOB COMPLETED') {
+                noticeEl.innerHTML = `<i class="fa-solid fa-circle-check text-[10px] mr-1 text-emerald-500"></i> Jadwal Selesai Well #${wNo} (${wLok}): <strong class="lh-text-title">${formatShortIndoDate(wStart)} s/d ${formatShortIndoDate(wEnd)}</strong>`;
+            } else {
+                noticeEl.innerHTML = `<i class="fa-solid fa-clock-rotate-left text-[10px] mr-1 text-sky-400"></i> Jadwal Berlanjut Well #${wNo} (${wLok}): Mulai <strong class="lh-text-title">${formatShortIndoDate(wStart)}</strong> (Berlanjut terus)`;
+            }
         }
         if (lockLabel) {
-            lockLabel.textContent = `${wStart.slice(8,10)}/${wStart.slice(5,7)} - ${wEnd.slice(8,10)}/${wEnd.slice(5,7)}`;
+            lockLabel.textContent = `${wStart.slice(8,10)}/${wStart.slice(5,7)} - ${wEnd ? (wEnd.slice(8,10)+'/'+wEnd.slice(5,7)) : 'Berlanjut'}`;
         }
 
         const scheduleDates = getDatesBetween(wStart, wEnd);
@@ -1575,7 +2020,7 @@ $tambahSumurUrl  = base_url("daily-report/tambah/{$rigId}/{$bulan}/{$tahun}");
                 }
             }
             if (!targetDate) {
-                targetDate = (tglInput.value < wStart || tglInput.value > wEnd) ? scheduleDates[0] : tglInput.value;
+                targetDate = (tglInput.value < wStart) ? scheduleDates[0] : tglInput.value;
             }
 
             tglInput.value = targetDate;
@@ -1591,12 +2036,9 @@ $tambahSumurUrl  = base_url("daily-report/tambah/{$rigId}/{$bulan}/{$tahun}");
             }
         } else {
             if (tglInput.value < wStart) tglInput.value = wStart;
-            if (tglInput.value > wEnd) tglInput.value = wEnd;
         }
 
-        const wStatus = (opt.getAttribute('data-status') || 'JOB PROGRESS').toUpperCase();
         syncWellStatusSelect(wStatus, tglInput.value, wEnd);
-
         renderWellDatePills(sel.value, scheduleDates, tglInput.value);
         calcDailyTotal();
     }
@@ -1606,11 +2048,10 @@ $tambahSumurUrl  = base_url("daily-report/tambah/{$rigId}/{$bulan}/{$tahun}");
         if (!statusSel) return;
         if (wStatus === 'JOB SUSPEND') {
             statusSel.value = 'JOB SUSPEND';
-        } else if (wEnd && chosenDate >= wEnd) {
-            statusSel.value = 'JOB COMPLETED';
         } else if (wStatus === 'JOB COMPLETED') {
             statusSel.value = 'JOB COMPLETED';
         } else {
+            // Pekerjaan berlanjut terus (JOB PROGRESS) sampai pengguna sendiri yang memilih selesai
             statusSel.value = 'JOB PROGRESS';
         }
     }
@@ -1618,20 +2059,33 @@ $tambahSumurUrl  = base_url("daily-report/tambah/{$rigId}/{$bulan}/{$tahun}");
     function onTanggalInputChange() {
         const sel = document.getElementById('selectWell');
         const tglInput = document.getElementById('inputTanggal');
+        const noticeEl = document.getElementById('selectedWellDateNotice');
         if (!sel || !sel.value) return;
 
         const opt = sel.options[sel.selectedIndex];
         const wStart = opt.getAttribute('data-start') || periodMinDate;
         const wEnd   = opt.getAttribute('data-end') || wStart || periodMaxDate;
         const wNo    = opt.getAttribute('data-nowell') || '';
+        const wLok   = opt.getAttribute('data-lokasi') || '';
+        const wStatus = (opt.getAttribute('data-status') || 'JOB PROGRESS').toUpperCase();
 
-        if (tglInput.value < wStart || tglInput.value > wEnd) {
-            alert(`Tanggal harus berada di dalam jadwal Sumur #${wNo}: ${formatShortIndoDate(wStart)} s/d ${formatShortIndoDate(wEnd)}!`);
-            tglInput.value = tglInput.value < wStart ? wStart : wEnd;
+        if (tglInput.value < wStart) {
+            alert(`Tanggal operasi tidak boleh mendahului tanggal mulai Sumur #${wNo} (${formatShortIndoDate(wStart)})!`);
+            tglInput.value = wStart;
+        }
+
+        // Jika tanggal log lebih besar dari wEnd yang tercatat saat sumur masih berjalan,
+        // perpanjang wEnd secara otomatis pada atribut option agar tanggal berlanjut mulus!
+        if (tglInput.value > wEnd && wStatus !== 'JOB COMPLETED') {
+            opt.setAttribute('data-end', tglInput.value);
+            if (noticeEl) {
+                noticeEl.innerHTML = `<i class="fa-solid fa-clock-rotate-left text-[10px] mr-1 text-sky-400"></i> Jadwal Berlanjut Well #${wNo} (${wLok}): Mulai <strong class="lh-text-title">${formatShortIndoDate(wStart)}</strong> (Berlanjut s/d <strong class="text-sky-400">${formatShortIndoDate(tglInput.value)}</strong>)`;
+            }
         }
 
         const chosenDate = tglInput.value;
-        const scheduleDates = getDatesBetween(wStart, wEnd);
+        const currentEnd = opt.getAttribute('data-end') || chosenDate;
+        const scheduleDates = getDatesBetween(wStart, currentEnd);
         const wellKey = `${sel.value}_${chosenDate}`;
 
         if (logsByWellDateMap[wellKey]) {
@@ -1640,9 +2094,7 @@ $tambahSumurUrl  = base_url("daily-report/tambah/{$rigId}/{$bulan}/{$tahun}");
             clearOnlyHourFields();
         }
 
-        const wStatus = (opt.getAttribute('data-status') || 'JOB PROGRESS').toUpperCase();
-        syncWellStatusSelect(wStatus, chosenDate, wEnd);
-
+        syncWellStatusSelect(wStatus, chosenDate, currentEnd);
         renderWellDatePills(sel.value, scheduleDates, chosenDate);
         calcDailyTotal();
     }
@@ -1703,7 +2155,515 @@ $tambahSumurUrl  = base_url("daily-report/tambah/{$rigId}/{$bulan}/{$tahun}");
         });
 
         if (summaryEl) {
-            summaryEl.innerHTML = `Terisi: <strong class="text-emerald-500">${filledCount}/${scheduleDates.length}</strong> hari`;
+            if (filledCount >= scheduleDates.length && scheduleDates.length > 0) {
+                summaryEl.innerHTML = `<span class="px-2 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-bold text-[10px]"><i class="fa-solid fa-check mr-1"></i>Selesai (${filledCount}/${scheduleDates.length}H)</span>`;
+            } else {
+                summaryEl.innerHTML = `Terisi: <strong class="text-emerald-500">${filledCount}/${scheduleDates.length}</strong> hari`;
+            }
+        }
+
+        updateCompletionNextBanner(wellId, scheduleDates, filledCount, activeDateStr);
+    }
+
+    function addDaysToIsoDate(dateStr, daysToAdd) {
+        if (!dateStr) return periodMinDate;
+        const d = new Date(dateStr + 'T00:00:00');
+        d.setDate(d.getDate() + daysToAdd);
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        const res = `${yyyy}-${mm}-${dd}`;
+        if (res < periodMinDate) return periodMinDate;
+        if (res > periodMaxDate) return periodMaxDate;
+        return res;
+    }
+
+    function getTotalLoggedHoursOnDate(dateStr) {
+        let total = 0;
+        const details = [];
+        existingLogsData.forEach(lg => {
+            if (lg.tanggal === dateStr) {
+                const h = parseFloat(lg.total_hrs) || 0;
+                total += h;
+                details.push(`Well #${lg.no_well} (${h.toFixed(2)}j)`);
+            }
+        });
+        return { total, details: details.join(', ') };
+    }
+
+    function computeSmartNextWellParams() {
+        const sel = document.getElementById('selectWell');
+        let maxWellNo = 0;
+        let latestEndDate = '';
+        let latestWellLabel = '';
+
+        if (sel && sel.options.length > 0) {
+            Array.from(sel.options).forEach(opt => {
+                const nw = parseInt(opt.getAttribute('data-nowell') || '0', 10);
+                const wEnd = opt.getAttribute('data-end') || '';
+                const wLok = opt.getAttribute('data-lokasi') || '';
+                if (nw > maxWellNo) {
+                    maxWellNo = nw;
+                }
+                if (!latestEndDate || wEnd >= latestEndDate) {
+                    latestEndDate = wEnd;
+                    latestWellLabel = `Well #${nw} (${wLok})`;
+                }
+            });
+        }
+
+        const nextNo = maxWellNo + 1;
+        let suggestedStart = periodMinDate;
+        let sameDayOption = null;
+        let nextDayOption = null;
+        let explanation = '';
+
+        if (latestEndDate) {
+            const onEndDay = getTotalLoggedHoursOnDate(latestEndDate);
+            const nextDay = addDaysToIsoDate(latestEndDate, 1);
+            nextDayOption = nextDay;
+
+            if (onEndDay.total > 0 && onEndDay.total < 23.99) {
+                // Ada sisa jam di tanggal selesai sumur sebelumnya (Transisi Pindah Sumur di Hari yang Sama)
+                const sisaJam = Math.max(0, 24.0 - onEndDay.total);
+                suggestedStart = latestEndDate;
+                sameDayOption = {
+                    date: latestEndDate,
+                    sisaJam: sisaJam,
+                    usedLabel: onEndDay.details
+                };
+                explanation = `Pada akhir jadwal <strong>${latestWellLabel}</strong> (${formatShortIndoDate(latestEndDate)}), baru terpakai <strong>${onEndDay.total.toFixed(2)} Jam</strong>. Tersedia <strong>Sisa ${sisaJam.toFixed(2)} Jam</strong> di tanggal ${formatShortIndoDate(latestEndDate)} untuk transisi pindah sumur (MIRU), atau mulai besoknya (${formatShortIndoDate(nextDay)}).`;
+            } else {
+                suggestedStart = nextDay;
+                explanation = `Melanjutkan otomatis setelah <strong>${latestWellLabel}</strong> (selesai ${formatShortIndoDate(latestEndDate)}) → Tanggal mulai disetel ke <strong>${formatShortIndoDate(suggestedStart)}</strong>.`;
+            }
+        } else {
+            explanation = `Ini adalah pekerjaan sumur pertama pada periode ini. Tanggal mulai disetel ke awal bulan (${formatShortIndoDate(suggestedStart)}).`;
+        }
+
+        const suggestedEnd = addDaysToIsoDate(suggestedStart, 3);
+        return {
+            nextNo,
+            suggestedStart,
+            suggestedEnd,
+            sameDayOption,
+            nextDayOption,
+            latestWellLabel,
+            explanation
+        };
+    }
+
+    function updateNextWellNumberBadges(nextNo) {
+        document.querySelectorAll('.js-next-well-num').forEach(el => {
+            el.textContent = String(nextNo);
+        });
+        const badge = document.getElementById('modalQuickWellBadge');
+        if (badge) badge.textContent = '#' + nextNo;
+    }
+
+    function updateCompletionNextBanner(wellId, scheduleDates, filledCount, activeDateStr) {
+        const banner = document.getElementById('wellCompleteNextBanner');
+        const titleEl = document.getElementById('nextWellBannerTitle');
+        const descEl  = document.getElementById('nextWellBannerDesc');
+        const sel     = document.getElementById('selectWell');
+        const sidebarNotice = document.getElementById('sidebarWellCompleteNotice');
+        const sidebarTitle  = document.getElementById('sidebarNoticeTitle');
+        const sidebarDesc   = document.getElementById('sidebarNoticeDesc');
+        const btnSaveNew    = document.getElementById('btnSaveAndNewWell');
+
+        if (!sel || !sel.value) return;
+
+        const opt = sel.options[sel.selectedIndex];
+        const wNo  = opt.getAttribute('data-nowell') || '';
+        const wLok = opt.getAttribute('data-lokasi') || '';
+        const wEnd = opt.getAttribute('data-end') || '';
+        const params = computeSmartNextWellParams();
+        updateNextWellNumberBadges(params.nextNo);
+
+        const isAllDatesFilled = (scheduleDates.length > 0 && filledCount >= scheduleDates.length);
+        const isOnFinalDate    = Boolean(wEnd && activeDateStr >= wEnd);
+        const urlParams        = new URLSearchParams(window.location.search);
+        const promptFlag       = urlParams.get('well_completed_prompt') === '1';
+
+        const shouldShowTransition = Boolean(isAllDatesFilled || isOnFinalDate || promptFlag);
+
+        if (shouldShowTransition) {
+            if (banner) {
+                banner.classList.remove('hidden');
+                if (titleEl && descEl) {
+                    if (isAllDatesFilled) {
+                        titleEl.innerHTML = `Jadwal Well #${wNo} (${wLok}) Lengkap (${filledCount}/${scheduleDates.length} Hari) — Siap Lanjut ke Well #${params.nextNo}?`;
+                        descEl.innerHTML  = `Seluruh log harian pada jadwal sumur ini telah tercatat. Simpan catatan hari ini dan langsung buat <strong>Well #${params.nextNo}</strong> (Mulai otomatis: <strong>${formatShortIndoDate(params.suggestedStart)}</strong>).`;
+                    } else {
+                        titleEl.innerHTML = `Hari Terakhir Jadwal Well #${wNo} (${wLok}: ${formatShortIndoDate(wEnd)})`;
+                        descEl.innerHTML  = `Setelah menyimpan log hari ini, Anda siap melanjutkan ke <strong>Well #${params.nextNo}</strong> (Mulai otomatis: <strong>${formatShortIndoDate(params.suggestedStart)}</strong>).`;
+                    }
+                }
+            }
+
+            if (sidebarNotice) {
+                sidebarNotice.classList.remove('hidden');
+                if (sidebarTitle) {
+                    sidebarTitle.textContent = isAllDatesFilled ? `Jadwal Well #${wNo} Lengkap` : `Hari Terakhir Well #${wNo}`;
+                }
+                if (sidebarDesc) {
+                    sidebarDesc.textContent = isAllDatesFilled
+                        ? `Seluruh hari kerja tercatat. Klik tombol hijau di bawah untuk simpan & lanjut buat Well #${params.nextNo}.`
+                        : `Selesai input hari ini? Klik tombol hijau di bawah untuk simpan & lanjut buat Well #${params.nextNo}.`;
+                }
+            }
+
+            if (btnSaveNew) {
+                btnSaveNew.classList.add('is-highlighted');
+            }
+        } else {
+            if (banner) {
+                banner.classList.add('hidden');
+            }
+            if (sidebarNotice) {
+                sidebarNotice.classList.add('hidden');
+            }
+            if (btnSaveNew) {
+                btnSaveNew.classList.remove('is-highlighted');
+            }
+        }
+    }
+
+    function openQuickWellModal() {
+        const modal = document.getElementById('modalQuickNewWell');
+        const errBox = document.getElementById('quickWellErrorBox');
+        const noInput = document.getElementById('quickNoWell');
+        const lokInput = document.getElementById('quickNamaLokasiInput');
+        const jarakInput = document.getElementById('quickJarakInput');
+        const startInput = document.getElementById('quickTglMulai');
+        const endInput   = document.getElementById('quickTglSelesai');
+        const contText   = document.getElementById('quickWellContinuityText');
+        const switchRow  = document.getElementById('quickStartDateSwitchRow');
+
+        if (errBox) {
+            errBox.classList.add('hidden');
+            errBox.textContent = '';
+        }
+
+        const params = computeSmartNextWellParams();
+        updateNextWellNumberBadges(params.nextNo);
+
+        if (noInput) noInput.value = params.nextNo;
+        if (lokInput) lokInput.value = '';
+        if (jarakInput) jarakInput.value = '0';
+        if (startInput) startInput.value = params.suggestedStart;
+        if (endInput) endInput.value = params.suggestedEnd;
+        if (contText) contText.innerHTML = params.explanation;
+
+        if (switchRow) {
+            if (params.sameDayOption && params.nextDayOption) {
+                switchRow.classList.remove('hidden');
+                switchRow.classList.add('flex');
+                switchRow.innerHTML = `
+                    <span class="text-[10px] font-bold uppercase lh-text-muted mr-1">Opsi Mulai:</span>
+                    <button type="button" onclick="setQuickStartDate('${params.sameDayOption.date}')"
+                        class="lh-sisa-mini-btn !px-2.5 !py-1 !border-sky-500/50 !text-sky-400">
+                        ⚡ Mulai ${formatShortIndoDate(params.sameDayOption.date)} (Sisa ${params.sameDayOption.sisaJam.toFixed(1)}j)
+                    </button>
+                    <button type="button" onclick="setQuickStartDate('${params.nextDayOption}')"
+                        class="lh-sisa-mini-btn !px-2.5 !py-1">
+                        📅 Mulai Besoknya (${formatShortIndoDate(params.nextDayOption)})
+                    </button>
+                `;
+            } else {
+                switchRow.classList.add('hidden');
+                switchRow.classList.remove('flex');
+                switchRow.innerHTML = '';
+            }
+        }
+
+        if (modal) {
+            modal.classList.add('is-open');
+            setTimeout(() => {
+                if (lokInput) lokInput.focus();
+            }, 80);
+        }
+    }
+
+    function closeQuickWellModal() {
+        const modal = document.getElementById('modalQuickNewWell');
+        if (modal) modal.classList.remove('is-open');
+    }
+
+    function openModalSelesaikanSumur() {
+        const sel = document.getElementById('selectWell');
+        if (!sel || !sel.value) {
+            alert('Pilih pekerjaan sumur terlebih dahulu.');
+            return;
+        }
+        const opt = sel.options[sel.selectedIndex];
+        const wellId = sel.value;
+        const wellNo = opt.getAttribute('data-nowell') || '';
+        const wellLok = opt.getAttribute('data-lokasi') || '';
+        const wStart = opt.getAttribute('data-start') || '';
+        const wEnd = opt.getAttribute('data-end') || '';
+        const activeDate = document.getElementById('inputTanggal').value;
+
+        const titleEl = document.getElementById('modalSelesaikanTitle');
+        const descEl = document.getElementById('selesaikanWellSummaryText');
+        const tglEl = document.getElementById('selesaikanTanggalInput');
+        const formEl = document.getElementById('formSelesaikanSumur');
+
+        if (titleEl) titleEl.textContent = `Selesaikan Well #${wellNo} (${wellLok})`;
+        if (descEl) descEl.innerHTML = `Pekerjaan <strong>Well #${wellNo} (${wellLok})</strong> (Mulai: ${formatShortIndoDate(wStart)}) akan diselesaikan secara resmi. Rekap bulanan rig akan otomatis dihitung ulang.`;
+        
+        const finishDate = activeDate || wEnd || periodMinDate;
+        if (tglEl) {
+            tglEl.value = finishDate;
+            tglEl.min = wStart || periodMinDate;
+        }
+        if (formEl) {
+            formEl.action = '<?= base_url('daily-report/selesaikan') ?>/' + wellId;
+        }
+
+        const modal = document.getElementById('modalSelesaikanSumur');
+        if (modal) modal.classList.add('is-open');
+    }
+
+    function closeSelesaikanModal() {
+        const modal = document.getElementById('modalSelesaikanSumur');
+        if (modal) modal.classList.remove('is-open');
+    }
+
+    function lanjutHariBerikutnya() {
+        const sel = document.getElementById('selectWell');
+        if (!sel || !sel.value) return;
+        const opt = sel.options[sel.selectedIndex];
+        const wEnd = opt.getAttribute('data-end') || '';
+        const tglInput = document.getElementById('inputTanggal');
+        const currDate = tglInput.value || wEnd || periodMinDate;
+        
+        if (currDate >= periodMaxDate) {
+            alert('Tanggal sudah mencapai akhir bulan (' + formatShortIndoDate(periodMaxDate) + '). Silakan beralih ke bulan berikutnya jika operasi berlanjut ke bulan depan.');
+            return;
+        }
+
+        const nextDate = addDaysToIsoDate(currDate, 1);
+        tglInput.value = nextDate;
+        onTanggalInputChange();
+
+        const summaryEl = document.getElementById('wellDateRangeSummary');
+        if (summaryEl) {
+            const oldHtml = summaryEl.innerHTML;
+            summaryEl.innerHTML = `<span class="text-sky-400 font-bold"><i class="fa-solid fa-arrow-right mr-1"></i>Lanjut: ${formatShortIndoDate(nextDate)}</span>`;
+            setTimeout(() => { if (summaryEl) summaryEl.innerHTML = oldHtml; }, 3000);
+        }
+    }
+
+    function setQuickStartDate(dateStr) {
+        const startInput = document.getElementById('quickTglMulai');
+        const endInput   = document.getElementById('quickTglSelesai');
+        if (!startInput || !endInput) return;
+        startInput.value = dateStr;
+        if (endInput.value < dateStr) {
+            endInput.value = addDaysToIsoDate(dateStr, 3);
+        }
+    }
+
+    function onQuickTglMulaiChange() {
+        const startInput = document.getElementById('quickTglMulai');
+        const endInput   = document.getElementById('quickTglSelesai');
+        if (!startInput || !endInput) return;
+        if (endInput.value < startInput.value) {
+            endInput.value = startInput.value;
+        }
+    }
+
+    function setQuickWellDuration(daysCount) {
+        const startInput = document.getElementById('quickTglMulai');
+        const endInput   = document.getElementById('quickTglSelesai');
+        if (!startInput || !endInput) return;
+        const baseDate = startInput.value || periodMinDate;
+        if (daysCount >= 90) {
+            endInput.value = periodMaxDate;
+        } else {
+            endInput.value = addDaysToIsoDate(baseDate, Math.max(0, daysCount - 1));
+        }
+    }
+
+    function updateCsrfTokensOnPage(newHash) {
+        if (!newHash) return;
+        document.querySelectorAll('input[name="csrf_simor_token"]').forEach(inp => {
+            inp.value = newHash;
+        });
+    }
+
+    function showQuickWellToast(title, body) {
+        const toast = document.getElementById('quickWellToast');
+        const tEl   = document.getElementById('quickWellToastTitle');
+        const bEl   = document.getElementById('quickWellToastBody');
+        if (!toast) return;
+        if (tEl) tEl.textContent = title;
+        if (bEl) bEl.textContent = body;
+        toast.classList.remove('opacity-0', 'translate-y-3');
+        toast.classList.add('opacity-100', 'translate-y-0');
+        setTimeout(() => {
+            toast.classList.remove('opacity-100', 'translate-y-0');
+            toast.classList.add('opacity-0', 'translate-y-3');
+        }, 4200);
+    }
+
+    async function submitQuickNewWell(e) {
+        if (e) e.preventDefault();
+
+        const noWell    = parseInt(document.getElementById('quickNoWell')?.value || '0', 10);
+        const namaLok   = (document.getElementById('quickNamaLokasiInput')?.value || '').trim().toUpperCase();
+        const jarak     = (document.getElementById('quickJarakInput')?.value || '0').trim();
+        const tglMulai  = document.getElementById('quickTglMulai')?.value || periodMinDate;
+        const tglSelesai= document.getElementById('quickTglSelesai')?.value || tglMulai;
+        const errBox    = document.getElementById('quickWellErrorBox');
+        const btnSubmit = document.getElementById('btnSubmitQuickWell');
+        const txtSubmit = document.getElementById('textSubmitQuickWell');
+        const icnSubmit = document.getElementById('iconSubmitQuickWell');
+
+        if (!noWell || !namaLok) {
+            if (errBox) {
+                errBox.textContent = 'Mohon isi Nomor Well dan Nama Sumur / Lokasi terlebih dahulu.';
+                errBox.classList.remove('hidden');
+            }
+            return false;
+        }
+
+        if (btnSubmit) btnSubmit.disabled = true;
+        if (txtSubmit) txtSubmit.textContent = 'Mendaftarkan Sumur Baru...';
+        if (icnSubmit) icnSubmit.className = 'fa-solid fa-circle-notch fa-spin text-xs';
+
+        const csrfInput = document.querySelector('input[name="csrf_simor_token"]');
+        const formData = new FormData();
+        formData.append('rig_id', '<?= $rigId ?>');
+        formData.append('bulan', '<?= $bulan ?>');
+        formData.append('tahun', '<?= $tahun ?>');
+        formData.append('no_well', String(noWell));
+        formData.append('nama_lokasi_input', namaLok);
+        formData.append('jarak', jarak);
+        formData.append('tanggal_mulai', tglMulai);
+        formData.append('tanggal_selesai', tglSelesai);
+        if (csrfInput) {
+            formData.append(csrfInput.name, csrfInput.value);
+        }
+
+        try {
+            const resp = await fetch('<?= base_url('daily-report/simpan-sumur-cepat') ?>', {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const res = await resp.json();
+
+            if (res.csrf_hash) {
+                updateCsrfTokensOnPage(res.csrf_hash);
+            }
+
+            if (res.status !== 'success') {
+                throw new Error(res.message || 'Gagal menyimpan data sumur baru.');
+            }
+
+            // 1. Tambahkan option baru ke #selectWell & langsung pilih
+            const sel = document.getElementById('selectWell');
+            if (sel) {
+                const fmtStart = `${res.tanggal_mulai.slice(8,10)}/${res.tanggal_mulai.slice(5,7)}`;
+                const fmtEnd   = `${res.tanggal_selesai.slice(8,10)}/${res.tanggal_selesai.slice(5,7)}/${res.tanggal_selesai.slice(0,4)}`;
+                const opt = document.createElement('option');
+                opt.value = String(res.id);
+                opt.setAttribute('data-start', res.tanggal_mulai);
+                opt.setAttribute('data-end', res.tanggal_selesai);
+                opt.setAttribute('data-jarak', String(res.jarak || 0));
+                opt.setAttribute('data-nowell', String(res.no_well));
+                opt.setAttribute('data-lokasi', res.nama_lokasi);
+                opt.setAttribute('data-status', 'JOB PROGRESS');
+                opt.textContent = `Well #${res.no_well} — ${res.nama_lokasi} (${fmtStart} - ${fmtEnd})`;
+                sel.appendChild(opt);
+                sel.value = String(res.id);
+            }
+
+            // 2. Tambahkan kartu sumur baru ke Daftar Sumur di Sidebar Kanan
+            const cardsContainer = document.getElementById('wellCardsContainer');
+            const emptyText = document.getElementById('emptyWellsSidebarText');
+            if (emptyText) emptyText.remove();
+
+            if (cardsContainer) {
+                const fmtStart = `${res.tanggal_mulai.slice(8,10)}/${res.tanggal_mulai.slice(5,7)}`;
+                const fmtEnd   = `${res.tanggal_selesai.slice(8,10)}/${res.tanggal_selesai.slice(5,7)}/${res.tanggal_selesai.slice(0,4)}`;
+                const cardBtn = document.createElement('button');
+                cardBtn.type = 'button';
+                cardBtn.id = `wellCard_${res.id}`;
+                cardBtn.className = 'well-summary-card w-full lh-sub-panel p-2.5 text-left hover:border-sky-500 transition flex items-center justify-between gap-2 cursor-pointer';
+                cardBtn.onclick = () => selectWellFromCard(String(res.id));
+                cardBtn.innerHTML = `
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-1.5">
+                            <span class="px-1.5 py-0.5 rounded lh-badge-sky font-mono text-[10px] font-black">#${res.no_well}</span>
+                            <span class="text-xs font-extrabold lh-text-title truncate">${res.nama_lokasi}</span>
+                        </div>
+                        <div class="text-[11px] lh-text-muted font-mono mt-0.5">
+                            ${fmtStart} s/d ${fmtEnd} · Total: <strong class="lh-text-title">0.00j</strong>
+                        </div>
+                    </div>
+                    <span class="px-2 py-0.5 rounded text-[9px] font-extrabold uppercase shrink-0 lh-badge-amber">JOB PROGRESS</span>
+                `;
+                cardsContainer.appendChild(cardBtn);
+            }
+
+            // 3. Update counter sumur & sembunyikan alert kosong
+            const countBadge = document.getElementById('wellCountBadge');
+            if (countBadge && sel) {
+                countBadge.textContent = String(sel.options.length);
+            }
+            const emptyBanner = document.getElementById('emptyWellsAlertBanner');
+            if (emptyBanner) emptyBanner.classList.add('hidden');
+
+            const btnSubmitDaily = document.getElementById('btnSubmitDaily');
+            const btnSaveNew     = document.getElementById('btnSaveAndNewWell');
+            if (btnSubmitDaily) btnSubmitDaily.disabled = false;
+            if (btnSaveNew) btnSaveNew.disabled = false;
+
+            // 4. Pilih sumur baru, kunci jadwal tanggalnya, tutup modal & fokus ke MIRU
+            onWellSelectChange(true);
+            closeQuickWellModal();
+
+            showQuickWellToast(
+                `Well #${res.no_well} (${res.nama_lokasi}) Siap Diisi!`,
+                `Jadwal ${formatShortIndoDate(res.tanggal_mulai)} s/d ${formatShortIndoDate(res.tanggal_selesai)} telah dipilih otomatis. Silakan isi jam MIRU & Operasi.`
+            );
+
+            setTimeout(() => {
+                const miruEl = document.getElementById('inputMiru');
+                if (miruEl) {
+                    miruEl.focus();
+                    miruEl.select();
+                }
+            }, 120);
+        } catch (err) {
+            if (errBox) {
+                errBox.textContent = err.message || 'Terjadi kesalahan saat menyimpan sumur baru.';
+                errBox.classList.remove('hidden');
+            }
+        } finally {
+            if (btnSubmit) btnSubmit.disabled = false;
+            if (txtSubmit) {
+                const nextNoAfter = computeSmartNextWellParams().nextNo;
+                txtSubmit.innerHTML = `Daftarkan &amp; Langsung Isi Log Well #<span class="js-next-well-num">${nextNoAfter}</span>`;
+            }
+            if (icnSubmit) icnSubmit.className = 'fa-solid fa-check-circle text-xs';
+        }
+
+        return false;
+    }
+
+    function submitLogAndOpenNewWell() {
+        const form = document.getElementById('formDailyLog');
+        const actionInput = document.getElementById('inputAfterSaveAction');
+        if (!form) return;
+        if (actionInput) actionInput.value = 'goto_tambah_sumur';
+        if (form.requestSubmit) {
+            form.requestSubmit();
+        } else {
+            form.submit();
         }
     }
 
@@ -1776,9 +2736,9 @@ $tambahSumurUrl  = base_url("daily-report/tambah/{$rigId}/{$bulan}/{$tahun}");
         lastAutoRemarkNpt = nptText;
         lastAutoRemarkUnpaid = unpaidText;
 
-        // Jika masih kosong, atau sama dengan auto-remark, atau masih memakai format pendek lama tanpa "HR ", aktifkan mode otomatis
-        isRemarkNptAuto = (loadedNpt === '' || loadedNpt === nptText || !/\bHR\b/i.test(loadedNpt));
-        isRemarkUnpaidAuto = (loadedUnp === '' || loadedUnp === unpaidText || !/\bHR\b/i.test(loadedUnp));
+        // Hanya aktifkan mode otomatis jika field masih kosong atau persis sama dengan teks auto-remark
+        isRemarkNptAuto = (loadedNpt === '' || loadedNpt === nptText);
+        isRemarkUnpaidAuto = (loadedUnp === '' || loadedUnp === unpaidText);
 
         const sel = document.getElementById('selectWell');
         if (sel && sel.value) {
@@ -1800,6 +2760,13 @@ $tambahSumurUrl  = base_url("daily-report/tambah/{$rigId}/{$bulan}/{$tahun}");
     function confirmHapusLog(tanggal, wellLabel) {
         return confirm(`Hapus catatan log harian tanggal ${tanggal} (${wellLabel})?\n\nSubtotal sumur dan NPT akan dihitung ulang.`);
     }
+
+    document.addEventListener('keydown', (ev) => {
+        if (ev.altKey && (ev.key === 'n' || ev.key === 'N')) {
+            ev.preventDefault();
+            window.location.href = '<?= $tambahSumurUrl ?>';
+        }
+    });
 
     document.addEventListener('DOMContentLoaded', () => {
         const urlParams = new URLSearchParams(window.location.search);

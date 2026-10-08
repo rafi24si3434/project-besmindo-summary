@@ -31,20 +31,22 @@ class Rig extends BaseController
 
     public function simpan()
     {
+        $rawOdr = (string)$this->request->getPost('odr');
+        $cleanOdr = (int)preg_replace('/[^\d]/', '', $rawOdr);
+
         $rules = [
             'kode'     => 'required|min_length[3]|max_length[20]',
             'nama_rig' => 'required|min_length[3]|max_length[50]',
-            'odr'      => 'required|numeric',
         ];
 
-        if (!$this->validate($rules)) {
+        if (!$this->validate($rules) || $cleanOdr < 0) {
             return redirect()->back()->withInput()->with('error', 'Validasi data gagal. Pastikan semua field terisi benar.');
         }
 
         $this->rigModel->insert([
             'kode'       => $this->request->getPost('kode'),
             'nama_rig'   => $this->request->getPost('nama_rig'),
-            'odr'        => (int)$this->request->getPost('odr'),
+            'odr'        => $cleanOdr,
             'aktif'      => $this->request->getPost('aktif') ? 1 : 0,
             'created_at' => date('Y-m-d H:i:s'),
         ]);
@@ -70,24 +72,31 @@ class Rig extends BaseController
 
     public function update($id)
     {
+        $rawOdr = (string)$this->request->getPost('odr');
+        $cleanOdr = (int)preg_replace('/[^\d]/', '', $rawOdr);
+
         $rules = [
             'kode'     => 'required|min_length[3]|max_length[20]',
             'nama_rig' => 'required|min_length[3]|max_length[50]',
-            'odr'      => 'required|numeric',
         ];
 
-        if (!$this->validate($rules)) {
+        if (!$this->validate($rules) || $cleanOdr < 0) {
             return redirect()->back()->withInput()->with('error', 'Validasi data gagal.');
         }
 
         $this->rigModel->update($id, [
             'kode'     => $this->request->getPost('kode'),
             'nama_rig' => $this->request->getPost('nama_rig'),
-            'odr'      => (int)$this->request->getPost('odr'),
+            'odr'      => $cleanOdr,
             'aktif'    => $this->request->getPost('aktif') ? 1 : 0,
         ]);
 
-        return redirect()->to(base_url('master?tab=rig'))->with('success', 'Data armada rig berhasil diperbarui.');
+        // Rekalkulasi Monthly Summary seketika agar perubahan ODR langsung berdampak ke target & realisasi
+        $summaryModel = new \App\Models\MonthlySummaryModel();
+        $summaryModel->hitungDanSimpan((int)$id, 9, 2026);
+        $summaryModel->hitungDanSimpan((int)$id, (int)date('n'), (int)date('Y'));
+
+        return redirect()->to(base_url('master?tab=rig'))->with('success', 'Data armada rig dan tarif ODR berhasil diperbarui.');
     }
 
     public function hapus($id)

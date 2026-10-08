@@ -20,6 +20,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?= base_url('assets/css/shadcn-bms.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('assets/css/simor-notifications.css') ?>">
     <script>
         (function() {
             const savedTheme = localStorage.getItem('simor_theme') || 'dark';
@@ -77,63 +78,68 @@
         <!-- Navigation Links -->
         <div class="flex-1 overflow-y-auto custom-scrollbar px-3 py-4 space-y-5">
             
-            <!-- 1. OVERVIEW -->
+            <!-- 1. RINGKASAN UTAMA -->
             <div>
-                <p class="sidebar-text px-2.5 text-[10px] font-mono font-semibold text-slate-500 uppercase tracking-[0.12em] mb-1.5">01 // Komando</p>
+                <p class="sidebar-text px-2.5 text-[10px] font-mono font-semibold text-slate-500 uppercase tracking-[0.12em] mb-1.5">01 // Ringkasan Utama</p>
                 <nav aria-label="Navigasi utama" class="space-y-0.5">
-                    <a href="<?= base_url('dashboard') ?>" title="Dashboard Eksekutif" class="nav-item <?= (uri_string() == '' || uri_string() == 'dashboard') ? 'active' : '' ?>">
-                        <i class="fa-solid fa-chart-pie text-xs w-4 text-center flex-shrink-0"></i>
-                        <span class="sidebar-text truncate">Dashboard Eksekutif</span>
+                    <a href="<?= base_url('dashboard') ?>" title="Dashboard Utama & Monitoring Armada Rig" class="nav-item <?= (uri_string() == '' || uri_string() == 'dashboard') ? 'active' : '' ?>">
+                        <i class="fa-solid fa-gauge-high text-xs w-4 text-center flex-shrink-0"></i>
+                        <span class="sidebar-text truncate">Dashboard Utama</span>
                     </a>
                 </nav>
             </div>
 
-            <!-- 2. OPERASI & LOG HARIAN -->
+            <!-- 2. OPERASIONAL HARIAN -->
             <div>
-                <p class="sidebar-text px-2.5 text-[10px] font-mono font-semibold text-slate-500 uppercase tracking-[0.12em] mb-1.5">02 // Operasi Lapangan</p>
-                <nav aria-label="Pencatatan operasi" class="space-y-0.5">
-                    <a href="<?= base_url('daily-report') ?>" title="Data Pekerjaan Sumur" class="nav-item <?= (str_starts_with(uri_string(), 'daily-report') && !str_starts_with(uri_string(), 'daily-report/log-harian')) ? 'active' : '' ?>">
+                <p class="sidebar-text px-2.5 text-[10px] font-mono font-semibold text-slate-500 uppercase tracking-[0.12em] mb-1.5">02 // Operasional Harian</p>
+                <nav aria-label="Pencatatan operasi harian" class="space-y-0.5">
+                    <a href="<?= base_url('daily-report') ?>" title="Daily Report (Daftar Pekerjaan Sumur / Well Job)" class="nav-item <?= (str_starts_with(uri_string(), 'daily-report') && !str_starts_with(uri_string(), 'daily-report/log-harian')) ? 'active' : '' ?>">
                         <i class="fa-solid fa-bore-hole text-xs w-4 text-center flex-shrink-0"></i>
-                        <span class="sidebar-text flex-1 truncate">Data Sumur (Well Job)</span>
+                        <span class="sidebar-text flex-1 truncate">Daily Report (Pekerjaan Sumur)</span>
                     </a>
-                    <a href="<?= base_url('daily-report/log-harian') ?>" title="Input Daily Report & NPT (24H)" class="nav-item <?= str_starts_with(uri_string(), 'daily-report/log-harian') ? 'active' : '' ?>">
-                        <i class="fa-solid fa-Sliders text-xs w-4 text-center flex-shrink-0"></i>
-                        <span class="sidebar-text flex-1 truncate">Log Harian &amp; NPT</span>
+                    <a href="<?= base_url('daily-report/log-harian') ?>" title="Input Log Harian Operasi & Downtime (24 Jam)" class="nav-item <?= str_starts_with(uri_string(), 'daily-report/log-harian') ? 'active' : '' ?>">
+                        <i class="fa-solid fa-clipboard-list text-xs w-4 text-center flex-shrink-0"></i>
+                        <span class="sidebar-text flex-1 truncate">Log Harian Operasi</span>
                         <span class="sidebar-text flex-shrink-0 text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded bg-white/[0.05] text-slate-400 border border-white/[0.06]">24H</span>
                     </a>
-                    <a href="<?= base_url('npt') ?>" title="Matriks Kalender NPT" class="nav-item <?= str_starts_with(uri_string(), 'npt') ? 'active' : '' ?>">
+                    <a href="<?= base_url('npt') ?>" title="Laporan & Rekapitulasi Downtime Rig (Buku NPT)" class="nav-item <?= str_starts_with(uri_string(), 'npt') ? 'active' : '' ?>">
                         <i class="fa-solid fa-table-cells text-xs w-4 text-center flex-shrink-0"></i>
-                        <span class="sidebar-text flex-1 truncate">Matriks Analisa NPT</span>
+                        <span class="sidebar-text flex-1 truncate">Laporan NPT (Downtime Rig)</span>
                     </a>
                 </nav>
             </div>
 
-            <!-- 3. LAPORAN & REKAPITULASI -->
+            <!-- 3. REKAPITULASI & EVALUASI -->
             <div>
-                <p class="sidebar-text px-2.5 text-[10px] font-mono font-semibold text-slate-500 uppercase tracking-[0.12em] mb-1.5">03 // Analitik &amp; RAU</p>
-                <nav aria-label="Laporan dan rekapitulasi" class="space-y-0.5">
-                    <a href="<?= base_url('monthly-report') ?>" title="Monthly Report (Tabel RAU)" class="nav-item <?= str_starts_with(uri_string(), 'monthly-report') ? 'active' : '' ?>">
+                <p class="sidebar-text px-2.5 text-[10px] font-mono font-semibold text-slate-500 uppercase tracking-[0.12em] mb-1.5">03 // Rekapitulasi &amp; Evaluasi</p>
+                <nav aria-label="Laporan dan evaluasi berkala" class="space-y-0.5">
+                    <a href="<?= base_url('monthly-report') ?>" title="Monthly Report (Evaluasi Performa RAU & Revenue ODR)" class="nav-item <?= str_starts_with(uri_string(), 'monthly-report') ? 'active' : '' ?>">
                         <i class="fa-solid fa-calendar-check text-xs w-4 text-center flex-shrink-0"></i>
-                        <span class="sidebar-text truncate">Monthly Report (RAU)</span>
+                        <span class="sidebar-text truncate">Monthly Report (Performa RAU)</span>
                     </a>
-                    <a href="<?= base_url('rekap-tahunan') ?>" title="Pusat Rekap Tahunan" class="nav-item <?= str_starts_with(uri_string(), 'rekap-tahunan') ? 'active' : '' ?>">
+                    <a href="<?= base_url('rekap-tahunan') ?>" title="Rekapitulasi Tahunan (Akumulasi 12 Bulan Daily Report & NPT)" class="nav-item <?= str_starts_with(uri_string(), 'rekap-tahunan') ? 'active' : '' ?>">
                         <i class="fa-solid fa-layer-group text-xs w-4 text-center flex-shrink-0"></i>
                         <span class="sidebar-text truncate">Rekapitulasi Tahunan</span>
                     </a>
                 </nav>
             </div>
 
-            <!-- 4. KONFIGURASI & AUDIT -->
+            <!-- 4. MASTER DATA & SISTEM -->
             <div>
-                <p class="sidebar-text px-2.5 text-[10px] font-mono font-semibold text-slate-500 uppercase tracking-[0.12em] mb-1.5">04 // Infrastruktur</p>
-                <nav aria-label="Master data dan audit" class="space-y-0.5">
-                    <a href="<?= base_url('master') ?>" title="Master Data Hub" class="nav-item <?= str_starts_with(uri_string(), 'master') ? 'active' : '' ?>">
+                <p class="sidebar-text px-2.5 text-[10px] font-mono font-semibold text-slate-500 uppercase tracking-[0.12em] mb-1.5">04 // Master Data &amp; Sistem</p>
+                <nav aria-label="Master data dan sistem" class="space-y-0.5">
+                    <a href="<?= base_url('master') ?>" title="Pusat Kelola Master Rig, Kategori NPT, 3rd Party & Lokasi" class="nav-item <?= str_starts_with(uri_string(), 'master') ? 'active' : '' ?>">
                         <i class="fa-solid fa-database text-xs w-4 text-center flex-shrink-0"></i>
-                        <span class="sidebar-text flex-1 truncate">Master Data Hub</span>
+                        <span class="sidebar-text flex-1 truncate">Master Data (Rig &amp; Vendor)</span>
                     </a>
-                    <a href="<?= base_url('audit-log') ?>" title="Jejak Audit Sistem" class="nav-item <?= str_starts_with(uri_string(), 'audit-log') ? 'active' : '' ?>">
-                        <i class="fa-solid fa-terminal text-xs w-4 text-center flex-shrink-0"></i>
-                        <span class="sidebar-text truncate">Jejak Audit Sistem</span>
+                    <a href="<?= base_url('audit-log') ?>" title="Log Audit Aktivitas & Keamanan Sistem" class="nav-item <?= str_starts_with(uri_string(), 'audit-log') ? 'active' : '' ?>">
+                        <i class="fa-solid fa-shield-halved text-xs w-4 text-center flex-shrink-0"></i>
+                        <span class="sidebar-text truncate">Log Audit Sistem</span>
+                    </a>
+                    <a href="<?= base_url('errors/notifikasi') ?>" title="Pratinjau Komponen Notifikasi & Error UI (Developer)" class="nav-item opacity-60 hover:opacity-100 transition-opacity <?= str_starts_with(uri_string(), 'errors') ? 'active !opacity-100' : '' ?>">
+                        <i class="fa-solid fa-palette text-xs w-4 text-center flex-shrink-0"></i>
+                        <span class="sidebar-text flex-1 truncate text-[11px]">Pratinjau Desain UI</span>
+                        <span class="sidebar-text flex-shrink-0 text-[8px] font-mono font-semibold px-1 py-0.2 rounded bg-white/[0.04] text-slate-500 border border-white/[0.05]">DEV</span>
                     </a>
                 </nav>
             </div>
@@ -141,22 +147,28 @@
 
         <!-- Operator Session Footer -->
         <div class="p-3 border-t border-white/[0.07] bg-[#05070b] flex items-center justify-between gap-2">
-            <div class="flex items-center gap-2.5 overflow-hidden">
-                <div class="w-8 h-8 rounded-lg bg-blue-600/20 border border-blue-500/30 text-blue-400 flex items-center justify-center font-mono font-bold text-xs flex-shrink-0">
+            <a href="<?= base_url('akun/password') ?>" class="flex items-center gap-2.5 overflow-hidden group" title="Klik untuk Ubah Password & Keamanan Akun">
+                <div class="w-8 h-8 rounded-lg bg-blue-600/20 border border-blue-500/30 text-blue-400 flex items-center justify-center font-mono font-bold text-xs flex-shrink-0 group-hover:bg-blue-600 group-hover:text-white transition">
                     <?= strtoupper(substr(session()->get('nama') ?? 'A', 0, 1)) ?>
                 </div>
                 <div class="leading-tight truncate sidebar-text">
-                    <p class="text-xs font-semibold text-slate-200 truncate"><?= esc(session()->get('nama') ?? 'Administrator') ?></p>
+                    <p class="text-xs font-semibold text-slate-200 group-hover:text-amber-400 transition truncate"><?= esc(session()->get('nama') ?? 'Administrator') ?></p>
                     <div class="flex items-center gap-1.5 mt-0.5">
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                        <span class="text-[10px] font-mono text-slate-500">AUTHENTICATED</span>
+                        <span class="text-[10px] font-mono text-slate-400">Ubah Password</span>
                     </div>
                 </div>
-            </div>
-            <a href="<?= base_url('logout') ?>" title="Keluar dari Sistem" onclick="return confirm('Yakin ingin keluar dari sesi SIMOR?');"
-                class="w-8 h-8 rounded-lg bg-white/[0.03] hover:bg-rose-500/15 border border-white/[0.06] hover:border-rose-500/30 text-slate-400 hover:text-rose-400 flex items-center justify-center transition flex-shrink-0">
-                <i class="fa-solid fa-power-off text-xs"></i>
             </a>
+            <div class="flex items-center gap-1.5 flex-shrink-0">
+                <a href="<?= base_url('akun/password') ?>" title="Keamanan Akun & Ubah Password"
+                    class="w-8 h-8 rounded-lg bg-white/[0.03] hover:bg-amber-500/15 border border-white/[0.06] hover:border-amber-500/30 text-slate-400 hover:text-amber-400 flex items-center justify-center transition">
+                    <i class="fa-solid fa-key text-xs"></i>
+                </a>
+                <a href="<?= base_url('logout') ?>" title="Keluar dari Sistem" onclick="return confirm('Yakin ingin keluar dari sesi SIMOR?');"
+                    class="w-8 h-8 rounded-lg bg-white/[0.03] hover:bg-rose-500/15 border border-white/[0.06] hover:border-rose-500/30 text-slate-400 hover:text-rose-400 flex items-center justify-center transition">
+                    <i class="fa-solid fa-power-off text-xs"></i>
+                </a>
+            </div>
         </div>
     </aside>
 
@@ -188,6 +200,11 @@
                     </button>
                 </div>
 
+                <a href="<?= base_url('akun/password') ?>" class="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/[0.03] hover:bg-amber-500/15 border border-white/[0.08] hover:border-amber-500/30 text-slate-300 hover:text-amber-400 text-xs font-semibold transition" title="Keamanan Akun & Ubah Password">
+                    <i class="fa-solid fa-key text-[11px] text-amber-500"></i>
+                    <span>Password</span>
+                </a>
+
                 <div class="hidden md:flex items-center gap-2 px-2.5 py-1 rounded-md bg-white/[0.02] border border-white/[0.06]">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
                     <span class="text-[11px] font-mono text-slate-300"><?= date('d M Y') ?></span>
@@ -201,16 +218,32 @@
 
         <main id="main-content" tabindex="-1" class="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6">
             <?php if (session()->getFlashdata('success')): ?>
-                <div role="status" class="ui-alert ui-alert--success mb-5 font-medium">
-                    <i class="fa-solid fa-circle-check text-sm text-emerald-400"></i>
-                    <span><?= session()->getFlashdata('success') ?></span>
+                <div role="status" class="simor-inline-alert simor-inline-alert--success mb-5">
+                    <i class="fa-solid fa-circle-check text-base shrink-0 mt-0.5"></i>
+                    <div class="flex-1 min-w-0">
+                        <span class="text-[11px] font-mono font-bold uppercase tracking-wider block mb-0.5">TELEMETRI // BERHASIL</span>
+                        <span class="text-xs"><?= session()->getFlashdata('success') ?></span>
+                    </div>
                 </div>
             <?php endif; ?>
 
             <?php if (session()->getFlashdata('error')): ?>
-                <div role="alert" class="ui-alert ui-alert--danger mb-5 font-medium">
-                    <i class="fa-solid fa-triangle-exclamation text-sm text-rose-400"></i>
-                    <span><?= session()->getFlashdata('error') ?></span>
+                <div role="alert" class="simor-inline-alert simor-inline-alert--error mb-5">
+                    <i class="fa-solid fa-triangle-exclamation text-base shrink-0 mt-0.5"></i>
+                    <div class="flex-1 min-w-0">
+                        <span class="text-[11px] font-mono font-bold uppercase tracking-wider block mb-0.5">ANOMALI // PERIKSA DATA</span>
+                        <span class="text-xs"><?= session()->getFlashdata('error') ?></span>
+                    </div>
+                </div>
+            <?php endif; ?>
+
+            <?php if (session()->getFlashdata('warning')): ?>
+                <div role="alert" class="simor-inline-alert simor-inline-alert--warning mb-5">
+                    <i class="fa-solid fa-shield-halved text-base shrink-0 mt-0.5"></i>
+                    <div class="flex-1 min-w-0">
+                        <span class="text-[11px] font-mono font-bold uppercase tracking-wider block mb-0.5">PERINGATAN OPERASI</span>
+                        <span class="text-xs"><?= session()->getFlashdata('warning') ?></span>
+                    </div>
                 </div>
             <?php endif; ?>
 
@@ -312,6 +345,33 @@
                 e.preventDefault();
             }
         }, { capture: true });
+    </script>
+
+    <!-- Simor Industrial Notification & Modal Engine -->
+    <script src="<?= base_url('assets/js/simor-notifications.js') ?>"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            <?php if (session()->getFlashdata('success')): ?>
+                if (window.SimorToast) {
+                    SimorToast.success(<?= json_encode(session()->getFlashdata('success')) ?>, 'OPERASI BERHASIL');
+                }
+            <?php endif; ?>
+            <?php if (session()->getFlashdata('error')): ?>
+                if (window.SimorToast) {
+                    SimorToast.error(<?= json_encode(session()->getFlashdata('error')) ?>, 'PERINGATAN SISTEM');
+                }
+            <?php endif; ?>
+            <?php if (session()->getFlashdata('warning')): ?>
+                if (window.SimorToast) {
+                    SimorToast.warning(<?= json_encode(session()->getFlashdata('warning')) ?>, 'PERHATIAN');
+                }
+            <?php endif; ?>
+            <?php if (session()->getFlashdata('info')): ?>
+                if (window.SimorToast) {
+                    SimorToast.info(<?= json_encode(session()->getFlashdata('info')) ?>, 'INFORMASI TELEMETRI');
+                }
+            <?php endif; ?>
+        });
     </script>
 
     <?= $this->renderSection('scripts') ?>

@@ -22,12 +22,20 @@ class Dashboard extends BaseController
 
         $rigs = $rigModel->getRigAktif();
 
-        // Ensure calculations are prepared for each active rig
-        foreach ($rigs as $r) {
-            $monthlySummaryModel->hitungDanSimpan($r['id'], $bulan, $tahun);
-        }
-
+        // Ambil summary yang sudah terhitung secara instan
         $summaries = $monthlySummaryModel->getByBulanTahun($bulan, $tahun);
+
+        // Hanya hitung otomatis jika ada rig yang belum memiliki record di database
+        $hasMissing = false;
+        foreach ($summaries as $s) {
+            if (empty($s['id'])) {
+                $monthlySummaryModel->hitungDanSimpan((int)$s['rig_id'], $bulan, $tahun);
+                $hasMissing = true;
+            }
+        }
+        if ($hasMissing) {
+            $summaries = $monthlySummaryModel->getByBulanTahun($bulan, $tahun);
+        }
 
         // ── High-level KPI metrics ─────────────────────────────────────
         $totalWellJob       = 0;

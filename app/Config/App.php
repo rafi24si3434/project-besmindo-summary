@@ -19,4 +19,31 @@ class App extends BaseConfig
     public string $permittedURIChars = 'a-z 0-9~%.:_\-';
     public array $proxyIPs = [];
     public bool $CSPEnabled = false;
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        // Otomatis deteksi baseURL bila dihosting di server / domain publik (resilient fallback)
+        if (PHP_SAPI !== 'cli' && isset($_SERVER['HTTP_HOST'])) {
+            $currentEnvBase = env('app.baseURL', $this->baseURL);
+            if (empty($currentEnvBase) || str_contains($currentEnvBase, 'localhost')) {
+                $host = $_SERVER['HTTP_HOST'];
+                if ($host !== 'localhost' && $host !== '127.0.0.1' && $host !== '::1') {
+                    $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+                        || (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443)
+                        || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+                    $scheme = $isHttps ? 'https://' : 'http://';
+
+                    // Deteksi sub-folder jika aplikasi diletakkan di subdirektori web hosting
+                    $scriptDir = dirname($_SERVER['SCRIPT_NAME'] ?? '');
+                    $scriptDir = str_replace('\\', '/', $scriptDir);
+                    $subPath   = trim($scriptDir, '/');
+                    $basePath  = $subPath !== '' ? '/' . $subPath . '/' : '/';
+
+                    $this->baseURL = $scheme . $host . $basePath;
+                }
+            }
+        }
+    }
 }

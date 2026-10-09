@@ -26,19 +26,30 @@ class RekapTahunan extends BaseController
     {
         $rigs = $this->rigModel->getRigAktif();
 
-        // Populate and recalculate 12 months for all rigs
-        for ($m = 1; $m <= 12; $m++) {
-            foreach ($rigs as $r) {
-                $this->monthlySummaryModel->hitungDanSimpan($r['id'], $m, $tahun);
+        // Ambil seluruh rekap tahunan yang sudah tersimpan di database dalam 1 query cepat
+        $existing = $this->monthlySummaryModel->where('tahun', $tahun)->orderBy('bulan', 'ASC')->findAll();
+
+        // Jika data tahun ini benar-benar belum pernah digenerate sama sekali, lakukan inisialisasi awal
+        if (empty($existing)) {
+            for ($m = 1; $m <= 12; $m++) {
+                foreach ($rigs as $r) {
+                    $this->monthlySummaryModel->hitungDanSimpan($r['id'], $m, $tahun);
+                }
             }
+            $existing = $this->monthlySummaryModel->where('tahun', $tahun)->orderBy('bulan', 'ASC')->findAll();
         }
 
-        // Fetch monthly summary for entire year
+        // Kelompokkan data per armada rig di memori PHP (0 query tambahan)
+        $summariesByRig = [];
+        foreach ($existing as $row) {
+            $summariesByRig[$row['rig_id']][] = $row;
+        }
+
         $annualData = [];
         foreach ($rigs as $r) {
             $annualData[$r['id']] = [
                 'rig'    => $r,
-                'months' => $this->monthlySummaryModel->getByRigTahun($r['id'], $tahun),
+                'months' => $summariesByRig[$r['id']] ?? [],
             ];
         }
 
@@ -61,12 +72,15 @@ class RekapTahunan extends BaseController
             return redirect()->to(base_url('rekap-tahunan'))->with('error', 'Rig tidak ditemukan.');
         }
 
-        for ($m = 1; $m <= 12; $m++) {
-            $this->monthlySummaryModel->hitungDanSimpan($rigId, $m, $tahun);
+        $months = $this->monthlySummaryModel->getByRigTahun($rigId, $tahun);
+        if (empty($months)) {
+            for ($m = 1; $m <= 12; $m++) {
+                $this->monthlySummaryModel->hitungDanSimpan($rigId, $m, $tahun);
+            }
+            $months = $this->monthlySummaryModel->getByRigTahun($rigId, $tahun);
         }
 
-        $months = $this->monthlySummaryModel->getByRigTahun($rigId, $tahun);
-        $rigs   = $this->rigModel->getRigAktif();
+        $rigs = $this->rigModel->getRigAktif();
 
         $data = [
             'title'         => "Rekap Tahunan {$rig['kode']} - Tahun {$tahun}",

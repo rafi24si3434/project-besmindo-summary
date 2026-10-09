@@ -45,9 +45,64 @@
             -webkit-appearance: none !important;
             margin: 0 !important;
         }
-        input[type="number"] {
-            -moz-appearance: textfield !important;
-            appearance: textfield !important;
+        /* SweetAlert2 Executive Styling */
+        .swal2-popup {
+            border-radius: 18px !important;
+            font-family: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif !important;
+            padding: 1.5rem !important;
+        }
+        html.dark .swal2-popup, html[data-theme="dark"] .swal2-popup {
+            background: #0d121d !important;
+            color: #f1f5f9 !important;
+            border: 1px solid rgba(255, 255, 255, 0.12) !important;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.65) !important;
+        }
+        html.dark .swal2-title, html[data-theme="dark"] .swal2-title {
+            color: #ffffff !important;
+            font-size: 1.15rem !important;
+            font-weight: 800 !important;
+        }
+        html.dark .swal2-html-container, html[data-theme="dark"] .swal2-html-container {
+            color: #94a3b8 !important;
+        }
+        .swal2-actions button {
+            border-radius: 10px !important;
+            font-weight: 700 !important;
+            font-size: 13px !important;
+            padding: 9px 20px !important;
+        }
+        /* SweetAlert2 Animated Checkmark / Success Icon Styling */
+        .swal2-icon.swal2-success {
+            border-color: #10b981 !important;
+        }
+        .swal2-icon.swal2-success [class^=swal2-success-line] {
+            background-color: #10b981 !important;
+        }
+        .swal2-icon.swal2-success .swal2-success-ring {
+            border: .25em solid rgba(16, 185, 129, 0.25) !important;
+        }
+        html.dark .swal2-icon.swal2-success [class^=swal2-success-circular-line],
+        html.dark .swal2-icon.swal2-success .swal2-success-fix,
+        html[data-theme="dark"] .swal2-icon.swal2-success [class^=swal2-success-circular-line],
+        html[data-theme="dark"] .swal2-icon.swal2-success .swal2-success-fix {
+            background-color: #0d121d !important;
+        }
+        html:not(.dark) .swal2-icon.swal2-success [class^=swal2-success-circular-line],
+        html:not(.dark) .swal2-icon.swal2-success .swal2-success-fix {
+            background-color: #ffffff !important;
+        }
+        /* SweetAlert2 Warning / Danger Icon Styling (Logout Confirmation) */
+        .swal2-icon.swal2-warning {
+            border-color: #f43f5e !important;
+            color: #f43f5e !important;
+        }
+        .swal2-icon.swal2-warning .swal2-icon-content {
+            color: #f43f5e !important;
+            font-family: 'Geist', sans-serif !important;
+            font-weight: 800 !important;
+        }
+        .swal2-timer-progress-bar {
+            background: #e11d48 !important;
         }
     </style>
 </head>
@@ -145,6 +200,22 @@
             </div>
         </div>
 
+        <!-- Lead Architect & Developer Credit Badge -->
+        <div class="px-3 py-2 border-t border-white/[0.07] bg-white/[0.01]">
+            <div class="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-white/[0.02] border border-white/[0.05] hover:border-emerald-500/30 transition-all group" title="Project Architected &amp; Engineered by Muhammad Rafi">
+                <div class="flex items-center gap-2 min-w-0">
+                    <div class="w-5 h-5 rounded-md bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-emerald-400 shrink-0 group-hover:bg-emerald-500/20 transition">
+                        <i class="fa-solid fa-code text-[10px]"></i>
+                    </div>
+                    <div class="truncate sidebar-text leading-tight">
+                        <span class="text-[9px] font-mono text-slate-500 uppercase tracking-wider block">Lead Architect</span>
+                        <span class="text-[11px] font-bold text-slate-300 group-hover:text-emerald-400 transition truncate block">Muhammad Rafi</span>
+                    </div>
+                </div>
+                <span class="sidebar-text text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shrink-0">ENG</span>
+            </div>
+        </div>
+
         <!-- Operator Session Footer -->
         <div class="p-3 border-t border-white/[0.07] bg-[#05070b] flex items-center justify-between gap-2">
             <a href="<?= base_url('akun/password') ?>" class="flex items-center gap-2.5 overflow-hidden group" title="Klik untuk Ubah Password & Keamanan Akun">
@@ -164,8 +235,8 @@
                     class="w-8 h-8 rounded-lg bg-white/[0.03] hover:bg-amber-500/15 border border-white/[0.06] hover:border-amber-500/30 text-slate-400 hover:text-amber-400 flex items-center justify-center transition">
                     <i class="fa-solid fa-key text-xs"></i>
                 </a>
-                <a href="<?= base_url('logout') ?>" title="Keluar dari Sistem" onclick="return confirm('Yakin ingin keluar dari sesi SIMOR?');"
-                    class="w-8 h-8 rounded-lg bg-white/[0.03] hover:bg-rose-500/15 border border-white/[0.06] hover:border-rose-500/30 text-slate-400 hover:text-rose-400 flex items-center justify-center transition">
+                <a href="<?= base_url('logout') ?>" id="btnSidebarLogout" title="Keluar dari Sistem (Logout)" onclick="return confirmLogout(event);"
+                    class="w-8 h-8 rounded-lg bg-white/[0.03] hover:bg-rose-500/15 border border-white/[0.06] hover:border-rose-500/30 text-slate-400 hover:text-rose-400 flex items-center justify-center transition cursor-pointer">
                     <i class="fa-solid fa-power-off text-xs"></i>
                 </a>
             </div>
@@ -347,9 +418,93 @@
         }, { capture: true });
     </script>
 
+    <!-- SweetAlert2 Enterprise Library -->
+    <script src="<?= base_url('assets/js/sweetalert2.all.min.js') ?>"></script>
+
     <!-- Simor Industrial Notification & Modal Engine -->
     <script src="<?= base_url('assets/js/simor-notifications.js') ?>"></script>
     <script>
+        // ═══ SWEETALERT2 EXECUTIVE LOGOUT CONFIRMATION ═══
+        function confirmLogout(e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            const logoutUrl = '<?= base_url('logout') ?>';
+            const isDark = document.documentElement.classList.contains('dark') || 
+                           document.documentElement.getAttribute('data-theme') === 'dark';
+
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: 'Keluar dari Sistem?',
+                    html: `
+                        <div style="font-size: 0.875rem; color: ${isDark ? '#94a3b8' : '#64748b'}; margin-top: 6px; line-height: 1.55;">
+                            Apakah Anda yakin ingin mengakhiri sesi operasional <strong style="color: ${isDark ? '#f1f5f9' : '#0f172a'};">SIMOR BMS</strong>?<br>
+                            Sesi Anda akan ditutup dan kredensial harus dimasukkan kembali.
+                        </div>
+                    `,
+                    icon: 'warning',
+                    iconColor: '#f43f5e',
+                    showCancelButton: true,
+                    confirmButtonText: '<i class="fa-solid fa-power-off mr-1.5"></i> Ya, Logout Sekarang',
+                    cancelButtonText: '<i class="fa-solid fa-xmark mr-1.5"></i> Batal',
+                    confirmButtonColor: '#e11d48',
+                    cancelButtonColor: isDark ? '#334155' : '#94a3b8',
+                    reverseButtons: true,
+                    focusCancel: true,
+                    background: isDark ? '#0d121d' : '#ffffff',
+                    color: isDark ? '#f1f5f9' : '#0f172a'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire({
+                            title: 'Mengakhiri Sesi...',
+                            html: '<div style="font-size: 0.85rem; color: #94a3b8; font-family: monospace;">Membersihkan kredensial &amp; mengunci telemetri...</div>',
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            showConfirmButton: false,
+                            timer: 600,
+                            timerProgressBar: true,
+                            background: isDark ? '#0d121d' : '#ffffff',
+                            color: isDark ? '#f1f5f9' : '#0f172a',
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        }).then(() => {
+                            window.location.href = logoutUrl;
+                        });
+                    }
+                });
+            } else if (window.SimorModal && typeof window.SimorModal.confirm === 'function') {
+                window.SimorModal.confirm({
+                    type: 'danger',
+                    title: 'Keluar dari Sistem?',
+                    message: 'Apakah Anda yakin ingin mengakhiri sesi operasional SIMOR BMS?',
+                    confirmText: 'Ya, Logout Sekarang',
+                    cancelText: 'Batal',
+                    metaTag: 'AUTH // TERMINATE_SESSION'
+                }).then((confirmed) => {
+                    if (confirmed) {
+                        window.location.href = logoutUrl;
+                    }
+                });
+            } else {
+                if (confirm('Yakin ingin keluar dari sesi SIMOR?')) {
+                    window.location.href = logoutUrl;
+                }
+            }
+            return false;
+        }
+
+        // Global click interceptor for any logout link in the DOM
+        document.addEventListener('click', (e) => {
+            const logoutLink = e.target.closest('a[href*="/logout"], a[href$="logout"], [data-action="logout"]');
+            if (logoutLink) {
+                e.preventDefault();
+                confirmLogout(e);
+            }
+        });
+
         document.addEventListener('DOMContentLoaded', () => {
             <?php if (session()->getFlashdata('success')): ?>
                 if (window.SimorToast) {

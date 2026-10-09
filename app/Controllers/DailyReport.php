@@ -72,19 +72,6 @@ class DailyReport extends BaseController
         $reports = $this->dailyReportModel->getByRigBulanTahun($rigId, $bulan, $tahun);
         $kategoriList = $this->kategoriModel->getKategoriAktif();
 
-        // Pastikan setiap sumur yang memiliki daily_report_log tersinkronisasi penuh (MIRU, OPS, SBWC, UNPAID, Total DT)
-        if (!empty($reports)) {
-            $db = \Config\Database::connect();
-            foreach ($reports as $rCheck) {
-                $hasLogCount = $db->table('daily_report_log')->where('daily_report_id', $rCheck['id'])->countAllResults();
-                if ($hasLogCount > 0) {
-                    $this->recalcParentWell((int)$rCheck['id']);
-                }
-            }
-            // Reload reports setelah rekalkulasi agar angka terbaru tampil
-            $reports = $this->dailyReportModel->getByRigBulanTahun($rigId, $bulan, $tahun);
-        }
-
         // Ambil rincian breakdown downtime per daily_report_id
         $dtDetails = [];
         if (!empty($reports)) {
@@ -620,22 +607,30 @@ class DailyReport extends BaseController
             ->orderBy('drl.tanggal', 'DESC')
             ->get()->getResultArray();
 
-        // Ambil tp_breakdown dari npt_harian (termasuk Tanpa Perusahaan / third_party_id IS NULL sebagai key 0)
+        // Batch query seluruh tp_breakdown bulan ini dalam 1 query (menghilangkan N+1 query loop)
+        $tpData = $db->table('npt_harian')
+            ->where('rig_id', $rigId)
+            ->where('MONTH(tanggal)', $bulan)
+            ->where('YEAR(tanggal)', $tahun)
+            ->where('kategori_id', 10)
+            ->get()->getResultArray();
+
+        $tpMapByDate = [];
+        foreach ($tpData as $t) {
+            $tDate = $t['tanggal'];
+            $tpKey = $t['third_party_id'] !== null ? (int)$t['third_party_id'] : 0;
+            $tpMapByDate[$tDate][$tpKey] = ($tpMapByDate[$tDate][$tpKey] ?? 0.0) + (float)$t['jam'];
+        }
+
+        // Susun rincian log harian
         foreach ($recentLogs as &$rl) {
             $rl['unpaid_hrs'] = (float)($rl['dt_rig'] ?? 0) + (float)($rl['dt_tool'] ?? 0);
             $rl['sbwc_hrs']   = max(0.0, (float)($rl['total_dt'] ?? 0) - $rl['unpaid_hrs']);
             $rl['tp_breakdown'] = [];
             if ((float)$rl['dt_3rd_party'] > 0) {
-                $tpData = $db->table('npt_harian')
-                    ->where('rig_id', $rigId)
-                    ->where('tanggal', $rl['tanggal'])
-                    ->where('kategori_id', 10)
-                    ->get()->getResultArray();
-                foreach ($tpData as $t) {
-                    $tpKey = $t['third_party_id'] !== null ? (int)$t['third_party_id'] : 0;
-                    $rl['tp_breakdown'][$tpKey] = ($rl['tp_breakdown'][$tpKey] ?? 0.0) + (float)$t['jam'];
-                }
-                if (empty($rl['tp_breakdown'])) {
+                if (!empty($tpMapByDate[$rl['tanggal']])) {
+                    $rl['tp_breakdown'] = $tpMapByDate[$rl['tanggal']];
+                } else {
                     $rl['tp_breakdown'][0] = (float)$rl['dt_3rd_party'];
                 }
             }

@@ -504,20 +504,22 @@
         color: #334155 !important;
     }
 
-    /* ═══ IN-PAGE SMART NEW WELL MODAL ═══ */
+    /* ═══ IN-PAGE SMART NEW WELL & CONFIRMATION MODALS ═══ */
     .lh-modal-backdrop {
         position: fixed;
         inset: 0;
         z-index: 9990;
-        background: rgba(6, 10, 18, 0.78);
-        backdrop-filter: blur(6px);
+        background: rgba(6, 10, 18, 0.72);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
         display: flex;
         align-items: center;
         justify-content: center;
         padding: 1rem;
         opacity: 0;
         pointer-events: none;
-        transition: opacity 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+        transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        overflow-y: auto;
     }
     .lh-modal-backdrop.is-open {
         opacity: 1;
@@ -525,17 +527,18 @@
     }
     .lh-modal-dialog {
         width: 100%;
-        max-width: 560px;
+        max-width: 500px;
         background: var(--lh-card-bg);
-        border: 1px solid var(--lh-input-border);
-        border-radius: 16px;
-        box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.65);
-        transform: translateY(10px);
-        transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+        border: 1px solid var(--lh-card-border);
+        border-radius: 20px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
+        transform: scale(0.96) translateY(8px);
+        transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         overflow: hidden;
+        max-height: calc(100vh - 2rem);
     }
     .lh-modal-backdrop.is-open .lh-modal-dialog {
-        transform: translateY(0);
+        transform: scale(1) translateY(0);
     }
 </style>
 
@@ -1435,154 +1438,6 @@ $nextNoWellAuto = $maxWellNo + 1;
     </div>
 </div>
 
-<!-- Modal Selesaikan Sumur -->
-<div id="modalSelesaikanSumur" class="lh-modal-backdrop" onclick="if(event.target===this) closeSelesaikanModal()">
-    <div class="lh-modal-dialog max-w-md w-full p-5" onclick="event.stopPropagation()">
-        <div class="flex items-center justify-between pb-3 border-b lh-divider-b mb-4">
-            <div class="flex items-center gap-2">
-                <span class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 font-black flex items-center justify-center text-sm">
-                    <i class="fa-solid fa-flag-checkered"></i>
-                </span>
-                <div>
-                    <h3 class="text-sm font-black lh-text-title" id="modalSelesaikanTitle">Selesaikan Pekerjaan Sumur</h3>
-                    <p class="text-[11px] lh-text-muted">Tetapkan tanggal berakhir &amp; tandai sumur telah rampung</p>
-                </div>
-            </div>
-            <button type="button" onclick="closeSelesaikanModal()" class="lh-badge-slate w-7 h-7 rounded-lg flex items-center justify-center text-xs cursor-pointer">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-
-        <form id="formSelesaikanSumur" method="POST" action="">
-            <?= csrf_field() ?>
-            <div class="space-y-3.5">
-                <div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-300 space-y-1">
-                    <p id="selesaikanWellSummaryText">Pekerjaan sumur ini akan ditandai <strong>JOB COMPLETED</strong> dengan tanggal akhir yang Anda tentukan di bawah.</p>
-                    <p class="text-[11px] text-emerald-400/90 flex items-center gap-1.5 pt-0.5">
-                        <i class="fa-solid fa-arrow-right text-[10px]"></i>
-                        <span>Setelah diselesaikan, sistem otomatis membuka form pendaftaran Sumur Baru (Well berikutnya).</span>
-                    </p>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold lh-text-sec mb-1">
-                        Tanggal Berakhir / Selesai <span class="text-rose-500">*</span>
-                    </label>
-                    <input type="date" name="tanggal_selesai" id="selesaikanTanggalInput" required
-                        min="<?= sprintf('%04d-%02d-01', $tahun, $bulan) ?>"
-                        max="<?= sprintf('%04d-%02d-%02d', $tahun, $bulan, cal_days_in_month(CAL_GREGORIAN, $bulan, $tahun)) ?>"
-                        class="lh-control-box w-full px-3 py-2 text-xs font-mono font-bold rounded-lg">
-                    <span class="text-[10px] lh-text-muted mt-0.5 block">Selesai pada tanggal log terakhir atau tentukan sesuai operasi di lapangan.</span>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold lh-text-sec mb-1">Status Akhir Pekerjaan</label>
-                    <select name="status_job" id="selesaikanStatusInput" class="lh-control-box w-full px-3 py-2 text-xs font-bold rounded-lg cursor-pointer">
-                        <option value="JOB COMPLETED" selected>JOB COMPLETED (Pekerjaan Selesai &amp; Rig Siap Pindah)</option>
-                        <option value="JOB SUSPEND">JOB SUSPEND (Ditangguhkan)</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="flex items-center justify-end gap-2 pt-4 mt-4 border-t lh-divider-t">
-                <button type="button" onclick="closeSelesaikanModal()" class="lh-secondary-btn !py-2 !px-3.5 text-xs font-bold">
-                    Batal
-                </button>
-                <button type="submit" class="lh-submit-btn !py-2 !px-4 text-xs font-bold flex items-center gap-1.5 !bg-emerald-600 hover:!bg-emerald-500 !text-white">
-                    <i class="fa-solid fa-check"></i>
-                    <span>Simpan &amp; Selesaikan Sumur →</span>
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Modal Konfirmasi Selesaikan Sumur & Pindah ke Sumur Baru (Simpan & Lanjut) -->
-<div id="modalConfirmCompleteAndNext" class="lh-modal-backdrop" onclick="if(event.target===this) closeConfirmCompleteModal()">
-    <div class="lh-modal-dialog max-w-lg w-full p-5 sm:p-6" onclick="event.stopPropagation()">
-        <!-- Header -->
-        <div class="flex items-center justify-between pb-3.5 border-b lh-divider-b mb-4">
-            <div class="flex items-center gap-3">
-                <span class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 font-black flex items-center justify-center text-base shrink-0 shadow-inner">
-                    <i class="fa-solid fa-flag-checkered"></i>
-                </span>
-                <div>
-                    <h3 class="text-sm sm:text-base font-black lh-text-title tracking-tight" id="modalCompleteNextTitle">
-                        Selesaikan Sumur &amp; Lanjut Buat Well Baru
-                    </h3>
-                    <p class="text-[11px] lh-text-muted mt-0.5">
-                        Simpan catatan hari ini, tandai pekerjaan sumur selesai, lalu buka form pendaftaran sumur baru.
-                    </p>
-                </div>
-            </div>
-            <button type="button" onclick="closeConfirmCompleteModal()" class="lh-badge-slate w-7 h-7 rounded-lg flex items-center justify-center text-xs cursor-pointer hover:bg-slate-700/50 transition">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-
-        <div class="space-y-3.5">
-            <!-- Ringkasan Pekerjaan Sumur yang Diselesaikan -->
-            <div class="p-3.5 rounded-xl bg-slate-900/40 border border-slate-700/50 space-y-2.5">
-                <div class="text-[11px] font-mono uppercase tracking-wider text-emerald-400 font-bold flex items-center gap-1.5">
-                    <i class="fa-solid fa-circle-check text-xs"></i>
-                    <span>Ringkasan Data Sumur yang Diselesaikan</span>
-                </div>
-
-                <div class="grid grid-cols-2 gap-2.5 text-xs">
-                    <div>
-                        <span class="lh-text-muted block text-[10px] uppercase font-mono">Pekerjaan Sumur</span>
-                        <span class="font-extrabold lh-text-title" id="confirmWellName">Well #1 (Lokasi)</span>
-                    </div>
-                    <div>
-                        <span class="lh-text-muted block text-[10px] uppercase font-mono">Tanggal Selesai (End Date)</span>
-                        <span class="font-mono font-bold text-emerald-400" id="confirmEndDate">15/09/2026</span>
-                    </div>
-                    <div>
-                        <span class="lh-text-muted block text-[10px] uppercase font-mono">Log Jam Hari Ini</span>
-                        <span class="font-mono font-bold lh-text-title" id="confirmTodayHours">24.00 Jam</span>
-                    </div>
-                    <div>
-                        <span class="lh-text-muted block text-[10px] uppercase font-mono">Rincian Jam</span>
-                        <span class="font-mono text-[11px] lh-text-sec" id="confirmHoursBreakdown">MIRU: 0j | OPS: 24j | DT: 0j</span>
-                    </div>
-                </div>
-
-                <div class="pt-2 border-t border-slate-700/40">
-                    <label class="block text-[11px] font-bold lh-text-sec mb-1">Status Akhir Pekerjaan Sumur:</label>
-                    <select id="confirmStatusJobSelect" class="lh-control-box w-full px-3 py-2 text-xs font-bold rounded-lg cursor-pointer">
-                        <option value="JOB COMPLETED" selected>JOB COMPLETED (Pekerjaan Selesai &amp; Rig Siap Pindah)</option>
-                        <option value="JOB SUSPEND">JOB SUSPEND (Pekerjaan Ditangguhkan)</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Transition Banner (Next Step) -->
-            <div class="p-3 rounded-xl bg-sky-500/10 border border-sky-500/25 flex items-start gap-3">
-                <div class="w-7 h-7 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center shrink-0 text-xs mt-0.5 font-mono font-bold">
-                    <i class="fa-solid fa-arrow-right"></i>
-                </div>
-                <div class="text-xs leading-relaxed">
-                    <span class="font-bold text-sky-300 block mb-0.5">Alur Kerja Berikutnya:</span>
-                    <p class="lh-text-sec text-[11px]">
-                        Setelah log tersimpan dan sumur ini ditandai selesai, sistem akan <strong>langsung mengarahkan Anda ke formulir pendaftaran Well #<span class="js-next-well-num">2</span></strong> dengan nomor dan tanggal kontinuitas yang otomatis tersinkronisasi.
-                    </p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Tombol Aksi -->
-        <div class="flex items-center justify-end gap-2.5 pt-3.5 mt-4 border-t lh-divider-t">
-            <button type="button" onclick="closeConfirmCompleteModal()" class="lh-secondary-btn !py-2.5 !px-4 text-xs font-bold cursor-pointer">
-                Batal / Periksa Kembali
-            </button>
-            <button type="button" id="btnConfirmCompleteExecute" onclick="executeSubmitCompleteAndNext()"
-                class="lh-submit-btn !py-2.5 !px-5 text-xs font-bold flex items-center gap-2 !bg-emerald-600 hover:!bg-emerald-500 !text-white shadow-lg shadow-emerald-600/30 cursor-pointer active:scale-95 transition">
-                <i class="fa-solid fa-flag-checkered text-xs"></i>
-                <span id="btnConfirmCompleteText">Ya, Selesaikan &amp; Lanjut Buat Well Baru →</span>
-            </button>
-        </div>
-    </div>
-</div>
 <?= $this->endSection() ?>
 
 <?= $this->section('scripts') ?>
@@ -2481,6 +2336,7 @@ $nextNoWellAuto = $maxWellNo + 1;
 
         if (modal) {
             modal.classList.add('is-open');
+            document.body.style.overflow = 'hidden';
             setTimeout(() => {
                 if (lokInput) lokInput.focus();
             }, 80);
@@ -2489,13 +2345,25 @@ $nextNoWellAuto = $maxWellNo + 1;
 
     function closeQuickWellModal() {
         const modal = document.getElementById('modalQuickNewWell');
-        if (modal) modal.classList.remove('is-open');
+        if (modal) {
+            modal.classList.remove('is-open');
+            document.body.style.overflow = '';
+        }
     }
 
-    function openModalSelesaikanSumur() {
+    async function openModalSelesaikanSumur() {
         const sel = document.getElementById('selectWell');
         if (!sel || !sel.value) {
-            alert('Pilih pekerjaan sumur terlebih dahulu.');
+            if (window.Swal) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Pilih Sumur',
+                    text: 'Silakan pilih pekerjaan sumur terlebih dahulu.',
+                    confirmButtonColor: '#059669'
+                });
+            } else {
+                alert('Silakan pilih pekerjaan sumur terlebih dahulu.');
+            }
             return;
         }
         const opt = sel.options[sel.selectedIndex];
@@ -2504,32 +2372,79 @@ $nextNoWellAuto = $maxWellNo + 1;
         const wellLok = opt.getAttribute('data-lokasi') || '';
         const wStart = opt.getAttribute('data-start') || '';
         const wEnd = opt.getAttribute('data-end') || '';
-        const activeDate = document.getElementById('inputTanggal').value;
-
-        const titleEl = document.getElementById('modalSelesaikanTitle');
-        const descEl = document.getElementById('selesaikanWellSummaryText');
-        const tglEl = document.getElementById('selesaikanTanggalInput');
-        const formEl = document.getElementById('formSelesaikanSumur');
-
-        if (titleEl) titleEl.textContent = `Selesaikan Well #${wellNo} (${wellLok})`;
-        if (descEl) descEl.innerHTML = `Pekerjaan <strong>Well #${wellNo} (${wellLok})</strong> (Mulai: ${formatShortIndoDate(wStart)}) akan diselesaikan secara resmi. Rekap bulanan rig akan otomatis dihitung ulang.`;
-        
+        const activeDate = document.getElementById('inputTanggal')?.value;
         const finishDate = activeDate || wEnd || periodMinDate;
-        if (tglEl) {
-            tglEl.value = finishDate;
-            tglEl.min = wStart || periodMinDate;
-        }
-        if (formEl) {
-            formEl.action = '<?= base_url('daily-report/selesaikan') ?>/' + wellId;
+
+        if (window.Swal) {
+            const swalRes = await Swal.fire({
+                icon: 'success',
+                title: `Selesaikan Pekerjaan Well #${wellNo}?`,
+                html: `
+                    <div style="text-align: left; font-size: 13px; line-height: 1.6; padding: 4px 6px;">
+                        <div style="display: grid; grid-template-columns: 120px 1fr; gap: 6px; padding: 10px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; margin-bottom: 12px; font-size: 12px;">
+                            <span style="opacity: 0.7;">Lokasi Sumur:</span>
+                            <span style="font-weight: 700;">${wellLok || 'Tanpa Lokasi'}</span>
+                            <span style="opacity: 0.7;">Tanggal Mulai:</span>
+                            <span style="font-weight: 700;">${formatShortIndoDate(wStart)}</span>
+                            <span style="opacity: 0.7;">Tanggal Selesai:</span>
+                            <span style="font-weight: 700;">${formatShortIndoDate(finishDate)} (${finishDate})</span>
+                            <span style="opacity: 0.7;">Status Akhir:</span>
+                            <span style="font-weight: 800; color: #10b981;">JOB COMPLETED</span>
+                        </div>
+                        <div style="font-size: 11.5px; opacity: 0.9; padding: 8px 12px; background: rgba(16, 185, 129, 0.1); border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.25);">
+                            <i class="fa-solid fa-flag-checkered" style="color: #10b981; margin-right: 4px;"></i>
+                            Pekerjaan sumur akan diselesaikan resmi dan sistem langsung mengarahkan Anda ke form pendaftaran sumur baru.
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: '<i class="fa-solid fa-check"></i> Ya, Selesaikan Sumur',
+                cancelButtonText: 'Batal',
+                confirmButtonColor: '#059669',
+                cancelButtonColor: '#475569',
+                reverseButtons: true,
+                focusConfirm: true
+            });
+            if (!swalRes.isConfirmed) return;
+        } else {
+            const confirmMsg =
+                `KONFIRMASI SELESAIKAN PEKERJAAN SUMUR\n` +
+                `=========================================\n\n` +
+                `Apakah Anda yakin ingin menyelesaikan pekerjaan Well #${wellNo}${wellLok ? ' (' + wellLok + ')' : ''}?\n\n` +
+                `• Tanggal Mulai   : ${formatShortIndoDate(wStart)}\n` +
+                `• Tanggal Selesai : ${formatShortIndoDate(finishDate)} (${finishDate})\n` +
+                `• Status Akhir    : JOB COMPLETED\n\n` +
+                `Setelah diselesaikan, status sumur akan ditandai JOB COMPLETED dan sistem langsung mengarahkan Anda ke form pendaftaran sumur baru.\n\n` +
+                `Klik OK untuk Menyelesaikan, atau Batal untuk periksa kembali.`;
+
+            if (!confirm(confirmMsg)) return;
         }
 
-        const modal = document.getElementById('modalSelesaikanSumur');
-        if (modal) modal.classList.add('is-open');
-    }
+        // Submit penyelesaian sumur langsung via POST tanpa modal
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '<?= base_url('daily-report/selesaikan') ?>/' + wellId;
 
-    function closeSelesaikanModal() {
-        const modal = document.getElementById('modalSelesaikanSumur');
-        if (modal) modal.classList.remove('is-open');
+        const csrf = document.createElement('input');
+        csrf.type = 'hidden';
+        csrf.name = '<?= csrf_token() ?>';
+        csrf.value = '<?= csrf_hash() ?>';
+        form.appendChild(csrf);
+
+        const tglInput = document.createElement('input');
+        tglInput.type = 'hidden';
+        tglInput.name = 'tanggal_selesai';
+        tglInput.value = finishDate;
+        form.appendChild(tglInput);
+
+        const statusInput = document.createElement('input');
+        statusInput.type = 'hidden';
+        statusInput.name = 'status_job';
+        statusInput.value = 'JOB COMPLETED';
+        form.appendChild(statusInput);
+
+        document.body.appendChild(form);
+        form.submit();
     }
 
     function lanjutHariBerikutnya() {
@@ -2757,16 +2672,34 @@ $nextNoWellAuto = $maxWellNo + 1;
         return false;
     }
 
-    function submitLogAndOpenNewWell() {
+    async function submitLogAndOpenNewWell() {
         const sel = document.getElementById('selectWell');
         if (!sel || !sel.value) {
-            alert('Silakan pilih pekerjaan sumur terlebih dahulu sebelum menyelesaikan sumur.');
+            if (window.Swal) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Pilih Sumur',
+                    text: 'Silakan pilih pekerjaan sumur terlebih dahulu sebelum menyelesaikan sumur.',
+                    confirmButtonColor: '#059669'
+                });
+            } else {
+                alert('Silakan pilih pekerjaan sumur terlebih dahulu sebelum menyelesaikan sumur.');
+            }
             return;
         }
 
         const tglInput = document.getElementById('inputTanggal');
         if (!tglInput || !tglInput.value) {
-            alert('Silakan tentukan tanggal operasi hari ini terlebih dahulu.');
+            if (window.Swal) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Tentukan Tanggal',
+                    text: 'Silakan tentukan tanggal operasi hari ini terlebih dahulu.',
+                    confirmButtonColor: '#059669'
+                });
+            } else {
+                alert('Silakan tentukan tanggal operasi hari ini terlebih dahulu.');
+            }
             return;
         }
 
@@ -2786,13 +2719,38 @@ $nextNoWellAuto = $maxWellNo + 1;
 
         if (combinedDayTotal > 24.001) {
             const lebih = (combinedDayTotal - 24.0).toFixed(2);
-            alert(`⚠️ Peringatan: Total jam pada tanggal ${formatShortIndoDate(curDateStr)} (${combinedDayTotal.toFixed(2)} Jam) melebihi batas 24.00 Jam per hari (+${lebih} Jam).\n\nHarap periksa dan sesuaikan jam MIRU, Operasi, atau Downtime terlebih dahulu sebelum menyelesaikan sumur.`);
+            const msg = `Total jam pada tanggal ${formatShortIndoDate(curDateStr)} (${combinedDayTotal.toFixed(2)} Jam) melebihi batas 24.00 Jam per hari (+${lebih} Jam).\n\nHarap periksa dan sesuaikan jam MIRU, Operasi, atau Downtime terlebih dahulu sebelum menyelesaikan sumur.`;
+            if (window.Swal) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Melebihi Batas 24 Jam',
+                    text: msg,
+                    confirmButtonColor: '#ef4444'
+                });
+            } else {
+                alert(`⚠️ Peringatan: ${msg}`);
+            }
             return;
         }
 
         if (grandTotal <= 0) {
-            const confirmZero = confirm(`Perhatian: Total jam operasi yang Anda input untuk tanggal ${formatShortIndoDate(curDateStr)} adalah 0.00 Jam.\n\nApakah Anda yakin ingin menyelesaikan pekerjaan sumur ini dengan catatan 0 jam hari ini?`);
-            if (!confirmZero) return;
+            let proceedZero = false;
+            if (window.Swal) {
+                const resZero = await Swal.fire({
+                    icon: 'warning',
+                    title: 'Jam Operasi 0.00 Jam?',
+                    text: `Total jam operasi untuk tanggal ${formatShortIndoDate(curDateStr)} adalah 0.00 Jam. Apakah Anda yakin ingin menyelesaikan pekerjaan sumur ini dengan catatan 0 jam hari ini?`,
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Lanjutkan',
+                    cancelButtonText: 'Periksa Kembali',
+                    confirmButtonColor: '#f59e0b',
+                    cancelButtonColor: '#64748b'
+                });
+                proceedZero = resZero.isConfirmed;
+            } else {
+                proceedZero = confirm(`Perhatian: Total jam operasi yang Anda input untuk tanggal ${formatShortIndoDate(curDateStr)} adalah 0.00 Jam.\n\nApakah Anda yakin ingin menyelesaikan pekerjaan sumur ini dengan catatan 0 jam hari ini?`);
+            }
+            if (!proceedZero) return;
         }
 
         const opt = sel.options[sel.selectedIndex];
@@ -2800,64 +2758,80 @@ $nextNoWellAuto = $maxWellNo + 1;
         const wellLok = opt.getAttribute('data-lokasi') || '';
         const params  = computeSmartNextWellParams();
 
-        // Isi data dinamis ke modal konfirmasi
-        const titleEl = document.getElementById('modalCompleteNextTitle');
-        const nameEl  = document.getElementById('confirmWellName');
-        const endEl   = document.getElementById('confirmEndDate');
-        const hrsEl   = document.getElementById('confirmTodayHours');
-        const brkEl   = document.getElementById('confirmHoursBreakdown');
-        const btnTxt  = document.getElementById('btnConfirmCompleteText');
-        const btnExe  = document.getElementById('btnConfirmCompleteExecute');
+        // SweetAlert2 Confirmation Pop-Up dengan Animasi Ceklis
+        if (window.Swal) {
+            const swalRes = await Swal.fire({
+                icon: 'success',
+                title: `Selesaikan Well #${wellNo} &amp; Buat Well #${params.nextNo}?`,
+                html: `
+                    <div style="text-align: left; font-size: 13px; line-height: 1.6; padding: 4px 6px;">
+                        <div style="display: grid; grid-template-columns: 120px 1fr; gap: 6px; padding: 10px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; margin-bottom: 12px; font-size: 12px;">
+                            <span style="opacity: 0.7;">Lokasi Sumur:</span>
+                            <span style="font-weight: 700;">${wellLok || 'Tanpa Lokasi'}</span>
+                            <span style="opacity: 0.7;">Tanggal Selesai:</span>
+                            <span style="font-weight: 700;">${formatShortIndoDate(curDateStr)} (${curDateStr})</span>
+                            <span style="opacity: 0.7;">Jam Hari Ini:</span>
+                            <span style="font-weight: 700;">${grandTotal.toFixed(2)} Jam (MIRU: ${miru.toFixed(2)}j, OPS: ${ops.toFixed(2)}j, DT: ${dtSum.toFixed(2)}j)</span>
+                            <span style="opacity: 0.7;">Status Akhir:</span>
+                            <span style="font-weight: 800; color: #10b981;">JOB COMPLETED</span>
+                        </div>
+                        <div style="font-size: 11.5px; opacity: 0.9; padding: 8px 12px; background: rgba(16, 185, 129, 0.1); border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.25);">
+                            <i class="fa-solid fa-arrow-right" style="color: #10b981; margin-right: 4px;"></i>
+                            Setelah disimpan, sumur otomatis ditandai <b>SELESAI</b> dan sistem akan langsung membuka formulir pendaftaran <b>Well #${params.nextNo}</b>.
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: `<i class="fa-solid fa-flag-checkered"></i> Ya, Selesaikan &amp; Lanjut Well #${params.nextNo}`,
+                cancelButtonText: 'Batal / Periksa Kembali',
+                confirmButtonColor: '#059669',
+                cancelButtonColor: '#475569',
+                reverseButtons: true,
+                focusConfirm: true
+            });
 
-        if (titleEl) titleEl.innerHTML = `Selesaikan Well #${wellNo} &amp; Lanjut Buat Well #${params.nextNo}`;
-        if (nameEl) nameEl.textContent = `Well #${wellNo} (${wellLok || 'Tanpa Lokasi'})`;
-        if (endEl) endEl.textContent = `${formatShortIndoDate(curDateStr)} (${curDateStr})`;
-        if (hrsEl) hrsEl.textContent = `${grandTotal.toFixed(2)} Jam (Hari Ini)`;
-        if (brkEl) brkEl.textContent = `MIRU: ${miru.toFixed(2)}j · OPS: ${ops.toFixed(2)}j · DT: ${dtSum.toFixed(2)}j`;
-        if (btnTxt) btnTxt.innerHTML = `Ya, Selesaikan &amp; Lanjut Buat Well #${params.nextNo} →`;
-        if (btnExe) {
-            btnExe.disabled = false;
+            if (!swalRes.isConfirmed) {
+                return;
+            }
+        } else {
+            const confirmMsg =
+                `KONFIRMASI PENYELESAIAN SUMUR\n` +
+                `=========================================\n\n` +
+                `Apakah Anda yakin ingin menyelesaikan Well #${wellNo}${wellLok ? ' (' + wellLok + ')' : ''}?\n\n` +
+                `• Tanggal Selesai    : ${formatShortIndoDate(curDateStr)} (${curDateStr})\n` +
+                `• Total Jam Hari Ini : ${grandTotal.toFixed(2)} Jam (MIRU: ${miru.toFixed(2)}j, OPS: ${ops.toFixed(2)}j, DT: ${dtSum.toFixed(2)}j)\n` +
+                `• Status Akhir       : JOB COMPLETED\n\n` +
+                `Setelah disimpan, status sumur otomatis menjadi JOB COMPLETED dan sistem langsung mengarahkan Anda ke form pendaftaran Well #${params.nextNo}.\n\n` +
+                `Klik OK untuk Menyimpan & Melanjutkan, atau Batal untuk memeriksa kembali.`;
+
+            if (!confirm(confirmMsg)) {
+                return;
+            }
         }
 
-        updateNextWellNumberBadges(params.nextNo);
-
-        const modal = document.getElementById('modalConfirmCompleteAndNext');
-        if (modal) modal.classList.add('is-open');
-    }
-
-    function closeConfirmCompleteModal() {
-        const modal = document.getElementById('modalConfirmCompleteAndNext');
-        if (modal) modal.classList.remove('is-open');
-    }
-
-    function executeSubmitCompleteAndNext() {
         const form = document.getElementById('formDailyLog');
         const actionInput = document.getElementById('inputAfterSaveAction');
         const selesaikanInput = document.getElementById('inputSelesaikanSumur');
         const statusJobInput = document.getElementById('inputStatusJob');
-        const statusSelect = document.getElementById('confirmStatusJobSelect');
         const selectStatusJob = document.getElementById('selectStatusJob');
-        const btnExecute = document.getElementById('btnConfirmCompleteExecute');
+        const btnSaveNew = document.getElementById('btnSaveAndNewWell');
 
         if (!form) return;
 
-        const chosenStatus = statusSelect ? statusSelect.value : 'JOB COMPLETED';
-
+        // LANGSUNG SAJA: Set data penyelesaian sumur & rute ke penambahan well baru
         if (actionInput) actionInput.value = 'goto_tambah_sumur';
         if (selesaikanInput) selesaikanInput.value = '1';
-        if (statusJobInput) statusJobInput.value = chosenStatus;
-        if (selectStatusJob) selectStatusJob.value = chosenStatus;
+        if (statusJobInput) statusJobInput.value = 'JOB COMPLETED';
+        if (selectStatusJob) selectStatusJob.value = 'JOB COMPLETED';
 
-        if (btnExecute) {
-            btnExecute.disabled = true;
-            btnExecute.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xs"></i> <span>Menyimpan &amp; Menyelesaikan Sumur...</span>';
+        // Tampilkan status loading langsung pada tombol utama
+        if (btnSaveNew) {
+            btnSaveNew.disabled = true;
+            btnSaveNew.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-xs"></i> <span>Menyimpan &amp; Menyelesaikan Well #${wellNo} → Lanjut Buat Well #${params.nextNo}...</span>`;
         }
 
-        if (form.requestSubmit) {
-            form.requestSubmit();
-        } else {
-            form.submit();
-        }
+        // Submit form langsung secara native tanpa modal perantara
+        form.submit();
     }
 
     function highlightActiveHistoryRow(rowKey) {
@@ -2963,8 +2937,7 @@ $nextNoWellAuto = $maxWellNo + 1;
 
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
-            closeConfirmCompleteModal();
-            closeSelesaikanModal();
+            closeQuickWellModal();
         }
     });
 

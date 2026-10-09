@@ -2521,14 +2521,14 @@ class Export extends BaseController
      */
     public function rekapNptTahunan(int $tahun)
     {
-        $originalFile = 'C:\\Users\\LENOVO\\Downloads\\System\\REKAP NPT TAHUN  2026 SYS.xlsx';
-        if (file_exists($originalFile)) {
+        $templateFile = WRITEPATH . 'template' . DIRECTORY_SEPARATOR . 'REKAP_NPT_TAHUN_2026_SYS.xlsx';
+        if (file_exists($templateFile)) {
             $filename = "REKAP_NPT_TAHUN_{$tahun}_SYS.xlsx";
             header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
             header('Content-Disposition: attachment;filename="' . $filename . '"');
-            header('Content-Length: ' . filesize($originalFile));
+            header('Content-Length: ' . filesize($templateFile));
             header('Cache-Control: max-age=0');
-            readfile($originalFile);
+            readfile($templateFile);
             exit;
         }
 

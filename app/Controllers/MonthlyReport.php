@@ -33,12 +33,20 @@ class MonthlyReport extends BaseController
     {
         $rigs = $this->rigModel->getRigAktif();
 
-        // Calculate and cache KPIs for all active rigs
-        foreach ($rigs as $r) {
-            $this->monthlySummaryModel->hitungDanSimpan($r['id'], $bulan, $tahun);
-        }
-
+        // Ambil summary yang sudah terhitung secara instan
         $summaries = $this->monthlySummaryModel->getByBulanTahun($bulan, $tahun);
+
+        // Hanya hitung otomatis jika ada rig yang belum memiliki record di database
+        $hasMissing = false;
+        foreach ($summaries as $s) {
+            if (empty($s['id'])) {
+                $this->monthlySummaryModel->hitungDanSimpan((int)$s['rig_id'], $bulan, $tahun);
+                $hasMissing = true;
+            }
+        }
+        if ($hasMissing) {
+            $summaries = $this->monthlySummaryModel->getByBulanTahun($bulan, $tahun);
+        }
         $kategoriList = $this->kategoriModel->getKategoriAktif();
         $summaryAllRig = $this->nptModel->getSummaryAllRig($bulan, $tahun);
 

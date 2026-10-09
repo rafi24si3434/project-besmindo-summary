@@ -128,21 +128,23 @@ class Npt extends BaseController
             $monthData = $this->buildSysMonthDataFromDb($allRigs, $bulan, $tahun);
         }
 
-        // Akumulasi tahunan grand_total secara dinamis (gabungan arsip JSON & live DB untuk bulan-bulan baru)
+        // Akumulasi tahunan grand_total secara dinamis (hanya dihitung saat tab tahunan aktif untuk efisiensi beban server)
         $annualNptData = $nptJson;
-        $dynamicGrandTotal = array_fill(0, 34, 0.0);
-        for ($m = 1; $m <= 12; $m++) {
-            $mData = $nptJson['months'][$m] ?? $nptJson['months'][(string)$m] ?? null;
-            if (empty($mData) || empty($mData['totals'])) {
-                $mData = $this->buildSysMonthDataFromDb($allRigs, $m, $tahun);
-            }
-            if (!empty($mData['totals'])) {
-                for ($c = 2; $c <= 32; $c++) {
-                    $dynamicGrandTotal[$c] += (float)($mData['totals'][$c] ?? 0);
+        if ($activeTab === 'tahunan') {
+            $dynamicGrandTotal = array_fill(0, 34, 0.0);
+            for ($m = 1; $m <= 12; $m++) {
+                $mData = $nptJson['months'][$m] ?? $nptJson['months'][(string)$m] ?? null;
+                if (empty($mData) || empty($mData['totals'])) {
+                    $mData = $this->buildSysMonthDataFromDb($allRigs, $m, $tahun);
+                }
+                if (!empty($mData['totals'])) {
+                    for ($c = 2; $c <= 32; $c++) {
+                        $dynamicGrandTotal[$c] += (float)($mData['totals'][$c] ?? 0);
+                    }
                 }
             }
+            $annualNptData['grand_total'] = $dynamicGrandTotal;
         }
-        $annualNptData['grand_total'] = $dynamicGrandTotal;
 
         // ══════════════════════════════════════════════════════════════
         // DATA TAB 4: LOG KRONOLOGIS DOWNTIME
@@ -313,7 +315,7 @@ class Npt extends BaseController
             // Dataset Legacy & Tambahan:
             'activeTab'               => $activeTab,
             'monthlyAllRigData'       => $monthlyAllRigData,
-            'annualNptData'           => $nptJson,
+            'annualNptData'           => $annualNptData,
             'monthData'               => $monthData,
             'rigListNames'            => $rigListNames,
             'selectedChronoRig'       => $selectedChronoRig,
